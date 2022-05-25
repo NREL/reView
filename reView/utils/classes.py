@@ -207,40 +207,40 @@ class CountyCode:
 
     @classmethod
     def fips(cls, county, state):
-        """_summary_
+        """Get FIPS code for county.
 
         Parameters
         ----------
-        county : _type_
-            _description_
-        state : _type_
-            _description_
+        county : str
+            Name of county.
+        state : str
+            Name of state.
 
         Returns
         -------
-        _type_
-            _description_
+        str
+            County FIPS code.
         """
         return cls._ADD_FIPS.get_county_fips(county, state=state)
 
+    # pylint: disable=no-member
     @classmethod
     def epsg(cls, county, state):
-        """_summary_
+        """Get EPSG code for county.
 
         Parameters
         ----------
-        county : _type_
-            _description_
-        state : _type_
-            _description_
+        county : str
+            Name of county.
+        state : str
+            Name of state.
+
 
         Returns
         -------
-        _type_
-            _description_
+        str
+            County EPSG code.
         """
         fips = cls.fips(county, state)
         mask = cls._COUNTY_EPSG.county_fp == fips
         return cls._COUNTY_EPSG.loc[mask, 'epsg'].values[0]
-
-
