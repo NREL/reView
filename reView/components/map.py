@@ -452,8 +452,9 @@ def build_title(df, signal_dict, map_selection=None, chart_selection=None):
     return title
 
 
+# should do something more rigorous than this
 def infer_recalc(title):
-    """Quick title fix for recalc least cost paths."""  # <-------------------- Do better
+    """Quick title fix for recalc least cost paths."""
     variables = ["fcr", "capex", "opex", "losses"]
     if "least" in title.lower():
         title = " ".join(title.split(" ")[:-1])
