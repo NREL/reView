@@ -1,5 +1,11 @@
 # reView
 
+.. image:: https://github.com/NREL/reView/workflows/Pytests/badge.svg
+    :target: https://github.com/NREL/reView/actions?query=workflow%3A%22Pytests%22
+
+.. image:: https://github.com/NREL/reView/workflows/Lint%20Code%20Base/badge.svg
+    :target: https://github.com/NREL/reView/actions?query=workflow%3A%22Lint+Code+Base%22
+
 `reView` is a data portal for reviewing Renewable Energy Potential Model ([reV](https://github.com/NREL/reV)) aggregation or supply-curve module outputs. Once a user has generated tables with`reV`, reView allows that user to view the data as an interactive map linked to an interactive graphs, allowing for quick exploration of `reV` outputs. Other functionality allows the user to filter the dataset based on variable thresholds, calculate differences between two tables, compare multiple tables in one chart, group results by region, and calculate least-cost scenarios at each point with more functionality coming soon.
 
 `reView` is currently in under development, but is functional.
@@ -39,7 +45,7 @@
     ```
     reView
     ```
-2. Open your browser and enter the url output from command above. The default port is 8050.
+2. Open your browser and enter the URL output from command above. The default port is 8050.
     ```
     http://localhost:8050
     ```
@@ -61,7 +67,7 @@
     gunicorn reView/index:server
     ```
 
-3. Open your browser and enter the url output from command above. The default port is 9875.
+3. Open your browser and enter the URL output from command above. The default port is 9875.
     ```
     http://localhost:9875
     ```

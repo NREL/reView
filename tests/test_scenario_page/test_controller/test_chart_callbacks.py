@@ -3,7 +3,7 @@
 import pytest
 
 
-from reView.pages.scenario.scenario_callbacks import (
+from reView.pages.scenario.controller.callbacks import (
     options_chart_type,
     chart_tab_div_children,
     chart_tab_styles,
@@ -23,7 +23,7 @@ def test_options_chart_type():
     "tab_choice", ["chart", "x_variable", "region", "scenarios"]
 )
 def test_chart_tab_styles(tab_choice):
-    """Test that only options for one chart tabs are displayer."""
+    """Test that only options for one chart tabs are displayed."""
     styles = chart_tab_styles(tab_choice)
     assert sum(s != {"display": "none"} for s in styles) == 1
 

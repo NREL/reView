@@ -15,7 +15,6 @@ import os
 
 from pathlib import Path
 
-import dash
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
@@ -24,7 +23,6 @@ from dash import dcc
 from dash import html
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
-from sklearn.metrics import DistanceMetric
 
 from reView.app import app
 from reView.layout.styles import BUTTON_STYLES, TABLET_STYLE, RC_STYLES
@@ -33,209 +31,31 @@ from reView.layout.options import (
     COLOR_OPTIONS,
     COLOR_Q_OPTIONS,
 )
-from reView.pages.scenario.element_builders import (
-    build_title,
-    Map
+from reView.components.map import Map, build_title
+from reView.pages.scenario.controller.element_builders import Plots
+from reView.pages.scenario.controller.selection import (
+    all_files_from_selection,
+    choose_scenario,
+    parse_selection,
+    scrape_variable_options,
 )
-from reView.pages.scenario.scenario_data import (
+from reView.pages.scenario.model import (
     apply_all_selections,
-    Plots,
     calc_least_cost,
+    cache_map_data,
     cache_table,
     cache_chart_tables,
 )
 from reView.utils.constants import SKIP_VARS
-from reView.utils.functions import convert_to_title
+from reView.utils.functions import (
+    convert_to_title,
+    callback_trigger,
+    format_capacity_title
+)
 from reView.utils.config import Config
-from reView.utils import args
+from reView.utils import calls
 
 logger = logging.getLogger(__name__)
-
-
-DIST_METRIC = DistanceMetric.get_metric("haversine")
-# PCA_DF = pd.read_csv(
-#     Path.home() / "review_datasets" / "hydrogen_pca" / "pca_df_300_sites.csv"
-# )
-
-
-def all_files_from_selection(selected_options, config):
-    """_summary_
-
-    Parameters
-    ----------
-    selected_options : _type_
-        _description_
-    config : _type_
-        _description_
-
-    Returns
-    -------
-    _type_
-        _description_
-
-    Raises
-    ------
-    ValueError
-        _description_
-    """
-    try:
-        df = config.options.copy()
-    except AttributeError:
-        raise ValueError("Missing project options csv!") from None
-
-    for k, v in selected_options.items():
-        df = df[df[k] == v["value"]]
-    return df
-
-
-
-# def build_pca_plot(
-#     color, x, y, z, camera=None, ymin=None, ymax=None, state="CONUS"
-# ):
-#     """Build a Plotly pca plot."""
-
-#     # Create hover text
-#     # if units == "category":
-#     #     df["text"] = (
-#     #         df["county"]
-#     #         + " County, "
-#     #         + df["state"]
-#     #         + ": <br>   "
-#     #         + df[y].astype(str)
-#     #         + " "
-#     #         + units
-#     #     )
-#     # else:
-#     #     extra_str = ""
-#     #     if "hydrogen_annual_kg" in df:
-#     #         extra_str += (
-#     #             "<br>    H2 Supply:    "
-#     #             + df["hydrogen_annual_kg"].apply(lambda x: f"{x:,}")
-#     #             + " kg    "
-#     #         )
-#     #     if "dist_to_selected_load" in df:
-#     #         extra_str += (
-#     #             "<br>    Dist to load:    "
-#     #             + df["dist_to_selected_load"].apply(lambda x: f"{x:,.2f}")
-#     #             + " km    "
-#     #         )
-
-#     #     df["text"] = (
-#     #         df["county"]
-#     #         + " County, "
-#     #         + df["state"]
-#     #         + ":"
-#     #         + extra_str
-#     #         + f"<br>    {convert_to_title(y)}:   "
-#     #         + df[y].round(2).astype(str)
-#     #         + " "
-#     #         + units
-#     #     )
-
-#     # marker = dict(
-#     #     color=df[y],
-#     #     colorscale=pcolor,
-#     #     cmax=None if ymax is None else float(ymax),
-#     #     cmin=None if ymin is None else float(ymin),
-#     #     opacity=1.0,
-#     #     reversescale=rev_color,
-#     #     size=point_size,
-#     #     colorbar=dict(
-#     #         title=dict(
-#     #             text=units,
-#     #             font=dict(
-#     #                 size=15, color="white", family="New Times Roman"
-#     #             ),
-#     #         ),
-#     #         tickfont=dict(color="white", family="New Times Roman"),
-#     #     ),
-#     # )
-
-#     # Create data object
-#     # figure = px.scatter_mapbox(
-#     #     data_frame=df,
-#     #     lon="longitude",
-#     #     lat="latitude",
-#     #     custom_data=["sc_point_gid", "print_capacity"],
-#     #     hover_name="text",
-#     # )
-
-#     principal_df = PCA_DF[PCA_DF.State == state]
-#     features = [
-#         "electrolyzer_size_ratio",
-#         "wind_cost_multiplier",
-#         "fcr",
-#         "water_cost_multiplier",
-#         "pipeline_cost_multiplier",
-#         "electrolyzer_size_mw",
-#         "electrolyzer_capex_per_mw",
-#     ]
-#     range_color = (
-#         None if ymin is None else float(ymin),
-#         None if ymax is None else float(ymax),
-#     )
-#     figure = px.scatter_3d(
-#         principal_df,
-#         x=x,
-#         y=y,
-#         z=z,
-#         color=color,
-#         range_color=range_color,
-#         size_max=15,
-#         # marker=dict(size=3, symbol="circle"),
-#         hover_name=principal_df[color],
-#         hover_data=features,
-#         custom_data=["file"],
-#         # text=[f for f in principal_df['file']]
-#     )
-#     # figure.update_traces(marker=marker)
-#     if camera is not None:
-#         figure.update_layout(scene_camera=camera)
-#     # figure = make_subplots(rows=1, cols=2,
-#     #                        shared_xaxes=True,
-#     #                        shared_yaxes=True,
-#     #                        specs=[[
-#     #                            {'type': 'surface'},
-#     #                            {'type': 'surface'}
-#     #                         ]],
-#     #                     # vertical_spacing=0.02
-#     #                     )
-#     # scatter = go.Scatter3d(x = principal_df['pc1'],
-#     #                        y = principal_df['pc2'],
-#     #                        z = principal_df['pc3'],
-#     #                        mode ='markers',
-#     #                        marker = dict(
-#     #                         size = 12,
-#     #                         color = principal_df[y],
-#     #                         # colorscale ='Viridis',
-#     #                         # opacity = 0.8
-#     #                     )
-#     #                     )
-#     # scatter2 = go.Scatter3d(x = principal_df['pc1'],
-#     #                        y = principal_df['pc2'],
-#     #                        z = principal_df['pc3'],
-#     #                        mode ='markers',
-#     #                        marker = dict(
-#     #                         size = 12,
-#     #                         color = principal_df[y],
-#     #                         # colorscale ='Viridis',
-#     #                         # opacity = 0.8
-#     #                     )
-#     #                     )
-
-#     # figure.add_trace(scatter, row=1, col=1)
-#     # figure.add_trace(scatter2, row=1, col=2)
-
-#     # figure.update_layout(height=600, width=600,
-#     #                      title_text="Stacked Subplots with Shared X-Axes")
-
-#     # Update the layout
-#     # layout_ = build_map_layout(
-#     #     title, basemap, showlegend, ymin, ymax
-#     # )
-#     # figure.update_layout(**layout_)
-
-#     return figure
 
 
 def build_specs(scenario, project):
@@ -266,8 +86,6 @@ def build_spec_split(path, project):
     return table
 
 
-
-
 def chart_tab_styles(tab_choice):
     """Set correct tab styles for the chosen option."""
     styles = [{"display": "none"}] * 4
@@ -289,7 +107,7 @@ def chart_tab_div_children(chart_choice):
         )
     ]
 
-    # Add x variable otpion if needed
+    # Add x variable option if needed
     if chart_choice not in {"box", "histogram"}:
         children += [
             dcc.Tab(
@@ -322,192 +140,13 @@ def chart_tab_div_children(chart_choice):
     return children
 
 
-def choose_scenario(scenario_options, config):
-    """_summary_
-
-    Parameters
-    ----------
-    scenario_options : _type_
-        _description_
-    config : _type_
-        _description_
-
-    Returns
-    -------
-    _type_
-        _description_
-    """
-    selected_options = parse_selection(scenario_options)
-    logger.debug("selected_options = %s", selected_options)
-    if not selected_options:
-        # TODO what if `files` is empty?
-        # How to tell user no files found in dir?
-        return list(config.files.values())[0]
-
-    if "Scenario" in selected_options:
-        return selected_options["Scenario"]["value"]
-
-    return file_for_selections(selected_options, config)
-
-
-def closest_demand_to_coords(selection_coords, demand_data):
-    """_summary_
-
-    Parameters
-    ----------
-    selection_coords : _type_
-        _description_
-    demand_data : _type_
-        _description_
-
-    Returns
-    -------
-    _type_
-        _description_
-    """
-    demand_coords = demand_data[["latitude", "longitude"]].values
-    demand_coords_rad = np.radians(demand_coords)
-    out = DIST_METRIC.pairwise(np.r_[selection_coords, demand_coords_rad])
-    load_center_ind = np.argmin(out[0][1:])
-    return load_center_ind
-
-
-def closest_load_center(load_center_ind, demand_data):
-    """_summary_
-
-    Parameters
-    ----------
-    load_center_ind : _type_
-        _description_
-    demand_data : _type_
-        _description_
-
-    Returns
-    -------
-    _type_
-        _description_
-    """
-    demand_coords = demand_data[["latitude", "longitude"]].values
-    demand_coords_rad = np.radians(demand_coords)
-    load_center_info = demand_data.iloc[load_center_ind]
-    load_center_coords = demand_coords_rad[load_center_ind]
-    load = load_center_info[["load"]].values[0]
-    return load_center_coords, load
-
-
-def file_for_selections(selected_options, config):
-    """_summary_
-
-    Parameters
-    ----------
-    selected_options : _type_
-        _description_
-    config : _type_
-        _description_
-
-    Returns
-    -------
-    _type_
-        _description_
-    """
-    row = all_files_from_selection(selected_options, config)
-    logger.debug("row = %s", row)
-    if "file" in row:
-        logger.debug("file = %s", row["file"].values[0])
-        return row["file"].values[0]
-
-    name = row["name"].values[0]
-    logger.debug("name = %s", name)
-    file = config.files.get(f"{name}")
-    logger.debug("file = %s", file)
-    return file
-
-
-def filter_points_by_demand(df, load_center_coords, load):
-    """_summary_
-
-    Parameters
-    ----------
-    df : _type_
-        _description_
-    load_center_coords : _type_
-        _description_
-    load : _type_
-        _description_
-
-    Returns
-    -------
-    _type_
-        _description_
-    """
-    sc_coords = df[["latitude", "longitude"]].values
-    sc_coords = np.radians(sc_coords)
-    load_center_coords = np.array(load_center_coords).reshape(-1, 2)
-    out = DIST_METRIC.pairwise(load_center_coords, sc_coords)
-    # print(out.shape, df.shape)
-    df["dist_to_selected_load"] = out.reshape(-1) * 6373.0
-    df["selected_load_pipe_lcoh_component"] = (
-        df["pipe_lcoh_component"]
-        / df["dist_to_h2_load_km"]
-        * df["dist_to_selected_load"]
-    )
-    df["selected_lcoh"] = (
-        df["no_pipe_lcoh_fcr"] + df["selected_load_pipe_lcoh_component"]
-    )
-    df = df.sort_values("selected_lcoh")
-    df["h2_supply"] = df["hydrogen_annual_kg"].cumsum()
-    where_inds = np.where(df["h2_supply"] >= load)[0]
-    # print(f'{load=}')
-    max_supply = df["h2_supply"].max()
-    # print(f'{max_supply=}')
-    # print(f'{where_inds=}')
-    if where_inds.size > 0:
-        final_ind = np.where(df["h2_supply"] >= load)[0].min() + 1
-        df = df.iloc[0:final_ind]
-    # print(f'{df=}')
-    return df
-
-
+@calls.log
 def options_chart_type(project):
     """Add characterization plot option, if necessary."""
-    # Store argument values
-    trig = dash.callback_context.triggered[0]["prop_id"].split(".")[0]
-    args.setargs(**locals())
-
     if Config(project).characterizations_cols:
         return CHART_OPTIONS
-    else:
-        return CHART_OPTIONS[:-1]
 
-
-def parse_selection(scenario_options):
-    """_summary_
-
-    Parameters
-    ----------
-    scenario_options : _type_
-        _description_
-
-    Returns
-    -------
-    _type_
-        _description_
-    """
-    if scenario_options is None:
-        return {}
-    selected_options = {}
-    scenarios_div = scenario_options["props"]["children"]
-    for option_div in scenarios_div:
-        option_name_div = option_div["props"]["children"][0]
-        title_div = option_name_div["props"]["children"][0]
-        selection_name = title_div["props"]["children"]
-
-        selection_div = option_div["props"]["children"][1]
-        dropdown_div = selection_div["props"]["children"][0]
-        selection_value = dropdown_div["props"]  # ["value"]
-        selected_options[selection_name] = selection_value
-
-    return selected_options
+    return CHART_OPTIONS[:-1]
 
 
 def scenario_dropdowns(groups, class_names=None):
@@ -542,36 +181,12 @@ def scenario_dropdowns(groups, class_names=None):
 
         dropdowns.append(dropdown)
 
-    dropdiv = html.Div(
+    drop_div = html.Div(
         children=dropdowns,
         style={"border": "4px solid #1663b5", "padding": "2px"},
     )
 
-    return dropdiv
-
-
-def scrape_variable_options(project, scenario_a_options, scenario_b_options,
-                            b_div):
-    """Retrieve appropriate variable list."""
-    config = Config(project)
-    path = choose_scenario(scenario_a_options, config)
-    variable_options = []
-    if path and os.path.exists(path):
-        columns = pd.read_csv(path, nrows=1).columns
-        if b_div.get("display") != "none":
-            path2 = choose_scenario(scenario_b_options, config)
-            if path2 and os.path.exists(path2):
-                columns2 = pd.read_csv(path2, nrows=1).columns
-                columns = [c for c in columns if c in columns2]
-        columns = [c for c in columns if c.lower() not in SKIP_VARS]
-        titles = {col: convert_to_title(col) for col in columns}
-        config_titles = {k: v for k, v in config.titles.items() if k in titles}
-        titles.update(config_titles)
-        if titles:
-            for k, v in titles.items():
-                variable_options.append({"label": v, "value": k})
-
-    return variable_options
+    return drop_div
 
 
 @app.callback(
@@ -580,29 +195,10 @@ def scrape_variable_options(project, scenario_a_options, scenario_b_options,
     Input("mapcap", "children"),
     Input("map", "selectedData")
 )
-def capacity_print(mapcap, mapsel):
+@calls.log
+def capacity_print(map_capacity, map_selection):
     """Calculate total remaining capacity after all filters are applied."""
-    # Store argument values
-    trig = dash.callback_context.triggered[0]["prop_id"].split(".")[0]
-    args.setargs(**locals())
-
-    # Calling this from make_map where the chartsel has already been applied
-    nsites = ""
-    capacity = ""
-    if mapcap:
-        df = pd.DataFrame(json.loads(mapcap))
-        if not df.empty:
-            if mapsel:
-                gids = [p.get("customdata", [None])[0] for p in mapsel["points"]]
-                df = df[df["sc_point_gid"].isin(gids)]
-            nsites = "{:,}".format(df.shape[0])
-            total_capacity = df["print_capacity"].sum()
-            if total_capacity >= 1_000_000:
-                capacity = f"{round(total_capacity / 1_000_000, 4)} TW"
-            else:
-                capacity = f"{round(total_capacity / 1_000, 4)} GW"
-
-    return capacity, nsites
+    return format_capacity_title(map_capacity, map_selection)
 
 
 @app.callback(
@@ -611,6 +207,7 @@ def capacity_print(mapcap, mapsel):
     Input("toggle_options", "n_clicks")
 )
 def disable_recalculate_with_new_costs(project, __):
+    """Disable recalculate option based on config."""
     return not Config(project).parameters
 
 
@@ -621,6 +218,7 @@ def disable_recalculate_with_new_costs(project, __):
     Input("toggle_options", "n_clicks")
 )
 def disable_mapping_function_dev(project, __):
+    """Disable mapping option based on config."""
     return Config(project).demand_data is None, "None"
 
 
@@ -628,12 +226,9 @@ def disable_mapping_function_dev(project, __):
     Output("chart_options", "options"),
     Input("project", "value"),
 )
+@calls.log
 def dropdown_chart_types(project):
     """Add characterization plot option, if necessary."""
-    # Store argument values
-    trig = dash.callback_context.triggered[0]["prop_id"].split(".")[0]
-    args.setargs(**locals())
-
     return options_chart_type(project)
 
 
@@ -646,11 +241,9 @@ def dropdown_chart_types(project):
     State("map_signal", "children"),
     State("color_options", "value")
 )
+@calls.log
 def dropdown_colors(submit, variable, project, signal, old_value):
     """Provide qualitative color options for categorical data."""
-    # Store argument values
-    trig = dash.callback_context.triggered[0]["prop_id"].split(".")[0]
-    args.setargs(**locals())
 
     # To figure out if we need to update we need these
     if not signal:
@@ -678,7 +271,7 @@ def dropdown_colors(submit, variable, project, signal, old_value):
 
     return options, value
 
-
+# pylint: disable=no-member
 @app.callback(
     Output("minimizing_scenario_options", "children"),
     Input("url", "pathname"),
@@ -686,15 +279,11 @@ def dropdown_colors(submit, variable, project, signal, old_value):
     Input("minimizing_variable", "value"),
     State("submit", "n_clicks")
 )
+@calls.log
 def dropdown_minimizing_scenarios(url, project, minimizing_variable, n_clicks):
     """Update the options given a project."""
-    # Store argument values
-    trig = dash.callback_context.triggered[0]["prop_id"].split(".")[0]
-    args.setargs(**locals())
 
-    # Catch the trigger
     logger.debug("URL: %s", url)
-    trig = dash.callback_context.triggered[0]["prop_id"].split(".")[0]
 
     # We need the project configuration
     config = Config(project)
@@ -705,6 +294,7 @@ def dropdown_minimizing_scenarios(url, project, minimizing_variable, n_clicks):
         for col in config.options.columns:
             if col in {"name", "file"} or col == minimizing_variable:
                 continue
+            # pylint: disable=unsubscriptable-object
             options = config.options[col].unique()
             dropdown_options = []
             for op in options:
@@ -751,6 +341,7 @@ def dropdown_minimizing_scenarios(url, project, minimizing_variable, n_clicks):
     State("project", "value")
 )
 def dropdown_minimizing_targets(scenario_options, project):
+    """Set the minimizing target options."""
     logger.debug("Setting minimizing target options")
     config = Config(project)
     path = choose_scenario(scenario_options, config)
@@ -776,15 +367,15 @@ def dropdown_minimizing_targets(scenario_options, project):
     Input("url", "pathname"),
     State("submit", "n_clicks")
 )
+@calls.log
 def dropdown_projects(pathname, n_clicks):
     """Update project options."""
-    # Store argument values
-    trig = dash.callback_context.triggered[0]["prop_id"].split(".")[0]
-    args.setargs(**locals())
 
     # Open config json
     project_options = [
-        {"label": project, "value": project} for project in Config.projects
+        {"label": project, "value": project}
+        # pylint: disable=not-an-iterable
+        for project in Config.sorted_projects
     ]
     return project_options, project_options[0]["value"]
 
@@ -795,6 +386,7 @@ def dropdown_projects(pathname, n_clicks):
     State("project", "value"),
 )
 def dropdown_minimizing_plot_options(scenario_options, project):
+    """Set the minimizing plot options."""
     logger.debug("Setting minimizing plot options")
     config = Config(project)
     path = choose_scenario(scenario_options, config)
@@ -818,12 +410,10 @@ def dropdown_minimizing_plot_options(scenario_options, project):
     Input("project", "value"),
     State("submit", "n_clicks")
 )
+@calls.log
 def dropdown_scenarios(url, project, n_clicks):
     """Update the options given a project."""
-    # Store argument values
     logger.debug("URL: %s", url)
-    trig = dash.callback_context.triggered[0]["prop_id"].split(".")[0]
-    args.setargs(**locals())
 
     # We need the project configuration
     config = Config(project)
@@ -834,6 +424,7 @@ def dropdown_scenarios(url, project, n_clicks):
         for col in config.options.columns:
             if col in {"name", "file"}:
                 continue
+            # pylint: disable=unsubscriptable-object
             options = config.options[col].unique()
             dropdown_options = []
             for op in options:
@@ -895,12 +486,10 @@ def dropdown_scenarios(url, project, n_clicks):
     Input("scenario_b_div", "style"),
     Input("project", "value"),
 )
+@calls.log
 def dropdown_variables(url, scenario_a_options, scenario_b_options, b_div,
                        project):
     """Update variable dropdown options."""
-    # Store argument values
-    trig = dash.callback_context.triggered[0]["prop_id"].split(".")[0]
-    args.setargs(**locals())
 
     variable_options = scrape_variable_options(
         project, scenario_a_options, scenario_b_options, b_div
@@ -921,8 +510,8 @@ def dropdown_variables(url, scenario_a_options, scenario_b_options, b_div,
 
 
 @app.callback(
-    Output("chart_xvariable_options", "options"),
-    Output("chart_xvariable_options", "value"),
+    Output("chart_x_var_options", "options"),
+    Output("chart_x_var_options", "value"),
     Input("scenario_a_options", "children"),
     Input("scenario_b_options", "children"),
     Input("scenario_b_div", "style"),
@@ -959,16 +548,14 @@ def dropdown_x_variables(
     Input("project", "value"),
     State("submit", "n_clicks")
 )
+@calls.log
 def dropdowns_additional_scenarios(
     url,
     project,
     n_clicks,
 ):
     """Update the additional scenarios options given a project."""
-    # Store argument values
     logger.debug("URL: %s", url)
-    trig = dash.callback_context.triggered[0]["prop_id"].split(".")[0]
-    args.setargs(**locals())
 
     # We need the project configuration
     config = Config(project)
@@ -1015,19 +602,18 @@ def dropdowns_additional_scenarios(
     Input("chart_region", "value"),
     Input("map_color_min", "value"),
     Input("map_color_max", "value"),
-    Input("chart_xbin", "value"),
+    Input("chart_x_bin", "value"),
     Input("chart_alpha", "value"),
     State("chart", "selectedData"),
     State("project", "value"),
     State("chart", "relayoutData"),
     State("map_function", "value")
 )
-def figure_chart(signal, chart, mapsel, point_size, op_values, region, uymin,
-                 uymax, bin_size, alpha, chartsel, project, chartview,
-                 map_func):
+@calls.log
+def figure_chart(signal, chart, map_selection, point_size, op_values, region,
+                 user_ymin, user_ymax, bin_size, alpha, chart_selection,
+                 project, chart_view, map_func):
     """Make one of a variety of charts."""
-    trig = dash.callback_context.triggered[0]["prop_id"]
-    args.setargs(**locals())
 
     # Unpack the signal
     signal_dict = json.loads(signal)
@@ -1061,10 +647,11 @@ def figure_chart(signal, chart, mapsel, point_size, op_values, region, uymin,
         return figure
 
     # Turn the map selection object into indices
-    if mapsel:
+    if map_selection:
         dfs = {
             k: apply_all_selections(
-                df, map_func, project, chartsel, mapsel, clicksel=None
+                df, map_func, project, chart_selection, map_selection,
+                clicksel=None
             )[0]
             for k, df in dfs.items()
         }
@@ -1072,9 +659,11 @@ def figure_chart(signal, chart, mapsel, point_size, op_values, region, uymin,
     plotter = Plots(
         project,
         dfs,
-        plot_title=build_title(dfs, signal_dict, chartsel=chartsel),
+        plot_title=build_title(
+            dfs, signal_dict, chart_selection=chart_selection
+        ),
         point_size=point_size,
-        user_scale=(uymin, uymax),
+        user_scale=(user_ymin, user_ymax),
         alpha=alpha,
     )
 
@@ -1112,136 +701,47 @@ def figure_chart(signal, chart, mapsel, point_size, op_values, region, uymin,
     State("project", "value"),
     State("map_function", "value")
 )
-def figure_map(signal, basemap, color, chartsel, point_size, rev_color, uymin,
-               uymax, mapsel, clicksel, project, mapfunc):
-    """Make the scatterplot map."""
-    # Store arguments for later
-    trigger = dash.callback_context.triggered[0]["prop_id"]
-    args.setargs(**locals())
+@calls.log
+def figure_map(signal, basemap, color, chart_selection, point_size,
+               reverse_color, user_ymin, user_ymax, map_selection,
+               click_selection, project,
+               map_function):
+    """Make the scatter plot map."""
+    trigger = callback_trigger()
+
+    signal_dict = json.loads(signal)
+    df = cache_map_data(signal_dict)
+
+    df, demand_data = apply_all_selections(
+        df,
+        map_function,
+        project,
+        chart_selection,
+        map_selection,
+        click_selection
+    )
 
     # Build figure
     map_builder = Map(
+        df=df,
         basemap=basemap,
-        chartsel=chartsel,
-        clicksel=clicksel,
+        chart_selection=chart_selection,
+        click_selection=click_selection,
         color=color,
-        mapsel=mapsel,
-        mapfunc=mapfunc,
+        map_selection=map_selection,
+        map_function=map_function,
         point_size=point_size,
         project=project,
-        rev_color=rev_color,
-        signal=signal,
+        reverse_color=reverse_color,
+        signal_dict=signal_dict,
         trigger=trigger,
-        uymin=uymin,
-        uymax=uymax
+        uymin=user_ymin,
+        uymax=user_ymax
     )
     figure = map_builder.figure
     mapcap = map_builder.mapcap
 
     return figure, json.dumps(mapcap), None, {"float": "left"}
-
-
-# @app.callback(
-#     [
-#         Output("pca_plot_1", "figure"),
-#         Output("pca_plot_2", "figure"),
-#         # Output("mapcap", "children"),
-#         # Output("pca_plot_1", "clickData"),
-#     ],
-#     [
-#         Input("pca_scenarios", "style"),
-#         Input("pca_plot_value_1", "value"),
-#         Input("pca_plot_value_2", "value"),
-#         Input("pca_plot_1", "relayoutData"),
-#         Input("pca_plot_2", "relayoutData"),
-#         # Input("map_signal", "children"),
-#         # Input("basemap_options", "value"),
-#         # Input("color_options", "value"),
-#         # Input("chart", "selectedData"),
-#         # Input("map_point_size", "value"),
-#         # Input("rev_color", "n_clicks"),
-#         Input("pca1_color_min", "value"),
-#         Input("pca1_color_max", "value"),
-#         Input("pca2_color_min", "value"),
-#         Input("pca2_color_max", "value"),
-#         Input("pca_plot_axis1", "value"),
-#         Input("pca_plot_axis2", "value"),
-#         Input("pca_plot_axis3", "value"),
-#         Input("pca_plot_region", "value"),
-#         # Input("pca_plot_1", "clickData"),
-#     ],
-#     # [
-#     # State("project", "value"),
-#     # State("map", "relayoutData"),
-#     # State("map_function", "value"),
-#     # ],
-# )
-# def make_pca_plot(
-#     pca_scenarios_style,
-#     pca_plot_value_1,
-#     pca_plot_value_2,
-#     data_plot_one,
-#     data_plot_two,
-#     uymin1,
-#     uymax1,
-#     uymin2,
-#     uymax2,
-#     pca_plot_axis1,
-#     pca_plot_axis2,
-#     pca_plot_axis3,
-#     pca_plot_region
-#     # clicksel
-# ):
-#     """Make the pca plot."""
-
-#     trig = dash.callback_context.triggered[0]["prop_id"]
-
-#     # Don't update if selected data triggered this?
-#     logger.debug("PCA TRIGGER: %s", trig)
-#     if pca_scenarios_style.get("display") == "none":
-#         raise PreventUpdate  # @IgnoreException
-
-#     if pca_plot_value_1 == "None" or pca_plot_value_2 == "None":
-#         raise PreventUpdate  # @IgnoreException
-
-#     # print(clicksel)
-#     # if clicksel and clicksel.get('points'):
-#     #     raise PreventUpdate
-
-#     # df, demand_data = apply_all_selections(
-#     #     df, map_project, chartsel, mapsel, clicksel
-#     # )
-
-#     logger.debug("Building pca plot")
-#     if trig == "pca_plot_1.relayoutData" and data_plot_one:
-#         camera = data_plot_one.get("scene.camera")
-#     elif trig == "pca_plot_2.relayoutData" and data_plot_two:
-#         camera = data_plot_two.get("scene.camera")
-#     else:
-#         camera = None
-
-#     figure = build_pca_plot(
-#         pca_plot_value_1,
-#         pca_plot_axis1,
-#         pca_plot_axis2,
-#         pca_plot_axis3,
-#         camera,
-#         uymin1,
-#         uymax1,
-#         pca_plot_region,
-#     )
-#     figure2 = build_pca_plot(
-#         pca_plot_value_2,
-#         pca_plot_axis1,
-#         pca_plot_axis2,
-#         pca_plot_axis3,
-#         camera,
-#         uymin2,
-#         uymax2,
-#         pca_plot_region,
-#     )
-
-#     return figure, figure2  # , None
 
 
 # @app.callback(
@@ -1254,11 +754,9 @@ def figure_map(signal, basemap, color, chartsel, point_size, rev_color, uymin,
 #         State("recalc_table", "children"),
 #     ],
 # )
+# @calls.log
 # def options_recalc_a(project, scenario, recalc_table):
 #     """Update the drop down options for each scenario."""
-    # # Store argument values
-    # trig = dash.callback_context.triggered[0]["prop_id"].split(".")[0]
-    # args.setargs(**locals())
 
 #     data = Data(project)
 #     recalc_table = json.loads(recalc_table)
@@ -1270,7 +768,7 @@ def figure_map(signal, basemap, color, chartsel, point_size, rev_color, uymin,
 #         raise PreventUpdate
 
 #     table = recalc_table["scenario_a"]
-#     otable = data.original_parameters(scenario)
+#     original_table = data.original_parameters(scenario)
 #     children = [
 #         # FCR A
 #         html.Div(
@@ -1286,7 +784,7 @@ def figure_map(signal, basemap, color, chartsel, point_size, rev_color, uymin,
 #                     className="nine columns",
 #                     style={"height": "60%"},
 #                     value=table["fcr"],
-#                     placeholder=otable["fcr"],
+#                     placeholder=original_table["fcr"],
 #                 ),
 #             ],
 #             className="row",
@@ -1305,7 +803,7 @@ def figure_map(signal, basemap, color, chartsel, point_size, rev_color, uymin,
 #                     className="nine columns",
 #                     style={"height": "60%"},
 #                     value=table["capex"],
-#                     placeholder=otable["capex"],
+#                     placeholder=original_table["capex"],
 #                 ),
 #             ],
 #             className="row",
@@ -1324,7 +822,7 @@ def figure_map(signal, basemap, color, chartsel, point_size, rev_color, uymin,
 #                     className="nine columns",
 #                     style={"height": "60%"},
 #                     value=table["opex"],
-#                     placeholder=otable["opex"],
+#                     placeholder=original_table["opex"],
 #                 ),
 #             ],
 #             className="row",
@@ -1342,7 +840,7 @@ def figure_map(signal, basemap, color, chartsel, point_size, rev_color, uymin,
 #                     type="number",
 #                     className="nine columns",
 #                     value=table["losses"],
-#                     placeholder=otable["losses"],
+#                     placeholder=original_table["losses"],
 #                     style={"height": "60%"},
 #                 ),
 #             ],
@@ -1363,12 +861,9 @@ def figure_map(signal, basemap, color, chartsel, point_size, rev_color, uymin,
 #         State("recalc_table", "children"),
 #     ],
 # )
+# @calls.log
 # def options_recalc_b(project, scenario, recalc_table):
 #     """Update the drop down options for each scenario."""
-    # Store argument values
-    # trig = dash.callback_context.triggered[0]["prop_id"].split(".")[0]
-    # args.setargs(**locals())
-
 #     data = Data(project)
 #     recalc_table = json.loads(recalc_table)
 #     if scenario not in data.scenarios:
@@ -1379,10 +874,10 @@ def figure_map(signal, basemap, color, chartsel, point_size, rev_color, uymin,
 
 #     scenario = os.path.basename(scenario).replace("_sc.csv", "")
 #     table = recalc_table["scenario_b"]
-#     otable = data.original_parameters(scenario)
+#     original_table = data.original_parameters(scenario)
 #     scenario = os.path.basename(scenario).replace("_sc.csv", "")
 #     table = recalc_table["scenario_b"]
-#     otable = data.original_parameters(scenario)
+#     original_table = data.original_parameters(scenario)
 #     children = [
 #         # FCR B
 #         html.Div(
@@ -1398,7 +893,7 @@ def figure_map(signal, basemap, color, chartsel, point_size, rev_color, uymin,
 #                     className="nine columns",
 #                     style={"height": "60%"},
 #                     value=table["fcr"],
-#                     placeholder=otable["fcr"],
+#                     placeholder=original_table["fcr"],
 #                 ),
 #             ],
 #             className="row",
@@ -1417,7 +912,7 @@ def figure_map(signal, basemap, color, chartsel, point_size, rev_color, uymin,
 #                     className="nine columns",
 #                     style={"height": "60%"},
 #                     value=table["capex"],
-#                     placeholder=otable["capex"],
+#                     placeholder=original_table["capex"],
 #                 ),
 #             ],
 #             className="row",
@@ -1436,7 +931,7 @@ def figure_map(signal, basemap, color, chartsel, point_size, rev_color, uymin,
 #                     className="nine columns",
 #                     style={"height": "60%"},
 #                     value=table["opex"],
-#                     placeholder=otable["opex"],
+#                     placeholder=original_table["opex"],
 #                 ),
 #             ],
 #             className="row",
@@ -1454,7 +949,7 @@ def figure_map(signal, basemap, color, chartsel, point_size, rev_color, uymin,
 #                     type="number",
 #                     className="nine columns",
 #                     value=table["losses"],
-#                     placeholder=otable["losses"],
+#                     placeholder=original_table["losses"],
 #                     style={"height": "60%"},
 #                 ),
 #             ],
@@ -1468,15 +963,12 @@ def figure_map(signal, basemap, color, chartsel, point_size, rev_color, uymin,
 @app.callback(
     Output("chart_data_signal", "children"),
     Input("variable", "value"),
-    Input("chart_xvariable_options", "value"),
+    Input("chart_x_var_options", "value"),
     Input("state_options", "value")
 )
+@calls.log
 def retrieve_chart_tables(y, x, state):
     """Store the signal used to get the set of tables needed for the chart."""
-    # Store argument values
-    trig = dash.callback_context.triggered[0]["prop_id"].split(".")[0]
-    args.setargs(**locals())
-
     signal = json.dumps([y, x, state])
     return signal
 
@@ -1493,11 +985,9 @@ def retrieve_chart_tables(y, x, state):
     State("filter_3", "value"),
     State("filter_4", "value")
 )
+@calls.log
 def retrieve_filters(submit, var1, var2, var3, var4, q1, q2, q3, q4):
     """Retrieve filter variable names and queries."""
-    # Store argument values
-    trig = dash.callback_context.triggered[0]["prop_id"].split(".")[0]
-    args.setargs(**locals())
 
     variables = [var1, var2, var3, var4]
     queries = [q1, q2, q3, q4]
@@ -1518,7 +1008,7 @@ def retrieve_filters(submit, var1, var2, var3, var4, q1, q2, q3, q4):
     Input("state_options", "value"),
     Input("region_options", "value"),
     Input("chart_options", "value"),
-    Input("chart_xvariable_options", "value"),
+    Input("chart_x_var_options", "value"),
     Input("additional_scenarios", "value"),
     Input("filter_store", "children"),
     Input("pca_plot_1", "clickData"),
@@ -1540,6 +1030,7 @@ def retrieve_filters(submit, var1, var2, var3, var4, q1, q2, q3, q4):
     State("pca_plot_map_value", "value"),
     State("pca_plot_region", "value")
 )
+@calls.log
 def retrieve_signal(
     submit,
     states,
@@ -1548,8 +1039,8 @@ def retrieve_signal(
     x,
     scenarios,
     filter_store,
-    pca1_clicksel,
-    pca2_clicksel,
+    pca1_click_selection,
+    pca2_click_selection,
     project,
     y,
     diff,
@@ -1568,10 +1059,7 @@ def retrieve_signal(
     pca_plot_region,
 ):
     """Create signal for sharing data between map and chart with dependence."""
-    # Store argument values
-    trig = dash.callback_context.triggered[0]["prop_id"].split(".")[0]
-    args.setargs(**locals())
-    logger.debug("Trigger: %s", trig)
+    trig = callback_trigger()
 
     # Get/build the value scale table
     config = Config(project)
@@ -1580,12 +1068,12 @@ def retrieve_signal(
     if recalc_table:
         recalc_table = json.loads(recalc_table)
 
-    lowest_scen_open = (
+    lowest_scenario_open = (
         minimizing_scenarios_style
         and minimizing_scenarios_style.get("display") != "none"
     )
 
-    if lowest_scen_open:
+    if lowest_scenario_open:
         if minimizing_variable in config.low_cost_groups:
             paths = [
                 config.directory / file
@@ -1604,10 +1092,10 @@ def retrieve_signal(
             f"least_{minimizing_target}_by_{minimizing_variable}_{tag}_sc.csv"
         )
         # Build full paths and create the target file
-        lchh_path = config.directory / ".review" / fname
-        lchh_path.parent.mkdir(parents=True, exist_ok=True)
+        lc_path = config.directory / ".review" / fname
+        lc_path.parent.mkdir(parents=True, exist_ok=True)
         # calculator = LeastCost(project)
-        calc_least_cost(paths, lchh_path, by=minimizing_target)
+        calc_least_cost(paths, lc_path, by=minimizing_target)
         if minimizing_plot_value == "Variable":
             y = "scenario"
         else:
@@ -1615,7 +1103,7 @@ def retrieve_signal(
         signal = {
             "filters": [],
             "mask": "off",
-            "path": str(lchh_path),
+            "path": str(lc_path),
             "path2": None,
             "project": project,
             "recalc": recalc,
@@ -1625,8 +1113,6 @@ def retrieve_signal(
             "states": states,
             "x": x,
             "y": y,
-            # "selection_a": {},
-            # "selection_b": {},
         }
         return json.dumps(signal), None, None
 
@@ -1638,13 +1124,13 @@ def retrieve_signal(
     if "mask" in trig and mask == "off":
         raise PreventUpdate
 
-    if pca1_clicksel and pca1_clicksel.get("points"):
-        path = pca1_clicksel["points"][0]["customdata"][0]
+    if pca1_click_selection and pca1_click_selection.get("points"):
+        path = pca1_click_selection["points"][0]["customdata"][0]
         path2 = None
         y = pca_plot_value
         states = [] if pca_plot_region == "CONUS" else [pca_plot_region]
-    elif pca2_clicksel and pca2_clicksel.get("points"):
-        path = pca2_clicksel["points"][0]["customdata"][0]
+    elif pca2_click_selection and pca2_click_selection.get("points"):
+        path = pca2_click_selection["points"][0]["customdata"][0]
         path2 = None
         y = pca_plot_value
         states = [] if pca_plot_region == "CONUS" else [pca_plot_region]
@@ -1663,7 +1149,7 @@ def retrieve_signal(
     if scenarios:
         scenarios = [os.path.expanduser(path) for path in scenarios]
 
-    # Packup the filters
+    # Pack up the filters
     if filter_store:
         filters = json.loads(filter_store)
     else:
@@ -1686,8 +1172,6 @@ def retrieve_signal(
         "states": states,
         "x": x,
         "y": y,
-        # "selection_a": parse_selection(scenario_a_options),
-        # "selection_b": parse_selection(scenario_b_options),
     }
     return json.dumps(signal), None, None
 
@@ -1706,9 +1190,9 @@ def retrieve_signal(
 )
 def retrieve_recalc_parameters(fcr1, capex1, opex1, losses1, fcr2, capex2,
                                opex2, losses2, project):
-    """Retrive all given recalc values and store them."""
-    trig = dash.callback_context.triggered[0]["prop_id"].split(".")[0]
-    if "project" == trig:
+    """Retrieve all given recalc values and store them."""
+    trig = callback_trigger()
+    if "project" in trig:
         recalc_table = {
             "scenario_a": {
                 "fcr": None,
@@ -1747,6 +1231,7 @@ def retrieve_recalc_parameters(fcr1, capex1, opex1, losses1, fcr2, capex2,
     Input("minimizing_scenarios", "style"),
 )
 def set_minimizing_variable_options(project, minimizing_scenarios_style):
+    """Set the minimizing variable options."""
     logger.debug("Setting variable target options")
     config = Config(project)
     variable_options = [{"label": "None", "value": "None"}]
@@ -1769,99 +1254,10 @@ def set_minimizing_variable_options(project, minimizing_scenarios_style):
     return variable_options + low_cost_group_options
 
 
-# @app.callback(
-#     Output("pca_plot_value_1", "options"),
-#     Output("pca_plot_value_1", "value"),
-#     Output("pca_plot_value_2", "options"),
-#     Output("pca_plot_value_2", "value"),
-#     Output("pca_plot_axis1", "options"),
-#     Output("pca_plot_axis1", "value"),
-#     Output("pca_plot_axis2", "options"),
-#     Output("pca_plot_axis2", "value"),
-#     Output("pca_plot_axis3", "options"),
-#     Output("pca_plot_axis3", "value"),
-#     Output("pca_plot_region", "options"),
-#     Output("pca_plot_region", "value"),
-#     # Input("project", "value"),
-#     Input("pca_scenarios", "style"),
-# )
-# def set_pca_variable_options(
-#     # project,
-#     pca_scenarios_style,
-# ):
-#     logger.debug("Setting variable target options")
-#     # config = Config(project)
-#     variable_options = [{"label": "None", "value": "None"}]
-#     axis_options = [
-#         {"label": "pc1", "value": "pc1"},
-#         {"label": "pc2", "value": "pc2"},
-#         {"label": "pc3", "value": "pc3"},
-#     ]
-#     region_options = [{"label": "CONUS", "value": "CONUS"}]
-#     is_showing = (
-#         pca_scenarios_style and pca_scenarios_style.get("display") != "none"
-#     )
-#     if is_showing:
-#         variable_options += [
-#             {"label": convert_to_title(col), "value": col}
-#             for col in PCA_DF.columns
-#             if col not in {"pc1", "pc2", "pc3", "file", "State"}
-#         ]
-#         axis_options += [
-#             {"label": convert_to_title(col), "value": col}
-#             for col in PCA_DF.columns
-#             if col not in {"pc1", "pc2", "pc3", "file", "State"}
-#         ]
-#         region_options += [
-#             {"label": convert_to_title(state), "value": state}
-#             for state in PCA_DF.State.unique()
-#             if state != "CONUS"
-#         ]
-#     return (
-#         variable_options,
-#         variable_options[-1]["value"],
-#         variable_options,
-#         variable_options[-1]["value"],
-#         axis_options,
-#         "pc1",
-#         axis_options,
-#         "pc2",
-#         axis_options,
-#         "pc3",
-#         region_options,
-#         "CONUS",
-#     )
-
-
-# @app.callback(
-#     Output("pca_plot_map_value", "options"),
-#     Output("pca_plot_map_value", "value"),
-#     Input("project", "value"),
-# )
-# def set_pca_plot_options(project):
-#     """"""
-#     logger.debug("Setting pca plot options")
-#     config = Config(project)
-#     # TODO: Remove hardcoded path
-#     # path = choose_scenario(scenario_options, config)
-#     path = "C:\\Users\\ppinchuk\\review_datasets\\hydrogen\\review_pca\\wind_flat_esr01_wcm0_ecpm0_f0035_wcm10_pcm05_nrwal_00.csv"
-#     plot_options = [{"label": "Variable", "value": "Variable"}]
-#     if path and os.path.exists(path):
-#         data = pd.read_csv(path)
-#         columns = [c for c in data.columns if c.lower() not in SKIP_VARS]
-#         titles = {col: convert_to_title(col) for col in columns}
-#         titles.update(config.titles)
-#         if titles:
-#             for k, v in titles.items():
-#                 plot_options.append({"label": v, "value": k})
-
-#     return plot_options, plot_options[-1]["value"]
-
-
 @app.callback(
     Output("chart_options_tab", "children"),
     Output("chart_options_div", "style"),
-    Output("chart_xvariable_options_div", "style"),
+    Output("chart_x_variable_options_div", "style"),
     Output("chart_region_div", "style"),
     Output("additional_scenarios_div", "style"),
     Input("chart_options_tab", "value"),
@@ -1892,14 +1288,12 @@ def tabs_map(tab_choice):
 
 
 @app.callback(
-    Output("chart_xbin_div", "style"),
+    Output("chart_x_bin_div", "style"),
     Input("chart_options", "value")
 )
+@calls.log
 def toggle_bins(chart_type):
     """Show the bin size option under the chart."""
-    # Store argument values
-    trig = dash.callback_context.triggered[0]["prop_id"].split(".")[0]
-    args.setargs(**locals())
 
     style = {"display": "none"}
     if chart_type == "binned":
@@ -1911,26 +1305,24 @@ def toggle_bins(chart_type):
         Output("options", "style"),
         Output("minimizing_scenarios", "style"),
         Output("pca_scenarios", "style"),
-        Output("scen_selection_tabs", "style"),
+        Output("scenario_selection_tabs", "style"),
         Output("toggle_options", "children"),
         Output("toggle_options", "style"),
         Input("toggle_options", "n_clicks"),
-        Input("scen_selection_tabs", "value")
+        Input("scenario_selection_tabs", "value")
 )
+@calls.log
 def toggle_options(click, selection_ind):
     """Toggle options on/off."""
-    # Store argument values
-    trig = dash.callback_context.triggered[0]["prop_id"].split(".")[0]
-    args.setargs(**locals())
 
-    scen_styles = [{"display": "none"} for _ in range(3)]
+    scenario_styles = [{"display": "none"} for _ in range(3)]
     tabs_style = {"display": "none"}
     button_children = "Options: Off"
     button_style = BUTTON_STYLES["off"]
 
     click = click or 0
     if click % 2 == 1:
-        scen_styles[int(selection_ind)] = {"margin-bottom": "50px"}
+        scenario_styles[int(selection_ind)] = {"margin-bottom": "50px"}
         tabs_style = {
             "width": "92%",
             "margin-left": "53px",
@@ -1939,7 +1331,7 @@ def toggle_options(click, selection_ind):
         button_children = "Options: On"
         button_style = BUTTON_STYLES["on"]
 
-    return *scen_styles, tabs_style, button_children, button_style
+    return *scenario_styles, tabs_style, button_children, button_style
 
 
 @app.callback(
@@ -1990,11 +1382,9 @@ def toggle_rev_color_button(click):
     Input("difference", "value"),
     Input("mask", "value")
 )
+@calls.log
 def toggle_scenario_b(difference, mask):
     """Show scenario b if the difference option is on."""
-    # Store argument values
-    trig = dash.callback_context.triggered[0]["prop_id"].split(".")[0]
-    args.setargs(**locals())
 
     if difference == "on":
         style = {}
@@ -2017,12 +1407,9 @@ def toggle_scenario_b(difference, mask):
 #         Input("project", "value"),
 #     ],
 # )
+# @calls.log
 # def scenario_specs(scenario_a, scenario_b, project):
 #     """Output the specs association with a chosen scenario."""
-    # # Store argument values
-    # trig = dash.callback_context.triggered[0]["prop_id"].split(".")[0]
-    # args.setargs(**locals())
-
 #     # Return a blank space if no parameters entry found
 #     params = Config(project).parameters
 #     if not params:
@@ -2042,5 +1429,3 @@ def toggle_scenario_b(difference, mask):
 #             specs2 = build_spec_split(scenario_b, project)
 
 #     return specs1, specs2
-
-

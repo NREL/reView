@@ -4,7 +4,7 @@ from itertools import product
 
 import pandas as pd
 
-from reView.pages.scenario.scenario_data import Difference
+from reView.pages.scenario.model import Difference
 from reView.utils.functions import common_numeric_columns
 from reView.utils.classes import DiffUnitOptions
 

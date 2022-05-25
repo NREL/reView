@@ -82,7 +82,7 @@ layout = html.Div(
                             options=[
                                 # pylint: disable=not-an-iterable
                                 {"label": project, "value": project}
-                                for project in Config.projects
+                                for project in Config.sorted_projects
                             ]
                         ),
                     ],
@@ -155,7 +155,7 @@ layout = html.Div(
         ),
         # Scen selection tabs - Tabs for selection options
         dcc.Tabs(
-            id="scen_selection_tabs",
+            id="scenario_selection_tabs",
             value="0",
             children=[
                 dcc.Tab(label="Default Scen", value="0"),
@@ -1182,10 +1182,10 @@ layout = html.Div(
                                         ),
                                         # X-axis Variable
                                         html.Div(
-                                            id="chart_xvariable_options_div",
+                                            id="chart_x_variable_options_div",
                                             children=[
                                                 dcc.Dropdown(
-                                                    id="chart_xvariable_options",
+                                                    id="chart_x_var_options",
                                                     clearable=False,
                                                     options=[
                                                         {
@@ -1286,7 +1286,7 @@ layout = html.Div(
                                     style={"margin-left": "-1px"},
                                 ),
                                 html.Div(
-                                    id="chart_xbin_div",
+                                    id="chart_x_bin_div",
                                     style={"margin-left": "10px"},
                                     children=[
                                         html.P(
@@ -1300,7 +1300,7 @@ layout = html.Div(
                                         dcc.Input(
                                             className="two columns",
                                             style={"margin-left": 5},
-                                            id="chart_xbin",
+                                            id="chart_x_bin",
                                             debounce=False,
                                             value=None,
                                             type="number",

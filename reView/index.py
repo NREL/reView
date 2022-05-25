@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Transition reView project index file."""
-import reView.pages.scenario.scenario_callbacks  # pylint: disable=unused-import
-import reView.pages.reeds.reeds_callbacks  # pylint: disable=unused-import
+import reView.pages.scenario.controller.callbacks  # pylint: disable=unused-import
+import reView.pages.reeds.controller.callbacks  # pylint: disable=unused-import
 
 from reView.app import app, server  # pylint: disable=unused-import
 from reView.environment.settings import (
@@ -11,7 +11,6 @@ from reView.environment.settings import (
     LOG_LEVEL,
 )
 from reView.routes import render_page_content  # pylint: disable=unused-import
-from reView.utils import args  # pylint: disable=unused-import
 from reView.utils.log import init_logger, log_versions
 
 

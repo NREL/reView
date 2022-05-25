@@ -6,8 +6,10 @@ import logging
 from pathlib import Path
 
 import numpy as np
+import pandas as pd
+import dash
 
-from reView import REVIEW_CONFIG_DIR
+from reView import REVIEW_CONFIG_DIR, REVIEW_DATA_DIR
 
 logger = logging.getLogger(__name__)
 
@@ -115,6 +117,22 @@ def load_project_configs(config_dir=REVIEW_CONFIG_DIR):
             )
             project_configs[project_name] = config
     return project_configs
+
+
+def data_paths():
+    """Dictionary of posix path objects for reView package data.
+
+    Returns
+    -------
+    dict
+        A dictionary mapping data folder names (keys) to data folder
+        paths.
+    """
+    return {
+        folder.name.lower(): folder
+        for folder in Path(REVIEW_DATA_DIR).iterdir()
+        if not folder.is_file()
+    }
 
 
 def lcoe(capacity, mean_cf, re_calcs):
@@ -243,7 +261,7 @@ def capacity_factor_from_lcoe(capacity, mean_lcoe, calc_values):
 
 
 def adjust_cf_for_losses(mean_cf, new_losses, original_losses):
-    """Calcaulate new cf based on old and new loss assumptions.
+    """Calculate new cf based on old and new loss assumptions.
 
     Parameters
     ----------
@@ -274,12 +292,12 @@ def adjust_cf_for_losses(mean_cf, new_losses, original_losses):
     return mean_cf
 
 
-def common_numeric_columns(*dataframes):
+def common_numeric_columns(*dfs):
     """Find all common numeric columns in input DataFrames.
 
     Parameters
     ----------
-    *dataframes
+    *dfs
         One or more pandas DataFrame objects to compare.
         The common numeric columns from these inputs will be returned.
 
@@ -291,6 +309,153 @@ def common_numeric_columns(*dataframes):
     """
     cols = set.intersection(
         *[set(df.select_dtypes(include=np.number).columns.values)
-          for df in dataframes]
+          for df in dfs]
     )
     return sorted(cols)
+
+
+def deep_replace(dictionary, replacement):
+    """Perform a deep replacement in the dictionary using the mapping.
+
+    This function performs inplace replacement of values in the input
+    dictionary. The function is recursive, so the mapping will be
+    applied to all nested dictionaries.
+
+    Parameters
+    ----------
+    dictionary : dict
+        Input dictionary with values that need to be replaced.
+    replacement : dict
+        Mapping where keys represent the target values to be replaced,
+        and the corresponding values are the replacements.
+
+    Examples
+    --------
+    >>> a = {'a': 'na', 'b': {'c': 'na', 'd': 5}}
+    >>> mapping = {'na': None}
+    >>> deep_replace(a, mapping)
+    >>> a
+    {'a': None, 'b': {'c': None, 'd': 5}}
+    """
+    try:
+        for key, value in dictionary.items():
+            __replace_value(dictionary, replacement, key, value)
+    except AttributeError:  # `dictionary`` does not have `.items()` method
+        return
+
+
+def __replace_value(dictionary, replacement, key, value):
+    """Attempts replacement and recursively calls `deep_replace`."""
+    try:
+        if value in replacement:
+            dictionary[key] = replacement[value]
+    except TypeError:  # `value` is not hashable, i.e. is a dict or mapping
+        pass
+
+    deep_replace(value, replacement)
+
+
+def shorten(string, new_length, inset="...", chars_at_end=5):
+    """Shorten a long string.
+
+    This function truncates the middle of the string and replaces it
+    with `inset` such that the output string is (at most) of length
+    `new_length`.
+
+    Parameters
+    ----------
+    string : string
+        Input string. Can be shorter than `new_length`, in which case
+        the string is returned unaltered.
+    new_length : int
+        Desired length of the return string.
+    inset : str, optional
+        Inset to use in the middle of the string to indicate that it was
+        truncated. By default, `"..."`.
+    chars_at_end : int, optional
+        Number of characters to leave at end of truncated string.
+        By default, `5`.
+
+    Returns
+    -------
+    str
+        Shortened string.
+    """
+
+    if len(string) <= new_length:
+        return string
+
+    len_first_part = min(len(string), new_length)
+    len_first_part = max(0, len_first_part - chars_at_end - len(inset))
+    return f"{string[:len_first_part]}{inset}{string[-chars_at_end:]}"
+
+
+def callback_trigger():
+    """Get the callback trigger, if it exists.
+
+    Returns
+    -------
+    str
+        String representation of callback trigger, or "Unknown" if
+        context not found.
+    """
+
+    try:
+        trigger = dash.callback_context.triggered[0]
+        trigger = trigger["prop_id"]
+    except dash.exceptions.MissingCallbackContextException:
+        trigger = "Unknown"
+
+    return trigger
+
+
+def format_capacity_title(
+    map_capacity,
+    map_selection=None,
+    capacity_col_name="print_capacity"
+):
+    """Calculate total remaining capacity after all filters are applied.
+
+    Parameters
+    ----------
+    map_capacity : str
+        Serialized dictionary containing data. This input will be loaded
+        as a pandas DataFrame and used to calculate capacity.
+    map_selection : dict, optional
+        Dictionary with a "points" key containing a list of the selected
+        points, which have a `customdata` with gid values attached. By
+        default, `None`.
+    capacity_col_name : str, optional
+        Name of column containing capacity values. By default,
+        "print_capacity".
+
+    Returns
+    -------
+    str
+        Total capacity, formatted as a string.
+    str
+        Number of selected sites, formatted as a string.
+    """
+
+    if not map_capacity:
+        return "--", "--"
+
+    df = pd.DataFrame(json.loads(map_capacity))
+    if df.empty:
+        return "--", "--"
+
+    if map_selection:
+        gids = [
+            p.get("customdata", [None])[0]
+            for p in map_selection["points"]
+        ]
+        df = df[df["sc_point_gid"].isin(gids)]
+
+    total_capacity = df[capacity_col_name].sum()
+    if total_capacity >= 1_000_000:
+        capacity = f"{total_capacity / 1_000_000:.4f} TW"
+    else:
+        capacity = f"{total_capacity / 1_000:.4f} GW"
+
+    num_sites = f"{df.shape[0]:,}"
+    return capacity, num_sites
