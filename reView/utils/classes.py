@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
 """Helper classes for all reView projects."""
+import os
 import inspect
 import functools
 import logging
 from enum import Enum
 
+import addfips
+import pandas as pd
+
+from reView import REVIEW_DATA_DIR
 from reView.utils.functions import shorten, callback_trigger
 
 logger = logging.getLogger(__name__)
@@ -192,3 +197,50 @@ class FunctionCalls:
             return func(*args, **kwargs)
 
         return _callback_func
+
+class CountyCode:
+    """Utility class to calculate county-level codes."""
+    _ADD_FIPS = addfips.AddFIPS()
+    _COUNTY_EPSG = pd.read_csv(
+        os.path.join(REVIEW_DATA_DIR, 'county_fp.csv'), dtype=str
+    )
+
+    @classmethod
+    def fips(cls, county, state):
+        """_summary_
+
+        Parameters
+        ----------
+        county : _type_
+            _description_
+        state : _type_
+            _description_
+
+        Returns
+        -------
+        _type_
+            _description_
+        """
+        return cls._ADD_FIPS.get_county_fips(county, state=state)
+
+    @classmethod
+    def epsg(cls, county, state):
+        """_summary_
+
+        Parameters
+        ----------
+        county : _type_
+            _description_
+        state : _type_
+            _description_
+
+        Returns
+        -------
+        _type_
+            _description_
+        """
+        fips = cls.fips(county, state)
+        mask = cls._COUNTY_EPSG.county_fp == fips
+        return cls._COUNTY_EPSG.loc[mask, 'epsg'].values[0]
+
+

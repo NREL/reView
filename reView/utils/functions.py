@@ -402,7 +402,7 @@ def callback_trigger():
 
     try:
         trigger = dash.callback_context.triggered[0]
-        trigger = trigger["prop_id"].split(".")[0]
+        trigger = trigger["prop_id"]
     except dash.exceptions.MissingCallbackContextException:
         trigger = "Unknown"
 

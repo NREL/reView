@@ -4,8 +4,8 @@
 Methods for converting individual turbine coordinates to layouts in plotly and
 distributing data appropriately.
 
-Note that this will only work for the US atm since we're using the stateplane
-coordinate reference systems for local projections.
+Note that this will only work for the US atm since we're using
+coordinate reference system lookup made containing only the US.
 
 Created on Wed Apr 13 10:37:14 2022
 
@@ -15,9 +15,10 @@ import json
 
 import numpy as np
 import pandas as pd
-import stateplane
 
 from pyproj import Transformer
+
+from reView.utils.classes import CountyCode
 
 
 SPLIT_COLS = ["capacity", "annual_energy-means"]
@@ -28,7 +29,7 @@ class BespokeUnpacker:
 
     def __init__(self, df, clicksel):
         """Initialize BespokeUnpacker object.
-        
+
         Parameters
         ----------
         df : pd.core.frame.DataFrame
@@ -60,8 +61,8 @@ class BespokeUnpacker:
 
     @property
     def trgt_crs(self):
-        """Find an appropriate coordinate reference system for location."""        
-        code = stateplane.identify(self.lon, self.lat)
+        """Find an appropriate coordinate reference system for location."""
+        code = CountyCode.epsg(self.county, self.state)
         return f"epsg:{code}"
 
     @property
@@ -90,14 +91,14 @@ class BespokeUnpacker:
 
     def unpack_turbines(self):
         """Unpack bespoke turbines if possible.
-    
-    
+
         Returns
         -------
         pd.core.frame.DataFrame
             A reV supply curve data frame containing all original farm points
             except one that is replaced with individual turbine entries.
         """
+
         # Separate target row
         df = self.df.iloc[self.df.index != self.index]
         row = self.df.iloc[self.index]
@@ -107,7 +108,7 @@ class BespokeUnpacker:
         del row["longitude"]
         del row["latitude"]
 
-        # Get bottom left coordinates       
+        # Get bottom left coordinates
         blx = x - (self.spacing / 2)
         bly = y - (self.spacing / 2)
 
@@ -146,10 +147,8 @@ class BespokeUnpacker:
 
     def _declick(self, clicksel):
         """Set needed values from click selection as attributes."""
-        self.point = clicksel["points"][0]
-        self.index = self.point["pointIndex"]
-        self.lon = self.point["lon"]
-        self.lat = self.point["lat"]
-        self.text = self.point["hovertext"].replace("<br>", "")
-
-            
+        point = clicksel["points"][0]
+        self.index = point["pointIndex"]
+        self.county = self.df.loc[self.index, "county"]
+        self.state = self.df.loc[self.index, "state"]
+        self.text = point["hovertext"].replace("<br>", "")

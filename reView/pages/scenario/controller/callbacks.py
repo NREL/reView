@@ -1192,7 +1192,7 @@ def retrieve_recalc_parameters(fcr1, capex1, opex1, losses1, fcr2, capex2,
                                opex2, losses2, project):
     """Retrieve all given recalc values and store them."""
     trig = callback_trigger()
-    if "project" == trig:
+    if "project" in trig:
         recalc_table = {
             "scenario_a": {
                 "fcr": None,
