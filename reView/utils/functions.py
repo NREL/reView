@@ -131,6 +131,7 @@ def data_paths():
     return {
         folder.name.lower(): folder
         for folder in Path(REVIEW_DATA_DIR).iterdir()
+        if not folder.is_file()
     }
 
 
