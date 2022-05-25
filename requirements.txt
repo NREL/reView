@@ -17,3 +17,4 @@ scipy==1.8.0
 setuptools==62.2.0
 tqdm==4.62.3
 us==2.0.2
+werkzeug>=2.0.3
