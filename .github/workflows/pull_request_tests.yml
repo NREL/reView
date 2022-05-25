@@ -29,14 +29,13 @@ jobs:
     - name: Run pytest and Generate coverage report
       run: |
         python -m pytest -v --disable-warnings --cov=./ --cov-report=xml:coverage.xml
-    # Once repo is no longer private, we can uncomment this
-    # - name: Upload coverage to Codecov
-    #   uses: codecov/codecov-action@v1
-    #   with:
-    #     token: ${{ secrets.CODECOV_TOKEN }}
-    #     file: ./coverage.xml
-    #     flags: unittests
-    #     env_vars: OS,PYTHON
-    #     name: codecov-umbrella
-    #     fail_ci_if_error: false
-    #     verbose: true
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v1
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        file: ./coverage.xml
+        flags: unittests
+        env_vars: OS,PYTHON
+        name: codecov-umbrella
+        fail_ci_if_error: false
+        verbose: true
