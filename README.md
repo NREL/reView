@@ -45,7 +45,7 @@
     ```
     reView
     ```
-2. Open your browser and enter the url output from command above. The default port is 8050.
+2. Open your browser and enter the URL output from command above. The default port is 8050.
     ```
     http://localhost:8050
     ```
@@ -67,7 +67,7 @@
     gunicorn reView/index:server
     ```
 
-3. Open your browser and enter the url output from command above. The default port is 9875.
+3. Open your browser and enter the URL output from command above. The default port is 9875.
     ```
     http://localhost:9875
     ```
