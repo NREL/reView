@@ -10,11 +10,11 @@
 
     Using ssh:
     ```
-    git clone git@github.nrel.gov:twillia2/reView.git
+    git clone git@github.com:NREL/reView.git
     ```
     Using https:
     ```
-    git clone https://github.nrel.gov/twillia2/reView.git
+    git clone https://github.com/NREL/reView.git
     ```
 
 2. Create and activate conda environment:
