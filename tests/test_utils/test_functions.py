@@ -7,8 +7,11 @@ from reView.utils.functions import (
     convert_to_title,
     strip_rev_filename_endings,
     load_project_configs,
+    data_paths,
     adjust_cf_for_losses,
     common_numeric_columns,
+    deep_replace,
+    shorten
 )
 
 
@@ -79,7 +82,7 @@ def test_adjust_cf_for_losses_bad_input(bad_orig_losses):
 
 
 def test_common_numeric_columns():
-    """Test `common_numeric_columns` function. """
+    """Test `common_numeric_columns` function."""
 
     df1 = pd.DataFrame({'a': [1], 'b': [345], 'c': ['Hello']})
     df2 = pd.DataFrame({'b': [1], 'c': ['Hello'], 'd': [2]})
@@ -92,3 +95,84 @@ def test_common_numeric_columns():
     assert common_numeric_columns(df1, df2, df3) == ['b']
 
 
+def test_deep_replace():
+    """Test dictionary deep replacement."""
+    in_dict = {
+        'a': 'na',
+        'b': {
+            'a': 7,
+            'b': 'na',
+            'c': 'hello',
+            'd': {
+                5: 'na',
+                6: 7,
+                7: 8
+            }
+        },
+        'c': 25,
+        'd': 'goodbye'
+    }
+    mapping = {'na': None, 'hello': 'goodbye', 7: '7'}
+    expected_output = {
+        'a': None,
+        'b': {
+            'a': '7',
+            'b': None,
+            'c': 'goodbye',
+            'd': {
+                5: None,
+                6: '7',
+                7: 8
+            }
+        },
+        'c': 25,
+        'd': 'goodbye'
+    }
+
+    deep_replace(in_dict, mapping)
+    assert in_dict == expected_output
+
+
+def test_shorten():
+    """Test the `shorten` function."""
+
+    out = shorten('Hello, this is a long sentence', 10)
+
+    assert len(out) == 10
+    assert out == 'He...tence'
+
+
+    out = shorten('Hello, this is a long sentence', 19)
+
+    assert len(out) == 19
+    assert out == 'Hello, this...tence'
+
+
+    out = shorten('A word', 19)
+
+    assert len(out) == 6
+    assert out == 'A word'
+
+
+    out = shorten('Hello, this is a long sentence', 19, inset=';;;')
+
+    assert len(out) == 19
+    assert out == 'Hello, this;;;tence'
+
+
+    out = shorten('Hello, this is a long sentence', 19, chars_at_end=10)
+
+    assert len(out) == 19
+    assert out == 'Hello,...g sentence'
+
+
+def test_data_paths():
+    """test `data_paths` function."""
+
+    paths = data_paths()
+
+    assert 'reeds' in paths
+
+    for name, path in paths.items():
+        assert name == path.name
+        assert path.exists()

@@ -117,6 +117,10 @@ class BespokeUnpacker:
         xs = [x + blx for x in xs]
         ys = [y + bly for y in ys]
 
+        # Update row
+        # for col in SPLIT_COLS:
+        #     row[col] /= len(xs)
+
         # Build new data frame
         nrows = []
         for i, x in enumerate(xs):

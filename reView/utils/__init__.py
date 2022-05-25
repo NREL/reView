@@ -1,3 +1,3 @@
-from .classes import Args
+from .classes import FunctionCalls
 
-args = Args()
+calls = FunctionCalls()

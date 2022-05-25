@@ -5,6 +5,8 @@ import functools
 import logging
 from enum import Enum
 
+from reView.utils.functions import shorten, callback_trigger
+
 logger = logging.getLogger(__name__)
 
 
@@ -99,7 +101,8 @@ class FunctionCalls:
             for key, arg in args.items():
                 print(f"{key}={arg!r}")
 
-    def get_all_args(self):
+    @property
+    def all(self):
         """Return executable variable setters for all callbacks.
 
         The purpose of this function is to compile a string that
@@ -116,11 +119,11 @@ class FunctionCalls:
 
         Notes
         -----
-        See `FunctionCalls.get_args` documentation for example(s).
+        See `FunctionCalls.get` documentation for example(s).
         """
         return "; ".join([f"{key}={arg!r}" for key, arg in self.args.items()])
 
-    def get_args(self, func_name):
+    def __call__(self, func_name, str_length=None):
         """Return executable variable setters for one callback.
 
         The purpose of this function is to compile a string that
@@ -133,6 +136,9 @@ class FunctionCalls:
         func_name : str
             Name of function to obtain arguments for,
             represented as a string.
+        str_length : int, optional
+            Option to shorten string to a certain length, or `None` to
+            return unaltered string value.
 
         Returns
         -------
@@ -143,13 +149,16 @@ class FunctionCalls:
 
         Examples
         --------
-        >>> FUNCTION_CALLS.get_args('options_chart_tabs')
+        >>> calls('options_chart_tabs')
         "tab_choice='chart'; chart_choice='cumsum'"
         """
         args = self.args.get(func_name, {})
-        return "; ".join([f"{key}={arg!r}" for key, arg in args.items()])
+        args_str = "; ".join([f"{key}={arg!r}" for key, arg in args.items()])
+        if str_length:
+            args_str = shorten(args_str, str_length)
+        return args_str
 
-    def log(self, verbose=False):
+    def log(self, func):
         """Log the function call.
 
         Allow extra logging with the `verbose`
@@ -162,79 +171,24 @@ class FunctionCalls:
             by default False.
         """
 
-        def _decorate(func):
-            """Decorate the function to log call."""
+        @functools.wraps(func)
+        def _callback_func(*args, **kwargs):
+            """Store the arguments used to call the function."""
+            name = func.__name__
+            sig = inspect.signature(func)
+            keys = sig.parameters.keys()
 
-            @functools.wraps(func)
-            def _callback_func(*args, **kwargs):
-                """Store the arguments used to call the function."""
-                name = func.__name__
-                if verbose:
-                    logger.info("Running %s...", name)
-                else:
-                    logger.debug("Running %s...", name)
-                sig = inspect.signature(func)
-                keys = sig.parameters.keys()
-                self.args[name] = {**dict(zip(keys, args)), **kwargs}
+            trigger = callback_trigger()
 
-                return func(*args, **kwargs)
+            self.args[name] = {
+                **dict(zip(keys, args)),
+                **kwargs,
+                'trigger': trigger
+            }
 
-            return _callback_func
+            logger.info("Running %s... (Trigger: %s)", name, trigger)
+            logger.debug("Args: %s", self(name, str_length=200))
 
-        return _decorate
+            return func(*args, **kwargs)
 
-
-class Args():
-    """Class for handling retrieving function arguments."""
-
-    def __init__(self):
-        """Initialize Logger object."""
-        self.args = {}
-
-    def __repr__(self):
-        """Return Logger representation string."""
-        attrs = ", ".join([f"{k}={v}" for k, v in self.__dict__.items()
-                           if k != "args"])
-        n = len(self.args.keys())
-        msg = f"<Logger: {attrs} {n} function argument dicts>"
-        return msg
-
-    def printall(self):
-        """Print all kwargs for each callback in executable fashion."""
-        for func, args in self.args.items():
-            for key, arg in args.items():
-                if isinstance(arg, str):
-                    print(f"{key}='{arg}'")
-                else:
-                    print(f"{key}={arg}")
-
-    @property
-    def getall(self):
-        """Return executable variable setters for all callbacks."""
-        set_pairs = []
-        for func, args in self.args.items():
-            for key, arg in args.items():
-                if isinstance(arg, str):
-                    set_pairs.append(f"{key}='{arg}'")
-                else:
-                    set_pairs.append(f"{key}={arg}")
-        cmd = "; ".join(set_pairs)
-        return cmd
-
-    def getargs(self, func_name):
-        """Return executable variable setters for one callback."""
-        set_pairs = []
-        args = self.args[func_name]
-        for key, arg in args.items():
-            if isinstance(arg, str):
-                set_pairs.append(f"{key}='{arg}'")
-            else:
-                set_pairs.append(f"{key}={arg}")
-        cmd = "; ".join(set_pairs)
-        return cmd
-
-    def setargs(self, **kwargs):
-        """Log the most recent arguments of a callback."""
-        caller = inspect.stack()[1][3]
-        print(f"Running {caller}...")
-        self.args[caller] = kwargs
+        return _callback_func

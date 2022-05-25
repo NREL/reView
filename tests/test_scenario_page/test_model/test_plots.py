@@ -2,7 +2,7 @@
 """Scenario Model tests."""
 import pytest
 
-from reView.pages.scenario.scenario_data import Plots
+from reView.pages.scenario.controller.element_builders import Plots
 
 
 @pytest.mark.parametrize("bin_size", [None, 10])

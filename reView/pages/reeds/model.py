@@ -5,37 +5,13 @@ Created on Mon May 23 21:48:04 2022
 
 @author: twillia2
 """
-import json
 import copy
 import logging
-import multiprocessing as mp
-import operator
-import os
 
-from collections import Counter
-
-import numpy as np
 import pandas as pd
 import plotly.express as px
 
-from sklearn.neighbors import BallTree
-from tqdm import tqdm
-
-from reView.pages.scenario.scenario import MAP_LAYOUT
-from reView.utils.constants import AGGREGATIONS, DEFAULT_POINT_SIZE
-from reView.utils.functions import (
-    convert_to_title,
-    strip_rev_filename_endings,
-    lcoe,
-    lcot,
-    as_float,
-    safe_convert_percentage_to_decimal,
-    capacity_factor_from_lcoe,
-    adjust_cf_for_losses,
-    common_numeric_columns
-)
-from reView.utils.classes import DiffUnitOptions
-from reView.utils.config import Config
+from reView.pages.scenario.view import MAP_LAYOUT
 from reView.utils.constants import COLORS
 from reView.app import cache4
 
@@ -52,7 +28,10 @@ def cache_reeds(path, year):
 
 
 class Map:
-    """Initialize Map builder for ReEDS. Merge with scenario Map."""
+    """Initialize Map builder for ReEDS.
+
+    Merge with scenario Map.
+    """
 
     def __init__(
             self,
@@ -64,7 +43,7 @@ class Map:
             clicksel=None,
             color="Viridis",
             mapsel=None,
-            point_size=4, 
+            point_size=4,
             rev_color=False,
             uymin=None,
             uymax=None,
@@ -82,7 +61,7 @@ class Map:
         self.point_size = point_size
         self.rev_color = rev_color
         self.title_size = title_size
-        self.uymax = uymax 
+        self.uymax = uymax
         self.uymin = uymin
 
     def __repr__(self):
