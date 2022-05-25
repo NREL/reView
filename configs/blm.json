@@ -1,0 +1,201 @@
+{
+    "project_name": "BLM",
+    "directory": "~/review_datasets/blm_lease_rates_adjusted",
+    "scales": {
+        "adjusted_mean_lcoe": {
+            "min": 10,
+            "max": 125
+        },
+        "adjusted_om": {
+            "min": 20031.354420392134,
+            "max": 25370.253801062543
+        },
+        "blm_capacity_fee": {
+            "min": 0,
+            "max": 0
+        },
+        "blm_density": {
+            "min": 0,
+            "max": 0
+        },
+        "blm_lease_option": {
+            "min": "None",
+            "max": "None"
+        },
+        "blm_rent": {
+            "min": 0,
+            "max": 0
+        },
+        "blm_total_charge": {
+            "min": 0,
+            "max": 0
+        },
+        "cnty_fips": {
+            "min": 4001,
+            "max": 56045
+        },
+        "dist_km": {
+            "min": 5.76,
+            "max": 126.89791549844728
+        },
+        "lbnl_convex_hull_existing_farms_2018": {
+            "min": 0.0,
+            "max": 1.0
+        },
+        "lbnl_convex_hull_existing_farms_2021": {
+            "min": "na",
+            "max": "na"
+        },
+        "lbnl_upv_1km_buffer": {
+            "min": 0.0,
+            "max": 1.0
+        },
+        "mean_fixed_operating_cost": {
+            "min": 20.9999942779541,
+            "max": 21.0000057220459
+        },
+        "mean_system_capacity": {
+            "min": 1.0,
+            "max": 1.0
+        },
+        "nrel_region": {
+            "min": "California",
+            "max": "Southwest"
+        },
+        "rate_usd_ac": {
+            "min": 0.9118140130714748,
+            "max": 264.3374978148022
+        },
+        "rate_usd_mw": {
+            "min": "na",
+            "max": "na"
+        },
+        "technology": {
+            "min": "solar",
+            "max": "solar"
+        },
+        "trans_cap_cost_per_mw": {
+            "min": 1045.574294627704,
+            "max": 1185975298.3269308
+        },
+        "transmission_multiplier": {
+            "min": "na",
+            "max": "na"
+        },
+        "usa_mrlc_nlcd2011": {
+            "min": "na",
+            "max": "na"
+        },
+        "area_sq_km": {
+            "min": 0.0009000000067055,
+            "max": 132.3378
+        },
+        "elevation": {
+            "min": -71.0,
+            "max": 2869.716796875
+        },
+        "capacity": {
+            "min": 0.0243,
+            "max": 397.01339999999993
+        },
+        "dist_mi": {
+            "min": "na",
+            "max": "na"
+        },
+        "lcot": {
+            "min": 0.0239696962422282,
+            "max": 28802.32162829332
+        },
+        "mean_cf": {
+            "min": 0.0129274511709809,
+            "max": 0.259547084569931
+        },
+        "mean_lcoe": {
+            "min": 10,
+            "max": 125
+        },
+        "mean_res": {
+            "min": 1.7000372409820557,
+            "max": 6.054465293884277
+        },
+        "total_lcoe": {
+            "min": 10,
+            "max": 125
+        },
+        "trans_capacity": {
+            "min": "na",
+            "max": "na"
+        },
+        "trans_cap_cost": {
+            "min": "na",
+            "max": "na"
+        },
+        "trans_type": {
+            "min": "na",
+            "max": "na"
+        },
+        "windspeed_class": {
+            "min": "na",
+            "max": "na"
+        }
+    },
+    "titles": {
+        "adjusted_mean_lcoe": "BLM Adjusted Site LCOE",
+        "adjusted_om": "BLM Adjusted O&M",
+        "blm_capacity_fee": "BLM Capacity Fee",
+        "blm_density": "BLM Assumed Capacity Density",
+        "blm_lease_option": "BLM Lease Option",
+        "blm_rent": "BLM Lease Rate",
+        "blm_total_charge": "BLM Total Charge",
+        "cnty_fips": "County FIPS",
+        "dist_km": "Distance to Transmission",
+        "lbnl_convex_hull_existing_farms_2018": "LBNL Wind Farms - 2018",
+        "lbnl_convex_hull_existing_farms_2021": "LBNL Wind Farms - 2021",
+        "lbnl_upv_1km_buffer": "LBNL Solar Farms - 2019",
+        "mean_fixed_operating_cost": "mean_fixed_operating_cost",
+        "mean_system_capacity": "mean_system_capacity",
+        "nrel_region": "NREL Region",
+        "rate_usd_ac": "rate_usd_ac",
+        "rate_usd_mw": "rate_usd_mw",
+        "technology": "Technology",
+        "trans_cap_cost_per_mw": "Transmission Capital Costs",
+        "transmission_multiplier": "Transmission Cost Multiplier",
+        "usa_mrlc_nlcd2011": "NLCD - 2011",
+        "area_sq_km": "Supply Curve Point Area",
+        "capacity": "Total Capacity",
+        "elevation": "Elevation",
+        "dist_mi": "Distance to Transmission",
+        "lcot": "LCOT",
+        "mean_cf": "Mean Capacity Factor",
+        "mean_lcoe": "Mean Site-Based LCOE",
+        "mean_res": "Mean Windspeed",
+        "total_lcoe": "Total LCOE",
+        "trans_capacity": "Total Transmission Capacity",
+        "trans_cap_cost": "Transmission Capital Costs",
+        "trans_type": "Transmission Feature Type",
+        "windspeed_class": "Windspeed Class"
+    },
+    "units": {
+        "adjusted_mean_lcoe": "$/MWh",
+        "adjusted_om": "$/MW",
+        "blm_capacity_fee": "$/MW",
+        "blm_density": "ac/MW",
+        "blm_lease_option": "N/A",
+        "blm_rent": "$/ac",
+        "blm_total_charge": "$/ac",
+        "cnty_fips": "N/A",
+        "dist_km": "km",
+        "lbnl_convex_hull_existing_farms_2018": "N/A",
+        "lbnl_convex_hull_existing_farms_2021": "N/A",
+        "lbnl_upv_1km_buffer": "N/A",
+        "mean_fixed_operating_cost": "N/A",
+        "mean_system_capacity": "N/A",
+        "nrel_region": "N/A",
+        "rate_usd_ac": "$/ac",
+        "rate_usd_mw": "$/MW",
+        "technology": "N/A",
+        "trans_cap_cost_per_mw": "$/MW",
+        "transmission_multiplier": "N/A",
+        "usa_mrlc_nlcd2011": "N/A"
+    }
+}

@@ -1,0 +1,16 @@
+{
+    "project_name": "Hydrogen",
+    "directory": "TEST_DATA_DIR/hydrogen/review_pca/",
+    "var_file": "TEST_DATA_DIR/hydrogen/review_pca/variable_options.csv",
+    "demand_file": "TEST_DATA_DIR/hydrogen/review/h2_demand_600_sites.csv",
+    "units": {
+        "wind_lcoh_component": "$/kg",
+        "solar_lcoh_component": "$/kg",
+        "h2_lcoh_component": "$/kg",
+        "pipe_lcoh_component": "$/kg",
+        "water_lcoh_component": "$/kg",
+        "no_pipe_lcoh_fcr": "$/kg",
+        "total_lcoh_fcr": "$/kg"
+    },
+    "characterizations_cols": ["usa_mrlc_nlcd2011"]
+}

@@ -1,0 +1,246 @@
+{
+    "project_name": "ATB Onshore - FY21",
+    "directory": "~/review_datasets/atb_onshore_fy21",
+    "groups": {
+        "null": {}
+    },
+    "scales": {
+        "capital_cost_scalar": {
+            "min": "na",
+            "max": "na"
+        },
+        "dist_km": {
+            "min": 0.001460024365124,
+            "max": 164.55912975318645
+        },
+        "dist_to_h2_load_km": {
+            "min": "na",
+            "max": "na"
+        },
+        "hydrogen_annual_kg": {
+            "min": "na",
+            "max": "na"
+        },
+        "lbnl_convex_hull_existing_farms_2018": {
+            "min": 0.0,
+            "max": 15082.0
+        },
+        "lbnl_convex_hull_existing_farms_2021": {
+            "min": 0.0,
+            "max": 15083.0
+        },
+        "lcoh_fcr": {
+            "min": "na",
+            "max": "na"
+        },
+        "mean_capital_cost": {
+            "min": 4412642.5,
+            "max": 5005001.0
+        },
+        "mean_fixed_charge_rate": {
+            "min": 0.0489999763667583,
+            "max": 0.049000009894371
+        },
+        "mean_fixed_operating_cost": {
+            "min": 214224.890625,
+            "max": 214225.03125
+        },
+        "mean_system_capacity": {
+            "min": 5499.9990234375,
+            "max": 5500.00048828125
+        },
+        "mean_variable_operating_cost": {
+            "min": 0.0,
+            "max": 0.0
+        },
+        "nrel_region": {
+            "min": "California",
+            "max": "Southwest"
+        },
+        "offshore": {
+            "min": 0,
+            "max": 0
+        },
+        "raw_lcoe": {
+            "min": 10,
+            "max": 125
+        },
+        "shadow_flicker_120m": {
+            "min": 0.0,
+            "max": 10142.0
+        },
+        "shadow_flicker_120m_pct": {
+            "min": 0.0,
+            "max": 100.00000000000016
+        },
+        "shadow_flicker_120m_sq_km": {
+            "min": 0.0,
+            "max": 82.1502
+        },
+        "shadow_flicker_135m": {
+            "min": 0.0,
+            "max": 11909.0
+        },
+        "shadow_flicker_135m_pct": {
+            "min": 0.0,
+            "max": 100.00000000000016
+        },
+        "shadow_flicker_135m_sq_km": {
+            "min": 0.0,
+            "max": 96.4629
+        },
+        "trans_cap_cost_per_mw": {
+            "min": "na",
+            "max": "na"
+        },
+        "transmission_multiplier": {
+            "min": "na",
+            "max": "na"
+        },
+        "area_sq_km": {
+            "min": 0.0031589998841285,
+            "max": 132.7104
+        },
+        "elevation": {
+            "min": -68.85714285714286,
+            "max": 3029.0
+        },
+        "capacity": {
+            "min": 0.0094769996523857,
+            "max": 398.1312
+        },
+        "dist_mi": {
+            "min": 0.0009072193353325,
+            "max": 200.7400812281218
+        },
+        "lcot": {
+            "min": 0.0002200101970969,
+            "max": 18.9846113154393
+        },
+        "mean_cf": {
+            "min": 0.0132039785385131,
+            "max": 0.5539197325706482
+        },
+        "mean_lcoe": {
+            "min": 10,
+            "max": 125
+        },
+        "mean_res": {
+            "min": 1.6299999952316284,
+            "max": 11.933223724365234
+        },
+        "total_lcoe": {
+            "min": 10,
+            "max": 125
+        },
+        "trans_capacity": {
+            "min": 12.0,
+            "max": 23052.5
+        },
+        "trans_cap_cost": {
+            "min": 18.18845558166504,
+            "max": 736113.875
+        },
+        "2016_30m_cdls_rev90m": {
+            "min": "na",
+            "max": "na"
+        },
+        "cnty_fips": {
+            "min": "na",
+            "max": "na"
+        },
+        "fed_land_owner": {
+            "min": "na",
+            "max": "na"
+        },
+        "nlcd_2016_treecanopy_2019_08_31_rev90m": {
+            "min": "na",
+            "max": "na"
+        },
+        "usa_mrlc_nlcd2011": {
+            "min": "na",
+            "max": "na"
+        },
+        "trans_type": {
+            "min": "na",
+            "max": "na"
+        },
+        "windspeed_class": {
+            "min": "na",
+            "max": "na"
+        }
+    },
+    "titles": {
+        "2016_30m_cdls_rev90m": "2016_30m_cdls_rev90m",
+        "capital_cost_scalar": "Capital Cost Scalar",
+        "cnty_fips": "County FIPS",
+        "dist_km": "dist_km",
+        "dist_to_h2_load_km": "Hydrogen Distance to Nearest Demand Center",
+        "fed_land_owner": "Federal Land Owner",
+        "hydrogen_annual_kg": "Hydrogen - Annual Production",
+        "lbnl_convex_hull_existing_farms_2018": "LBNL Farm Hulls - 2018",
+        "lbnl_convex_hull_existing_farms_2021": " LBNL Farm Hulls - 2021",
+        "lcoh_fcr": "Hydrogen - Site-based LCOH",
+        "mean_capital_cost": "Mean Capital Cost",
+        "mean_fixed_charge_rate": "Mean FCR",
+        "mean_fixed_operating_cost": "Mean O & M",
+        "mean_system_capacity": "Mean System Capacity",
+        "mean_variable_operating_cost": "Mean Variable Costs",
+        "nlcd_2016_treecanopy_2019_08_31_rev90m": "NLCD Tree Canopy Cover",
+        "nrel_region": "nrel_region",
+        "offshore": "offshore",
+        "raw_lcoe": "Raw LCOE",
+        "shadow_flicker_120m": "Shadow Flicker 120m - Counts",
+        "shadow_flicker_120m_pct": "Shadow Flicker 120m  - Percent Area",
+        "shadow_flicker_120m_sq_km": "Shadow Flicker 120m  - Area",
+        "shadow_flicker_135m": "Shadow Flicker 135m - Counts",
+        "shadow_flicker_135m_pct": "Shadow Flicker 135m  - Percent Area",
+        "shadow_flicker_135m_sq_km": "Shadow Flicker 135m  - Area",
+        "trans_cap_cost_per_mw": "trans_cap_cost_per_mw",
+        "transmission_multiplier": "Transmission Cost Multiplier",
+        "usa_mrlc_nlcd2011": "NLCD",
+        "area_sq_km": "Supply Curve Point Area",
+        "capacity": "Total Capacity",
+        "elevation": "Elevation",
+        "dist_mi": "Distance to Transmission",
+        "lcot": "LCOT",
+        "mean_cf": "Mean Capacity Factor",
+        "mean_lcoe": "Mean Site-Based LCOE",
+        "mean_res": "Mean Windspeed",
+        "total_lcoe": "Total LCOE",
+        "trans_capacity": "Total Transmission Capacity",
+        "trans_cap_cost": "Transmission Capital Costs",
+        "trans_type": "Transmission Feature Type",
+        "windspeed_class": "Windspeed Class"
+    },
+    "units": {
+        "2016_30m_cdls_rev90m": "category",
+        "capital_cost_scalar": "ratio",
+        "cnty_fips": "category",
+        "dist_km": "N/A",
+        "dist_to_h2_load_km": "km",
+        "fed_land_owner": "category",
+        "hydrogen_annual_kg": "kg",
+        "lbnl_convex_hull_existing_farms_2018": "count",
+        "lbnl_convex_hull_existing_farms_2021": "count",
+        "lcoh_fcr": "$/kg",
+        "mean_capital_cost": "$",
+        "mean_fixed_charge_rate": "ratio",
+        "mean_fixed_operating_cost": "$",
+        "mean_system_capacity": "KW",
+        "mean_variable_operating_cost": "$",
+        "nlcd_2016_treecanopy_2019_08_31_rev90m": "category",
+        "nrel_region": "N/A",
+        "offshore": "N/A",
+        "raw_lcoe": "$/MWh",
+        "shadow_flicker_120m": "count",
+        "shadow_flicker_120m_pct": "%",
+        "shadow_flicker_120m_sq_km": "sqkm",
+        "shadow_flicker_135m": "count",
+        "shadow_flicker_135m_pct": "%",
+        "shadow_flicker_135m_sq_km": "sqkm",
+        "trans_cap_cost_per_mw": "N/A",
+        "transmission_multiplier": "",
+        "usa_mrlc_nlcd2011": "category"
+    }
+}

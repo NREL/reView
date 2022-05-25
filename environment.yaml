@@ -1,0 +1,32 @@
+name: review-dev
+channels:
+  - conda-forge
+  - anaconda
+  - defaults
+dependencies:
+  - dash>=2.3.0
+  - dash-core-components
+  - dash-html-components
+  - dash-table
+  - flask-caching
+  - gunicorn
+  - matplotlib
+  - nltk
+  - pandas
+  - pathos
+  - pip
+  - pyproj
+  - python>=3.9
+  - python-dotenv
+  - scikit-learn
+  - shapely
+  - spyder-kernels=2.2
+  - stateplane
+  - tqdm
+  - tk
+  - werkzeug>=2.0.3
+  - pip:
+    - nbformat
+    - requests
+    - us
+    - addfips

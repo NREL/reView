@@ -1,0 +1,162 @@
+{
+    "project_name": "ReEDS - FY21",
+    "directory": "~/review_datasets/reeds_user_group",
+    "low_cost_groups": {
+        "Limited Access": [
+            "offshore_wind_advanced_limited_eos_sc.csv",
+            "offshore_wind_conservative_limited_eos_sc.csv",
+            "offshore_wind_moderate_limited_eos_sc.csv",
+            "solar_moderate_limited_sc.csv",
+            "wind_moderate_limited_eos_flicker_sc.csv"
+        ],
+        "Reference Access": [
+            "solar_moderate_reference_sc.csv",
+            "wind_advanced_reference_eos_flicker_sc.csv",
+            "wind_moderate_reference_eos_flicker_sc.csv"
+        ],
+        "Open Access": [
+            "offshore_wind_advanced_open_eos_sc.csv",
+            "offshore_wind_conservative_open_eos_sc.csv",
+            "offshore_wind_moderate_open_eos_sc.csv",
+            "solar_moderate_open_sc.csv",
+            "wind_moderate_open_eos_sc.csv"
+        ],
+        "Solar": [
+            "solar_moderate_limited_sc.csv",
+            "solar_moderate_open_sc.csv",
+            "solar_moderate_reference_sc.csv"
+        ],
+        "Offshore": [
+            "offshore_wind_advanced_limited_eos_sc.csv",
+            "offshore_wind_advanced_open_eos_sc.csv",
+            "offshore_wind_conservative_limited_eos_sc.csv",
+            "offshore_wind_conservative_open_eos_sc.csv",
+            "offshore_wind_moderate_limited_eos_sc.csv",
+            "offshore_wind_moderate_open_eos_sc.csv"
+        ],
+        "Onshore": [
+            "wind_advanced_reference_eos_flicker_sc.csv",
+            "wind_moderate_limited_eos_flicker_sc.csv",
+            "wind_moderate_open_eos_sc.csv",
+            "wind_moderate_reference_eos_flicker_sc.csv"
+        ],
+        "Advanced": [
+            "offshore_wind_advanced_limited_eos_sc.csv",
+            "offshore_wind_advanced_open_eos_sc.csv",
+            "wind_advanced_reference_eos_flicker_sc.csv"
+        ],
+        "Conservative": [
+            "offshore_wind_conservative_limited_eos_sc.csv",
+            "offshore_wind_conservative_open_eos_sc.csv"
+        ],
+        "Moderate": [
+            "offshore_wind_moderate_limited_eos_sc.csv",
+            "offshore_wind_moderate_open_eos_sc.csv",
+            "solar_moderate_limited_sc.csv",
+            "solar_moderate_open_sc.csv",
+            "solar_moderate_reference_sc.csv",
+            "wind_moderate_limited_eos_flicker_sc.csv",
+            "wind_moderate_open_eos_sc.csv",
+            "wind_moderate_reference_eos_flicker_sc.csv"
+        ]
+    },
+    "units": {
+        "Access": "N/A",
+        "Technology": "category",
+        "Advancement": "category"
+    },
+    "scales": {
+        "Access": {
+            "min": 0.0,
+            "max": 9999.0
+        },
+        "area_sq_km": {
+            "min": 8.099992275238037e-05,
+            "max": 132.7104
+        },
+        "elevation": {
+            "min": -77.45714285714286,
+            "max": 3405.0
+        },
+        "capacity": {
+            "min": 0.0025919975280761,
+            "max": 4246.7328
+        },
+        "dist_mi": {
+            "min": "na",
+            "max": "na"
+        },
+        "lcot": {
+            "min": 0.0001919799886046,
+            "max": 509.1218775166439
+        },
+        "mean_cf": {
+            "min": 0.0132039785385131,
+            "max": 0.6104926466941833
+        },
+        "mean_lcoe": {
+            "min": 10,
+            "max": 125
+        },
+        "mean_res": {
+            "min": 1.6531329154968262,
+            "max": 12.890003204345705
+        },
+        "total_lcoe": {
+            "min": 10,
+            "max": 125
+        },
+        "trans_capacity": {
+            "min": "na",
+            "max": "na"
+        },
+        "trans_cap_cost": {
+            "min": "na",
+            "max": "na"
+        },
+        "Technology": {
+            "min": "na",
+            "max": "na"
+        },
+        "Advancement": {
+            "min": "na",
+            "max": "na"
+        },
+        "transmission_multiplier": {
+            "min": "na",
+            "max": "na"
+        },
+        "trans_multiplier": {
+            "min": "na",
+            "max": "na"
+        },
+        "trans_type": {
+            "min": "na",
+            "max": "na"
+        },
+        "windspeed_class": {
+            "min": "na",
+            "max": "na"
+        }
+    },
+    "titles": {
+        "Access": "Access",
+        "Technology": "Technology",
+        "Advancement": "Advancement",
+        "area_sq_km": "Supply Curve Point Area",
+        "capacity": "Total Capacity",
+        "elevation": "Elevation",
+        "dist_mi": "Distance to Transmission",
+        "lcot": "LCOT",
+        "mean_cf": "Mean Capacity Factor",
+        "mean_lcoe": "Mean Site-Based LCOE",
+        "mean_res": "Mean Windspeed",
+        "total_lcoe": "Total LCOE",
+        "trans_capacity": "Total Transmission Capacity",
+        "trans_cap_cost": "Transmission Capital Costs",
+        "transmission_multiplier": "Transmission Cost Multiplier",
+        "trans_multiplier": "Transmission Cost Multiplier",
+        "trans_type": "Transmission Feature Type",
+        "windspeed_class": "Windspeed Class"
+    }
+}

@@ -1,0 +1,5 @@
+Technology,Electrolyzer Size Ratio,Electrolyzer Capex ($/MW),Wind Cost Multiplier,Solar Cost Multiplier,Water Cost Multiplier,Pipeline Cost Multiplier,FCR,name,file
+Wind ATB Advanced,0.1,0,0.0,0.0,10,0.5,0.035,wind_flat_esr01_wcm0_ecpm0_f0035_wcm10_pcm05,TEST_DATA_DIR\hydrogen\wind_flat_esr01_wcm0_ecpm0_f0035_wcm10_pcm05_nrwal_00.csv
+Wind ATB Advanced,0.1,0,0.0,0.0,0,0.5,0.055,wind_flat_esr01_wcm0_ecpm0_f0055_wcm0_pcm05,TEST_DATA_DIR\hydrogen\wind_flat_esr01_wcm0_ecpm0_f0055_wcm0_pcm05_nrwal_00.csv
+Wind ATB Advanced,0.1,100000,0.0,0.0,0,1.0,0.015,wind_flat_esr01_wcm0_ecpm100000_f0015_wcm0_pcm1,TEST_DATA_DIR\hydrogen\wind_flat_esr01_wcm0_ecpm100000_f0015_wcm0_pcm1_nrwal_00.csv
+Wind ATB Advanced,0.1,100000,0.0,0.0,10,0.5,0.049,wind_flat_esr01_wcm0_ecpm100000_f0049_wcm10_pcm05,TEST_DATA_DIR\hydrogen\wind_flat_esr01_wcm0_ecpm100000_f0049_wcm10_pcm05_nrwal_00.csv

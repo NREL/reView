@@ -1,0 +1,327 @@
+{
+    "project_name": "BLM Lease Rates",
+    "directory": "~/review_datasets/blm_lease_rates_adjusted",
+    "units": {
+        "2016_30m_cdls_rev90m": "N/A",
+        "adjusted_mean_lcoe": "N/A",
+        "adjusted_om": "N/A",
+        "ba_regions": "N/A",
+        "capacity_fee": "N/A",
+        "capital_cost_scalar": "N/A",
+        "cnty_fips": "N/A",
+        "county_cap": "N/A",
+        "county_state": "N/A",
+        "density": "N/A",
+        "dist_km": "N/A",
+        "fed_land_owner": "N/A",
+        "lbnl_convex_hull_existing_farms_2018": "N/A",
+        "lbnl_convex_hull_existing_farms_2021": "N/A",
+        "lbnl_upv_1km_buffer": "N/A",
+        "mean_capital_cost": "N/A",
+        "mean_fixed_charge_rate": "N/A",
+        "mean_fixed_operating_cost": "N/A",
+        "mean_system_capacity": "N/A",
+        "mean_variable_operating_cost": "N/A",
+        "nlcd_2016_treecanopy_2019_08_31_rev90m": "N/A",
+        "nrel_region": "N/A",
+        "offshore": "N/A",
+        "rate_usd_ac": "N/A",
+        "rate_usd_mw": "N/A",
+        "raw_lcoe": "N/A",
+        "reeds_regions": "N/A",
+        "resolution_128_sc_point_gid": "N/A",
+        "shadow_flicker_120m": "N/A",
+        "shadow_flicker_120m_pct": "N/A",
+        "shadow_flicker_120m_sq_km": "N/A",
+        "shadow_flicker_135m": "N/A",
+        "shadow_flicker_135m_pct": "N/A",
+        "shadow_flicker_135m_sq_km": "N/A",
+        "state_cap": "N/A",
+        "trans_cap_cost_per_mw": "N/A",
+        "transmission_multiplier": "N/A",
+        "usa_mrlc_nlcd2011": "N/A",
+        "Technology": "N/A",
+        "Fee Option": "N/A",
+        "Capacity Density": "N/A",
+        "Capacity Fee": "N/A"
+    },
+    "scales": {
+        "2016_30m_cdls_rev90m": {
+            "min": 0,
+            "max": 9999
+        },
+        "adjusted_mean_lcoe": {
+            "min": 10,
+            "max": 125
+        },
+        "adjusted_om": {
+            "min": 577.4912908604134,
+            "max": 17095173.9423129
+        },
+        "ba_regions": {
+            "min": 0,
+            "max": 9999
+        },
+        "capacity_fee": {
+            "min": 0,
+            "max": 9999
+        },
+        "capital_cost_scalar": {
+            "min": 0,
+            "max": 9999
+        },
+        "cnty_fips": {
+            "min": 4001,
+            "max": 56045
+        },
+        "county_cap": {
+            "min": 0,
+            "max": 9999
+        },
+        "county_state": {
+            "min": 0,
+            "max": 9999
+        },
+        "density": {
+            "min": 0,
+            "max": 9999
+        },
+        "dist_km": {
+            "min": 5.76,
+            "max": 126.89791549844728
+        },
+        "fed_land_owner": {
+            "min": 0,
+            "max": 9999
+        },
+        "lbnl_convex_hull_existing_farms_2018": {
+            "min": 0.0,
+            "max": 1.0
+        },
+        "lbnl_convex_hull_existing_farms_2021": {
+            "min": "na",
+            "max": "na"
+        },
+        "lbnl_upv_1km_buffer": {
+            "min": 1.0,
+            "max": 1.0
+        },
+        "mean_capital_cost": {
+            "min": 0,
+            "max": 9999
+        },
+        "mean_fixed_charge_rate": {
+            "min": 0,
+            "max": 9999
+        },
+        "mean_fixed_operating_cost": {
+            "min": 0,
+            "max": 9999
+        },
+        "mean_system_capacity": {
+            "min": 0,
+            "max": 9999
+        },
+        "mean_variable_operating_cost": {
+            "min": 0,
+            "max": 9999
+        },
+        "nlcd_2016_treecanopy_2019_08_31_rev90m": {
+            "min": 0,
+            "max": 9999
+        },
+        "nrel_region": {
+            "min": "California",
+            "max": "Southwest"
+        },
+        "offshore": {
+            "min": 0,
+            "max": 9999
+        },
+        "rate_usd_ac": {
+            "min": 0.9118140130714748,
+            "max": 264.3374978148022
+        },
+        "rate_usd_mw": {
+            "min": "na",
+            "max": "na"
+        },
+        "raw_lcoe": {
+            "min": 10,
+            "max": 125
+        },
+        "reeds_regions": {
+            "min": 0,
+            "max": 9999
+        },
+        "resolution_128_sc_point_gid": {
+            "min": 0,
+            "max": 9999
+        },
+        "shadow_flicker_120m": {
+            "min": 0,
+            "max": 9999
+        },
+        "shadow_flicker_120m_pct": {
+            "min": 0,
+            "max": 9999
+        },
+        "shadow_flicker_120m_sq_km": {
+            "min": 0,
+            "max": 9999
+        },
+        "shadow_flicker_135m": {
+            "min": 0,
+            "max": 9999
+        },
+        "shadow_flicker_135m_pct": {
+            "min": 0,
+            "max": 9999
+        },
+        "shadow_flicker_135m_sq_km": {
+            "min": 0,
+            "max": 9999
+        },
+        "state_cap": {
+            "min": 0,
+            "max": 9999
+        },
+        "trans_cap_cost_per_mw": {
+            "min": 1045.574294627704,
+            "max": 1185975298.3269308
+        },
+        "transmission_multiplier": {
+            "min": "na",
+            "max": "na"
+        },
+        "usa_mrlc_nlcd2011": {
+            "min": "na",
+            "max": "na"
+        },
+        "Technology": {
+            "min": 0,
+            "max": 9999
+        },
+        "Fee Option": {
+            "min": 0,
+            "max": 9999
+        },
+        "Capacity Density": {
+            "min": 0,
+            "max": 9999
+        },
+        "Capacity Fee": {
+            "min": 0,
+            "max": 9999
+        },
+        "area_sq_km": {
+            "min": 0.0009000000067055,
+            "max": 132.3378
+        },
+        "elevation": {
+            "min": -71.0,
+            "max": 2869.716796875
+        },
+        "capacity": {
+            "min": 0.0243,
+            "max": 397.01339999999993
+        },
+        "dist_mi": {
+            "min": "na",
+            "max": "na"
+        },
+        "lcot": {
+            "min": 0.0239696962422282,
+            "max": 28802.32162829332
+        },
+        "mean_cf": {
+            "min": 0.0129274511709809,
+            "max": 0.259547084569931
+        },
+        "mean_lcoe": {
+            "min": 10,
+            "max": 125
+        },
+        "mean_res": {
+            "min": 1.7000372409820557,
+            "max": 6.054465293884277
+        },
+        "total_lcoe": {
+            "min": 10,
+            "max": 125
+        },
+        "trans_capacity": {
+            "min": "na",
+            "max": "na"
+        },
+        "trans_cap_cost": {
+            "min": "na",
+            "max": "na"
+        },
+        "trans_type": {
+            "min": "na",
+            "max": "na"
+        },
+        "windspeed_class": {
+            "min": "na",
+            "max": "na"
+        }
+    },
+    "titles": {
+        "2016_30m_cdls_rev90m": "2016_30m_cdls_rev90m",
+        "adjusted_mean_lcoe": "adjusted_mean_lcoe",
+        "adjusted_om": "adjusted_om",
+        "ba_regions": "ba_regions",
+        "capacity_fee": "capacity_fee",
+        "capital_cost_scalar": "capital_cost_scalar",
+        "cnty_fips": "cnty_fips",
+        "county_cap": "county_cap",
+        "county_state": "county_state",
+        "density": "density",
+        "dist_km": "dist_km",
+        "fed_land_owner": "fed_land_owner",
+        "lbnl_convex_hull_existing_farms_2018": "lbnl_convex_hull_existing_farms_2018",
+        "lbnl_convex_hull_existing_farms_2021": "lbnl_convex_hull_existing_farms_2021",
+        "lbnl_upv_1km_buffer": "lbnl_upv_1km_buffer",
+        "mean_capital_cost": "mean_capital_cost",
+        "mean_fixed_charge_rate": "mean_fixed_charge_rate",
+        "mean_fixed_operating_cost": "mean_fixed_operating_cost",
+        "mean_system_capacity": "mean_system_capacity",
+        "mean_variable_operating_cost": "mean_variable_operating_cost",
+        "nlcd_2016_treecanopy_2019_08_31_rev90m": "nlcd_2016_treecanopy_2019_08_31_rev90m",
+        "nrel_region": "nrel_region",
+        "offshore": "offshore",
+        "rate_usd_ac": "rate_usd_ac",
+        "rate_usd_mw": "rate_usd_mw",
+        "raw_lcoe": "raw_lcoe",
+        "reeds_regions": "reeds_regions",
+        "resolution_128_sc_point_gid": "resolution_128_sc_point_gid",
+        "shadow_flicker_120m": "shadow_flicker_120m",
+        "shadow_flicker_120m_pct": "shadow_flicker_120m_pct",
+        "shadow_flicker_120m_sq_km": "shadow_flicker_120m_sq_km",
+        "shadow_flicker_135m": "shadow_flicker_135m",
+        "shadow_flicker_135m_pct": "shadow_flicker_135m_pct",
+        "shadow_flicker_135m_sq_km": "shadow_flicker_135m_sq_km",
+        "state_cap": "state_cap",
+        "trans_cap_cost_per_mw": "trans_cap_cost_per_mw",
+        "transmission_multiplier": "Transmission Cost Multiplier",
+        "usa_mrlc_nlcd2011": "usa_mrlc_nlcd2011",
+        "Technology": "Technology",
+        "Fee Option": "Fee Option",
+        "Capacity Density": "Capacity Density",
+        "Capacity Fee": "Capacity Fee",
+        "area_sq_km": "Supply Curve Point Area",
+        "capacity": "Total Capacity",
+        "elevation": "Elevation",
+        "dist_mi": "Distance to Transmission",
+        "lcot": "LCOT",
+        "mean_cf": "Mean Capacity Factor",
+        "mean_lcoe": "Mean Site-Based LCOE",
+        "mean_res": "Mean Windspeed",
+        "total_lcoe": "Total LCOE",
+        "trans_capacity": "Total Transmission Capacity",
+        "trans_cap_cost": "Transmission Capital Costs",
+        "trans_type": "Transmission Feature Type",
+        "windspeed_class": "Windspeed Class"
+    }
+}

@@ -1,0 +1,133 @@
+{
+    "project_name": "LCOT Comparison",
+    "directory": "~/review_datasets/temp/atb_onshore_fy21",
+    "units": {
+        "Rating": "category",
+        "Hub Height": "m",
+        "Rotor diameter": "caategory",
+        "Erection": "category",
+        "Tower Type": "category",
+        "Wake steering benefit": "category",
+        "O&M Crane": "category",
+        "Exclusion layer": "category"
+    },
+    "scales": {
+        "Hub Height": {
+            "min": 0.0,
+            "max": 9999.0
+        },
+        "Rotor diameter": {
+            "min": 0.0,
+            "max": 9999.0
+        },
+        "area_sq_km": {
+            "min": 0.0081,
+            "max": 132.7104
+        },
+        "elevation": {
+            "min": -68.85714285714286,
+            "max": 3126.0
+        },
+        "capacity": {
+            "min": 0.0243,
+            "max": 398.1312
+        },
+        "dist_mi": {
+            "min": 0.0009072193353325,
+            "max": 231.8282030386021
+        },
+        "lcot": {
+            "min": 0.00023589790745638398,
+            "max": 198398.20800356648
+        },
+        "mean_cf": {
+            "min": 0.0134188449010252,
+            "max": 0.5696950554847717
+        },
+        "mean_lcoe": {
+            "min": 10,
+            "max": 125
+        },
+        "mean_res": {
+            "min": 1.6864641904830933,
+            "max": 12.890003204345705
+        },
+        "total_lcoe": {
+            "min": 10,
+            "max": 125
+        },
+        "trans_capacity": {
+            "min": 12.0,
+            "max": 23052.5
+        },
+        "trans_cap_cost": {
+            "min": 18.18845558166504,
+            "max": 850114.0
+        },
+        "Rating": {
+            "min": "na",
+            "max": "na"
+        },
+        "Erection": {
+            "min": "na",
+            "max": "na"
+        },
+        "Tower Type": {
+            "min": "na",
+            "max": "na"
+        },
+        "Wake steering benefit": {
+            "min": "na",
+            "max": "na"
+        },
+        "O&M Crane": {
+            "min": "na",
+            "max": "na"
+        },
+        "Exclusion layer": {
+            "min": "na",
+            "max": "na"
+        },
+        "transmission_multiplier": {
+            "min": "na",
+            "max": "na"
+        },
+        "trans_multiplier": {
+            "min": "na",
+            "max": "na"
+        },
+        "trans_type": {
+            "min": "na",
+            "max": "na"
+        },
+        "windspeed_class": {
+            "min": "na",
+            "max": "na"
+        }
+    },
+    "titles": {
+        "Rating": "Rating",
+        "Hub Height": "Hub Height",
+        "Rotor diameter": "Rotor diameter",
+        "Erection": "Erection",
+        "Tower Type": "Tower Type",
+        "Wake steering benefit": "Wake steering benefit",
+        "O&M Crane": "O&M Crane",
+        "Exclusion layer": "Exclusion layer",
+        "area_sq_km": "Supply Curve Point Area",
+        "capacity": "Total Capacity",
+        "elevation": "Elevation",
+        "dist_mi": "Distance to Transmission",
+        "lcot": "LCOT",
+        "mean_cf": "Mean Capacity Factor",
+        "mean_lcoe": "Mean Site-Based LCOE",
+        "mean_res": "Mean Windspeed",
+        "total_lcoe": "Total LCOE",
+        "trans_capacity": "Total Transmission Capacity",
+        "trans_cap_cost": "Transmission Capital Costs",
+        "transmission_multiplier": "Transmission Cost Multiplier",
+        "trans_multiplier": "Transmission Cost Multiplier",
+        "trans_type": "Transmission Feature Type",
+        "windspeed_class": "Windspeed Class"
+    }
+}

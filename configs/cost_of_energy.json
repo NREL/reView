@@ -1,0 +1,182 @@
+{
+    "project_name": "Cost of Energy",
+    "directory": "~/review_datasets/coe",
+    "units": {
+        "bathymetry": "m",
+        "boem_wind_leases_06082021": "N/A",
+        "boem_wind_planning_areas_03292021": "N/A",
+        "capital_cost_scalar": "N/A",
+        "dist_km": "km",
+        "dist_to_coast": "m",
+        "mean_array": "N/A",
+        "mean_capital_cost": "N/A",
+        "mean_export": "N/A",
+        "mean_fixed_charge_rate": "N/A",
+        "mean_fixed_operating_cost": "N/A",
+        "mean_system_capacity": "N/A",
+        "mean_turb_generic_loss": "N/A",
+        "mean_variable_operating_cost": "N/A",
+        "offshore": "N/A",
+        "raw_lcoe": " $/MWh",
+        "trans_cap_cost_per_mw": "$/MW"
+    },
+    "scales": {
+        "bathymetry": {
+            "min": -5306.249,
+            "max": 17.523220000000002
+        },
+        "boem_wind_leases_06082021": {
+            "min": 0.0,
+            "max": 13924.0
+        },
+        "boem_wind_planning_areas_03292021": {
+            "min": 0.0,
+            "max": 13924.0
+        },
+        "capital_cost_scalar": {
+            "min": 1.0001186224489795,
+            "max": 2.03
+        },
+        "dist_km": {
+            "min": 5.5,
+            "max": 210.92668811788693
+        },
+        "dist_to_coast": {
+            "min": 4829.9067,
+            "max": 437179.66
+        },
+        "mean_array": {
+            "min": 176958160.0,
+            "max": 453760030.0
+        },
+        "mean_capital_cost": {
+            "min": 28887996.0,
+            "max": 41120004.0
+        },
+        "mean_export": {
+            "min": 88674584.0,
+            "max": 777983700.0
+        },
+        "mean_fixed_charge_rate": {
+            "min": 0.058199983,
+            "max": 0.05820001
+        },
+        "mean_fixed_operating_cost": {
+            "min": 903999.94,
+            "max": 936000.06
+        },
+        "mean_system_capacity": {
+            "min": 8000.0,
+            "max": 8000.0
+        },
+        "mean_turb_generic_loss": {
+            "min": 15.699994,
+            "max": 20.800005
+        },
+        "mean_variable_operating_cost": {
+            "min": 0.0,
+            "max": 0.0
+        },
+        "offshore": {
+            "min": 1.0,
+            "max": 1.0
+        },
+        "raw_lcoe": {
+            "min": 10,
+            "max": 125
+        },
+        "trans_cap_cost_per_mw": {
+            "min": 1863.5087831295816,
+            "max": 12912000575.94896
+        },
+        "area_sq_km": {
+            "min": 0.0081,
+            "max": 112.7844
+        },
+        "elevation": {
+            "min": 0.0,
+            "max": 0.0
+        },
+        "capacity": {
+            "min": 0.0430484693877551,
+            "max": 599.4068877551018
+        },
+        "dist_mi": {
+            "min": 0.0,
+            "max": 9999.0
+        },
+        "lcot": {
+            "min": 0.0260380889674358,
+            "max": 217414.5350528612
+        },
+        "mean_cf": {
+            "min": 0.034894425,
+            "max": 0.5064884
+        },
+        "mean_lcoe": {
+            "min": 10,
+            "max": 125
+        },
+        "mean_res": {
+            "min": 2.9562304,
+            "max": 11.106382
+        },
+        "total_lcoe": {
+            "min": 10,
+            "max": 125
+        },
+        "trans_capacity": {
+            "min": 0.0,
+            "max": 9999.0
+        },
+        "trans_cap_cost": {
+            "min": 0.0,
+            "max": 9999.0
+        },
+        "transmission_multiplier": {
+            "min": 0.0,
+            "max": 9999.0
+        },
+        "trans_type": {
+            "min": "na",
+            "max": "na"
+        },
+        "windspeed_class": {
+            "min": "na",
+            "max": "na"
+        }
+    },
+    "titles": {
+        "bathymetry": "Bathymetry",
+        "boem_wind_leases_06082021": "BOEM Wind Leasing Areas - 06-08-2021",
+        "boem_wind_planning_areas_03292021": "BOEM Wind Planning Areas - 03-29-2021",
+        "capital_cost_scalar": "Capital Cost Scalar",
+        "dist_km": "Landfall Distance to Transmission",
+        "dist_to_coast": "Distance to Landfall",
+        "mean_array": "mean_array",
+        "mean_capital_cost": "mean_capital_cost",
+        "mean_export": "mean_export",
+        "mean_fixed_charge_rate": "mean_fixed_charge_rate",
+        "mean_fixed_operating_cost": "mean_fixed_operating_cost",
+        "mean_system_capacity": "mean_system_capacity",
+        "mean_turb_generic_loss": "mean_turb_generic_loss",
+        "mean_variable_operating_cost": "mean_variable_operating_cost",
+        "offshore": "offshore",
+        "raw_lcoe": "Raw LCOE",
+        "trans_cap_cost_per_mw": "Transmission Capital Cost",
+        "area_sq_km": "Supply Curve Point Area",
+        "capacity": "Total Capacity",
+        "elevation": "Elevation",
+        "dist_mi": "Distance to Transmission",
+        "lcot": "LCOT",
+        "mean_cf": "Mean Capacity Factor",
+        "mean_lcoe": "Mean Site-Based LCOE",
+        "mean_res": "Mean Windspeed",
+        "total_lcoe": "Total LCOE",
+        "trans_capacity": "Total Transmission Capacity",
+        "trans_cap_cost": "Transmission Capital Costs",
+        "transmission_multiplier": "Transmission Cost Multiplier",
+        "trans_type": "Transmission Feature Type",
+        "windspeed_class": "Windspeed Class"
+    }
+}

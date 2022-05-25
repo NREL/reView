@@ -1,0 +1,139 @@
+{
+    "project_name": "RPM",
+    "directory": "~/review_datasets/rpm",
+    "units": {
+        "capital_cost_scalar": "N/A",
+        "mean_capital_cost": "N/A",
+        "mean_fixed_charge_rate": "N/A",
+        "mean_fixed_operating_cost": "N/A",
+        "mean_system_capacity": "N/A",
+        "mean_variable_operating_cost": "N/A",
+        "offshore": "N/A",
+        "provinces": "N/A",
+        "raw_lcoe": "N/A"
+    },
+    "scales": {
+        "capital_cost_scalar": {
+            "min": 0.97028032,
+            "max": 1.24
+        },
+        "mean_capital_cost": {
+            "min": 4696998.5,
+            "max": 4697001.0
+        },
+        "mean_fixed_charge_rate": {
+            "min": 0.04899998009204865,
+            "max": 0.04900001361966133
+        },
+        "mean_fixed_operating_cost": {
+            "min": 240659.96875,
+            "max": 240660.03125
+        },
+        "mean_system_capacity": {
+            "min": 6999.99951171875,
+            "max": 7000.00048828125
+        },
+        "mean_variable_operating_cost": {
+            "min": 0.0,
+            "max": 0.0
+        },
+        "offshore": {
+            "min": 0,
+            "max": 0
+        },
+        "provinces": {
+            "min": "{\"1\": 0.5, \"2\": 2395.0}",
+            "max": "{\"9\": 9998.0}"
+        },
+        "raw_lcoe": {
+            "min": 10,
+            "max": 125
+        },
+        "area_sq_km": {
+            "min": 0.00405,
+            "max": 132.7104
+        },
+        "elevation": {
+            "min": -1.0,
+            "max": 2611.0
+        },
+        "capacity": {
+            "min": 0.01215,
+            "max": 398.1312
+        },
+        "dist_mi": {
+            "min": 0,
+            "max": 9999
+        },
+        "lcot": {
+            "min": 0,
+            "max": 9999
+        },
+        "mean_cf": {
+            "min": 0.06128047779202461,
+            "max": 0.6375645399093628
+        },
+        "mean_lcoe": {
+            "min": 10,
+            "max": 125
+        },
+        "mean_res": {
+            "min": 2.52079439163208,
+            "max": 11.8028564453125
+        },
+        "total_lcoe": {
+            "min": 10,
+            "max": 125
+        },
+        "trans_capacity": {
+            "min": 0,
+            "max": 9999
+        },
+        "trans_cap_cost": {
+            "min": 0,
+            "max": 9999
+        },
+        "transmission_multiplier": {
+            "min": "na",
+            "max": "na"
+        },
+        "trans_multiplier": {
+            "min": "na",
+            "max": "na"
+        },
+        "trans_type": {
+            "min": "na",
+            "max": "na"
+        },
+        "windspeed_class": {
+            "min": "na",
+            "max": "na"
+        }
+    },
+    "titles": {
+        "capital_cost_scalar": "capital_cost_scalar",
+        "mean_capital_cost": "mean_capital_cost",
+        "mean_fixed_charge_rate": "mean_fixed_charge_rate",
+        "mean_fixed_operating_cost": "mean_fixed_operating_cost",
+        "mean_system_capacity": "mean_system_capacity",
+        "mean_variable_operating_cost": "mean_variable_operating_cost",
+        "offshore": "offshore",
+        "provinces": "provinces",
+        "raw_lcoe": "raw_lcoe",
+        "area_sq_km": "Supply Curve Point Area",
+        "capacity": "Total Capacity",
+        "elevation": "Elevation",
+        "dist_mi": "Distance to Transmission",
+        "lcot": "LCOT",
+        "mean_cf": "Mean Capacity Factor",
+        "mean_lcoe": "Mean Site-Based LCOE",
+        "mean_res": "Mean Windspeed",
+        "total_lcoe": "Total LCOE",
+        "trans_capacity": "Total Transmission Capacity",
+        "trans_cap_cost": "Transmission Capital Costs",
+        "transmission_multiplier": "Transmission Cost Multiplier",
+        "trans_multiplier": "Transmission Cost Multiplier",
+        "trans_type": "Transmission Feature Type",
+        "windspeed_class": "Windspeed Class"
+    }
+}
