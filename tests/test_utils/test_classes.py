@@ -108,20 +108,18 @@ def test_function_calls_call(add_func):
     assert FUNCTION_CALLS('multiply') == ''
 
 
-    assert 'left' not in locals()
-    assert 'right' not in locals()
-    assert 'trigger' not in locals()
-    if 'win' in sys.platform:
-        exec(
-            "global left; global right; global trigger;"
-            + FUNCTION_CALLS('add')
-        )
+    assert 'left' not in globals()
+    assert 'right' not in globals()
+    assert 'trigger' not in globals()
 
-    else:
-        exec(FUNCTION_CALLS('add'))
-        assert 'left' in locals()
-        assert 'right' in locals()
-        assert 'trigger' in locals()
+    exec(
+        "global left; global right; global trigger;"
+        + FUNCTION_CALLS('add')
+    )
+
+    assert 'left' in globals()
+    assert 'right' in globals()
+    assert 'trigger' in globals()
 
     # pyright: reportUndefinedVariable=false
     assert left  == 1
