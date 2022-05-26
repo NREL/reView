@@ -37,7 +37,7 @@ def test_configs(test_config_dir):
 
 
 def pytest_setup_options():
-    """Recommended fixture based on https://dash.plotly.com/testing."""
+    """Recommended setup based on https://dash.plotly.com/testing."""
     options = Options()
     options.add_argument("--disable-gpu")
     options.add_argument("--headless")
