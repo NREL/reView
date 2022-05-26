@@ -12,6 +12,7 @@ from reView.layout.styles import BUTTON_STYLES
 
 
 NAVBAR = html.Nav(
+    id='top-level-navbar',
     className="top-bar fixed",
     children=[
         html.Div(

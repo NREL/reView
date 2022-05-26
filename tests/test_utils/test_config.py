@@ -24,6 +24,14 @@ def resolve_test_data_dir():
     Config._extract_fp_from_config = patched_extract_fp_from_config
 
 
+# pylint: disable=protected-access
+@pytest.fixture(autouse=True)
+def reset_configs():
+    """Reset singleton config info."""
+    Config._all_configs = {}
+    yield
+
+
 def test_invalid_project_input():
     """Test invalid project name input (None)"""
 
@@ -103,8 +111,8 @@ def test_properties_of_minimal_config():
     assert len(config.units) >= 0
     assert len(config.scenarios) >= 2
     assert len(config.scenarios) >= 2
-    assert 'empty_data_1' in config.scenarios
-    assert 'empty_data_2' in config.scenarios
+    assert "empty_data_1" in config.scenarios
+    assert "empty_data_2" in config.scenarios
 
     assert repr(config) == "Config('Hydrogen Minimal')"
     assert "Config" in str(config)

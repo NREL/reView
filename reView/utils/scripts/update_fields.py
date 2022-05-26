@@ -9,7 +9,7 @@ Created on Thu Jan  7 07:17:36 2021
 """
 
 import pandas as pd
-import pathos.multiprocessing as mp
+from multiprocessing import Pool
 from tqdm import tqdm
 
 from reView.utils.config import Config
@@ -213,7 +213,7 @@ def update_file(path):
 
 def update_files():
     """Update all files with added field."""
-    with mp.Pool(mp.cpu_count()) as pool:
+    with Pool() as pool:
         for _ in tqdm(pool.imap(update_file, FILES), total=len(FILES)):
             pass
 

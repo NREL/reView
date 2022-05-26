@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
-"""Fixtures for use across all tests."""
+"""Fixtures and setup for use across all tests."""
 from pathlib import Path
 
 import pytest
+from selenium.webdriver.chrome.options import Options
 
 from reView import TEST_DATA_DIR
 import reView.utils.config
@@ -18,7 +19,7 @@ def test_data_dir():
 # pylint: disable=redefined-outer-name
 @pytest.fixture
 def test_config_dir(test_data_dir):
-    """Return TEST_DATA_DIR as a `Path` object."""
+    """Return test config directory as a `Path` object."""
     return test_data_dir / "configs"
 
 
@@ -33,3 +34,11 @@ def test_configs(test_config_dir):
     yield
 
     reView.utils.config.PROJECT_CONFIGS = old_configs
+
+
+def pytest_setup_options():
+    """Recommended setup based on https://dash.plotly.com/testing."""
+    options = Options()
+    options.add_argument("--disable-gpu")
+    options.add_argument("--headless")
+    return options

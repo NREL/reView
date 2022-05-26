@@ -20,7 +20,7 @@ with open("requirements.txt") as f:
     INSTALL_REQUIREMENTS = f.readlines()
 
 
-DEV_REQUIREMENTS = ["black", "pylint"]
+DEV_REQUIREMENTS = ["black", "pylint", "dash[testing]", "selenium"]
 TEST_REQUIREMENTS = ["pytest", "pytest-cov"]
 GUNICORN_REQUIREMENTS = ["gunicorn"]
 
