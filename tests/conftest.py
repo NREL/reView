@@ -19,7 +19,7 @@ def test_data_dir():
 # pylint: disable=redefined-outer-name
 @pytest.fixture
 def test_config_dir(test_data_dir):
-    """Return test config dir as a `Path` object."""
+    """Return test config directory as a `Path` object."""
     return test_data_dir / "configs"
 
 
