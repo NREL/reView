@@ -63,6 +63,12 @@ class CapturePrint:
         sys.stdout = self._stdout
 
 
+def test_function_calls_repr():
+    """Test the `FunctionCalls` class repr."""
+
+    assert "FunctionCalls" in repr(FUNCTION_CALLS)
+
+
 def test_function_calls_log(add_func, mult_func):
     """Test `FunctionCalls.log` method."""
 
