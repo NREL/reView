@@ -27,7 +27,7 @@
     3) cd into the repo: ``cd reView``.
     4) prior to running ``pip`` below, make sure the branch is correct (install from main!)
     5) Install ``reView`` and its dependencies by running:
-       ``pip install .`` (or ``pip install -e .[dev]`` if running a dev branch or working on the source code)
+       ``pip install -e .`` (or ``pip install -e .[dev]`` if running a dev branch or working on the source code)
 
 3. Create a project config pointing to directory containing reV supply curve tables. Save as json dictionary in configs/ (e.g. configs/sample.json).
 ```
@@ -57,8 +57,8 @@
     ```
     or, for more development tools:
     ```
-     pip install -e .[dev,gunicorn]
-     ```
+    pip install -e .[dev,gunicorn]
+    ```
 
 2. Run `reView` using `gunicorn`:
     ```
