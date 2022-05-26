@@ -28,7 +28,7 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install pytest
         python -m pip install pytest-cov
-        python -m pip install .
+        python -m pip install .[dev]
     - name: Run pytest and Generate coverage report
       run: |
         python -m pytest -v --disable-warnings
