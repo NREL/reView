@@ -106,6 +106,10 @@ def test_properties_of_minimal_config():
     assert 'empty_data_1' in config.scenarios
     assert 'empty_data_2' in config.scenarios
 
+    assert repr(config) == "Config('Hydrogen Minimal')"
+    assert "Config" in str(config)
+    assert "Hydrogen Minimal" in str(config)
+
 
 def test_config_is_singleton():
     """Test that config object is singleton."""
