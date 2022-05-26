@@ -85,6 +85,7 @@ def test_config_no_var_but_default_file_exists():
     assert isinstance(config.files, dict)
 
 
+# pylint: disable=use-implicit-booleaness-not-comparison
 def test_properties_of_minimal_config():
     """Test default values for minimal config."""
 
@@ -100,6 +101,14 @@ def test_properties_of_minimal_config():
     assert config.titles == {}
     assert len(config.scales) >= 0
     assert len(config.units) >= 0
+    assert len(config.scenarios) >= 2
+    assert len(config.scenarios) >= 2
+    assert 'empty_data_1' in config.scenarios
+    assert 'empty_data_2' in config.scenarios
+
+    assert repr(config) == "Config('Hydrogen Minimal')"
+    assert "Config" in str(config)
+    assert "Hydrogen Minimal" in str(config)
 
 
 def test_config_is_singleton():

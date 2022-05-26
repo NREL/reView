@@ -6,7 +6,7 @@ from io import StringIO
 
 import pytest
 
-from reView.utils.classes import FunctionCalls
+from reView.utils.classes import FunctionCalls, DiffUnitOptions, CountyCode
 
 FUNCTION_CALLS = FunctionCalls()
 
@@ -61,6 +61,12 @@ class CapturePrint:
         self.storage.extend(self._string_io.getvalue().splitlines())
         del self._string_io    # free up some memory
         sys.stdout = self._stdout
+
+
+def test_function_calls_repr():
+    """Test the `FunctionCalls` class repr."""
+
+    assert "FunctionCalls" in repr(FUNCTION_CALLS)
 
 
 def test_function_calls_log(add_func, mult_func):
@@ -161,3 +167,41 @@ def test_function_calls_print_all(add_func, mult_func):
     ]
     for expected in all_expected:
         assert expected in output
+
+
+def test_expected_enums_exist():
+    """Test that specific expected enum values exist."""
+
+    assert "ORIGINAL" in dir(DiffUnitOptions)
+    assert "PERCENTAGE" in dir(DiffUnitOptions)
+
+
+def test_difference_unit_options_from_variable_name():
+    """Test that specific expected enum values exist."""
+
+    var_with_original_option = f"a_var{DiffUnitOptions.ORIGINAL}"
+    assert (DiffUnitOptions.from_variable_name(var_with_original_option)
+            == DiffUnitOptions.ORIGINAL)
+
+    var_with_original_option = f"a_var{DiffUnitOptions.PERCENTAGE}"
+    assert (DiffUnitOptions.from_variable_name(var_with_original_option)
+            == DiffUnitOptions.PERCENTAGE)
+
+
+def test_difference_unit_options_remove_from_variable_name():
+    """Test that specific expected enum values exist."""
+
+    var_with_original_option = f"a_var{DiffUnitOptions.ORIGINAL}"
+    assert (DiffUnitOptions.remove_from_variable_name(var_with_original_option)
+            == "a_var")
+
+    var_with_original_option = f"another_var{DiffUnitOptions.PERCENTAGE}"
+    assert (DiffUnitOptions.remove_from_variable_name(var_with_original_option)
+            == "another_var")
+
+
+def test_county_codes():
+    """Test getting codes for county."""
+
+    assert CountyCode.fips("Autauga", state="Alabama") == '01001'
+    assert CountyCode.epsg("Autauga", state="Alabama") == '26930'

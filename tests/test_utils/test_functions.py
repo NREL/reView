@@ -11,7 +11,9 @@ from reView.utils.functions import (
     adjust_cf_for_losses,
     common_numeric_columns,
     deep_replace,
-    shorten
+    shorten,
+    as_float,
+    safe_convert_percentage_to_decimal
 )
 
 
@@ -176,3 +178,23 @@ def test_data_paths():
     for name, path in paths.items():
         assert name == path.name
         assert path.exists()
+
+
+def test_as_float():
+    """Test `as_float` function."""
+
+    assert isinstance(as_float("2000"), float)
+    assert as_float("2000") == 2000
+    assert as_float("2,000") == 2000
+    assert as_float("2,000.54") == 2000.54
+    assert as_float("$2,000.54") == 2000.54
+    assert as_float("2,0.54%") == 20.54
+
+
+def test_safe_convert_percentage_to_decimal():
+    """Test safe percentage converter. """
+
+    assert safe_convert_percentage_to_decimal(96) == 0.96
+    assert safe_convert_percentage_to_decimal(96.54) == 0.9654
+    assert safe_convert_percentage_to_decimal(1) == 1
+    assert safe_convert_percentage_to_decimal(0.5) == 0.5
