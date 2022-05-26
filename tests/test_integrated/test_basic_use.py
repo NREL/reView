@@ -8,7 +8,8 @@ https://dash.plotly.com/testing
 
 from reView.app import app
 
-
+# noqa
+# pylint: disable=unused-import,import-outside-toplevel
 def test_open_review(dash_duo):
     """Test opening review."""
     # this import is part of the test...
@@ -18,4 +19,3 @@ def test_open_review(dash_duo):
 
     dash_duo.start_server(app)
     assert dash_duo.find_element("#top-level-navbar").is_displayed()
-    assert dash_duo.get_logs() == [], "browser console should contain no error"
