@@ -8,7 +8,7 @@ Created on Sun Aug 23 16:27:25 2020
 import ast
 import json
 import os
-import pathos.multiprocessing as mp
+from multiprocessing import Pool
 from pathlib import Path
 from functools import lru_cache
 
@@ -38,6 +38,8 @@ from reView.app import app
 from tkinter import filedialog
 from tqdm import tqdm
 
+
+# pylint: disable=not-an-iterable
 PROJECTS = [{"label": p, "value": p} for p in Config.sorted_projects]
 
 REGIONS = {
@@ -400,7 +402,7 @@ def get_scales(file_df, field_units):
     # Setup numeric scale runs
     arg_list = [[file, numbers] for file in files]
     ranges = []
-    with mp.Pool(mp.cpu_count()) as pool:
+    with Pool() as pool:
         for rng in pool.imap(get_range, arg_list):
             ranges.append(rng)
 
@@ -685,7 +687,7 @@ def project_name(selection):
     Output("project_directory_print", "children"),
     Input("project_name", "value"),
     Input("proj_nav", "n_clicks"),
-    Input("proj_input", "value")
+    Input("proj_input", "value"),
 )
 @calls.log
 def find_project_directory(name, n_clicks, path):
@@ -726,7 +728,7 @@ def find_project_directory(name, n_clicks, path):
     State("group_input", "value"),
     State("group_value_input", "value"),
     State("groups", "children"),
-    State("files", "children")
+    State("files", "children"),
 )
 @calls.log
 def create_groups(submit, name, group_input, group_values, group_dict, files):
@@ -1005,7 +1007,7 @@ def find_extra_fields(file_dict, fields, name):
     State("project_name", "value"),
     State("proj_dir", "children"),
     State("extra_fields", "children"),
-    State("groups", "children")
+    State("groups", "children"),
 )
 @calls.log
 def build_config(n_clicks, group_dt, name, directory, fields, groups):
