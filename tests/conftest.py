@@ -3,6 +3,7 @@
 from pathlib import Path
 
 import pytest
+from selenium.webdriver.chrome.options import Options
 
 from reView import TEST_DATA_DIR
 import reView.utils.config
@@ -33,3 +34,10 @@ def test_configs(test_config_dir):
     yield
 
     reView.utils.config.PROJECT_CONFIGS = old_configs
+
+
+def pytest_setup_options():
+    """Recommended fixture based on https://dash.plotly.com/testing."""
+    options = Options()
+    options.add_argument('--disable-gpu')
+    return options
