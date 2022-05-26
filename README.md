@@ -62,7 +62,8 @@
 
 2. Run `reView` using `gunicorn`:
     ```
-    gunicorn reView/index:server
+    cd reView
+    gunicorn index:server
     ```
 
 3. Open your browser and enter the URL output from command above. The default port is 9875.
