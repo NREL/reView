@@ -21,9 +21,5 @@ exclude_lines =
 
 [run]
 omit =
-    # omit anything in a .local directory anywhere
-    */.local/*
-    # omit everything in /usr
-    /usr/*
-    # omit this single file
+    # omit log settings file
     */utils/log.py
