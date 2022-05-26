@@ -22,7 +22,7 @@
     ```
 
 2. Create and activate conda environment:
-    1) Create a conda env: ``conda create -n review``
+    1) Create a conda env: ``conda create -n review python=3.9``
     2) Run the command: ``conda activate review``
     3) cd into the repo: ``cd reView``.
     4) prior to running ``pip`` below, make sure the branch is correct (install from main!)
