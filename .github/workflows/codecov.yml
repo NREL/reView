@@ -1,8 +1,6 @@
 name: Codecov
 
-on:
-  [push, pull_request]:
-    branches: [main, master]
+on: [push, pull_request]
 
 jobs:
   run:
