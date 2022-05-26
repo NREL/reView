@@ -12,7 +12,8 @@ from reView.utils.functions import (
     common_numeric_columns,
     deep_replace,
     shorten,
-    as_float
+    as_float,
+    safe_convert_percentage_to_decimal
 )
 
 
@@ -188,3 +189,12 @@ def test_as_float():
     assert as_float("2,000.54") == 2000.54
     assert as_float("$2,000.54") == 2000.54
     assert as_float("2,0.54%") == 20.54
+
+
+def test_safe_convert_percentage_to_decimal():
+    """Test safe percentage converter. """
+
+    assert safe_convert_percentage_to_decimal(96) == 0.96
+    assert safe_convert_percentage_to_decimal(96.54) == 0.9654
+    assert safe_convert_percentage_to_decimal(1) == 1
+    assert safe_convert_percentage_to_decimal(0.5) == 0.5
