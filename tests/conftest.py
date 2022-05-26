@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Fixtures for use across all tests."""
+"""Fixtures and setup for use across all tests."""
 from pathlib import Path
 
 import pytest
