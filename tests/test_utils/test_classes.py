@@ -6,7 +6,7 @@ from io import StringIO
 
 import pytest
 
-from reView.utils.classes import FunctionCalls, DiffUnitOptions
+from reView.utils.classes import FunctionCalls, DiffUnitOptions, CountyCode
 
 FUNCTION_CALLS = FunctionCalls()
 
@@ -198,3 +198,10 @@ def test_difference_unit_options_remove_from_variable_name():
     var_with_original_option = f"another_var{DiffUnitOptions.PERCENTAGE}"
     assert (DiffUnitOptions.remove_from_variable_name(var_with_original_option)
             == "another_var")
+
+
+def test_county_codes():
+    """Test getting codes for county."""
+
+    assert CountyCode.fips("Autauga", state="Alabama") == '01001'
+    assert CountyCode.epsg("Autauga", state="Alabama") == '26930'
