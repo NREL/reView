@@ -146,9 +146,6 @@ class Map:
     @property
     def hover_text(self):
         """Return hover text column."""
-        units = self.units
-        df = self.df
-        y = self.y
         if self.demand_data is not None:
             text = (
                 self.demand_data["sera_node"]
@@ -158,53 +155,55 @@ class Map:
                 + self.demand_data["load"].astype(str)
                 + " kg"
             )
-        elif units == "category":
+        elif self.units == "category":
             try:
                 text = (
-                    df["county"]
+                    self.df["county"]
                     + " County, "
-                    + df["state"]
+                    + self.df["state"]
                     + ": <br>   "
-                    + df[y].astype(str)
+                    + self.df[self.y].astype(str)
                     + " "
-                    + units
+                    + self.units
                 )
-            except:
-                text = round(df[y], 2).astype(str) + " " + units
+            except KeyError:
+                text = round(self.df[self.y], 2).astype(str) + " " + self.units
         else:
             extra_str = ""
-            if "hydrogen_annual_kg" in df:
+            if "hydrogen_annual_kg" in self.df:
                 extra_str += (
                     "<br>    H2 Supply:    "
-                    + df["hydrogen_annual_kg"].apply(lambda x: f"{x:,}")
+                    + self.df["hydrogen_annual_kg"].apply(lambda x: f"{x:,}")
                     + " kg    "
                 )
-            if "dist_to_selected_load" in df:
+            if "dist_to_selected_load" in self.df:
                 extra_str += (
                     "<br>    Dist to load:    "
-                    + df["dist_to_selected_load"].apply(lambda x: f"{x:,.2f}")
+                    + self.df["dist_to_selected_load"].apply(
+                        lambda x: f"{x:,.2f}"
+                    )
                     + " km    "
                 )
 
             try:
                 text = (
-                    df["county"]
+                    self.df["county"]
                     + " County, "
-                    + df["state"]
+                    + self.df["state"]
                     + ":"
                     + extra_str
-                    + f"<br>    {convert_to_title(y)}:   "
-                    + df[y].round(2).astype(str)
+                    + f"<br>    {convert_to_title(self.y)}:   "
+                    + self.df[self.y].round(2).astype(str)
                     + " "
-                    + units
+                    + self.units
                 )
-            except:
+            except KeyError:
                 text = (
                     extra_str
-                    + f"<br>    {convert_to_title(y)}:   "
-                    + df[y].round(2).astype(str)
+                    + f"<br>    {convert_to_title(self.y)}:   "
+                    + self.df[self.y].round(2).astype(str)
                     + " "
-                    + units
+                    + self.units
                 )
 
         return text
@@ -281,19 +280,17 @@ class Map:
     def ymax(self):
         """Return appropriate ymax value."""
         if self._ymin and not self._ymax:
-            ymax = self.df[self.y].max()
-        else:
-            ymax = self._ymax
-        return ymax
+            return self.df[self.y].max()
+
+        return self._ymax
 
     @property
     def ymin(self):
         """Return appropriate ymax value."""
         if self._ymax and not self._ymin:
-            ymin = self.df[self.y].min()
-        else:
-            ymin = self._ymin
-        return ymin
+            return self.df[self.y].min()
+
+        return self._ymin
 
 
 def build_title(df, signal_dict, map_selection=None, chart_selection=None):
