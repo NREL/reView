@@ -59,7 +59,7 @@ def map_div(id, class_name=None):
     )
 
 
-def below_map_options_div(id_prefix):
+def below_map_options_div(id_prefix, class_name=None):
     """Standard "below map" options div.
 
     Parameters
@@ -78,6 +78,8 @@ def below_map_options_div(id_prefix):
             - prefix_rev_color
                 An `html.Button` that users can click to request a
                 colorscale reversal.
+    class_name : str, optional
+        The classname of the div. By default, `None`.
 
     Returns
     -------
@@ -148,5 +150,6 @@ def below_map_options_div(id_prefix):
                 style=RC_STYLES["on"],
                 className="one column",
             ),
-        ]
+        ],
+        className=class_name,
     )

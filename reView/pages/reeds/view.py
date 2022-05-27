@@ -84,9 +84,11 @@ layout = html.Div(
             style={"text-align": "center", "margin-bottom": "55px"},
         ),
         # The map
-        map_div(id="map_reeds"),
+        map_div(id="map_reeds", class_name="nine columns"),
         # Below Map Options
-        below_map_options_div(id_prefix="map_reeds"),
+        below_map_options_div(
+            id_prefix="map_reeds", class_name="nine columns"
+        ),
         # Capacity after make_map (avoiding duplicate calls)
         html.Div(id="mapcap_reeds", style={"display": "none"}),
     ]
