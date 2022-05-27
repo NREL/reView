@@ -19,7 +19,7 @@ from reView.utils.functions import (
     safe_convert_percentage_to_decimal,
     capacity_factor_from_lcoe,
     adjust_cf_for_losses,
-    common_numeric_columns
+    common_numeric_columns,
 )
 from reView.utils.classes import DiffUnitOptions
 from reView.utils.config import Config
@@ -145,7 +145,7 @@ def apply_filters(df, filters):
         ">": operator.gt,
         "<=": operator.le,
         "<": operator.lt,
-        "==": operator.eq
+        "==": operator.eq,
     }
 
     for filter_ in filters:
@@ -301,7 +301,7 @@ def cache_map_data(signal_dict):
 
             # If we haven't build this build it
             if not dst.exists() or filters:
-                calculator = Difference(index_col='sc_point_gid')
+                calculator = Difference(index_col="sc_point_gid")
                 df = calculator.calc(df1, df2)
                 if not filters:
                     df.to_csv(dst, index=False)
@@ -558,14 +558,18 @@ class Difference:
         difference = df2[common_columns] - df1[common_columns]
         pct_difference = (difference / df1[common_columns]) * 100
         df1 = df1.merge(
-            difference, how='left',
-            left_index=True, right_index=True,
-            suffixes=('', DiffUnitOptions.ORIGINAL)
+            difference,
+            how="left",
+            left_index=True,
+            right_index=True,
+            suffixes=("", DiffUnitOptions.ORIGINAL),
         )
         df1 = df1.merge(
-            pct_difference, how='left',
-            left_index=True, right_index=True,
-            suffixes=('', DiffUnitOptions.PERCENTAGE)
+            pct_difference,
+            how="left",
+            left_index=True,
+            right_index=True,
+            suffixes=("", DiffUnitOptions.PERCENTAGE),
         )
 
         logger.debug("Difference calculated.")
