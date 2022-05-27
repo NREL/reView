@@ -940,10 +940,10 @@ layout = html.Div(
                                 ),
                                 # State options
                                 html.Div(
-                                    id="state_options_div",
+                                    id="map_state_options_div",
                                     children=[
                                         dcc.Dropdown(
-                                            id="state_options",
+                                            id="map_state_options",
                                             clearable=True,
                                             options=STATE_OPTIONS,
                                             multi=True,
@@ -952,10 +952,10 @@ layout = html.Div(
                                     ],
                                 ),
                                 html.Div(
-                                    id="region_options_div",
+                                    id="map_region_options_div",
                                     children=[
                                         dcc.Dropdown(
-                                            id="region_options",
+                                            id="map_region_options",
                                             clearable=True,
                                             options=REGION_OPTIONS,
                                             multi=True,
@@ -965,10 +965,10 @@ layout = html.Div(
                                 ),
                                 # Basemap options
                                 html.Div(
-                                    id="basemap_options_div",
+                                    id="map_basemap_options_div",
                                     children=[
                                         dcc.Dropdown(
-                                            id="basemap_options",
+                                            id="map_basemap_options",
                                             clearable=False,
                                             options=BASEMAP_OPTIONS,
                                             multi=False,
@@ -978,10 +978,10 @@ layout = html.Div(
                                 ),
                                 # Color scale options
                                 html.Div(
-                                    id="color_options_div",
+                                    id="map_color_options_div",
                                     children=[
                                         dcc.Dropdown(
-                                            id="color_options",
+                                            id="map_color_options",
                                             clearable=False,
                                             options=COLOR_OPTIONS,
                                             multi=False,

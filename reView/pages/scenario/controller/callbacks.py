@@ -238,13 +238,13 @@ def dropdown_chart_types(project):
 
 
 @app.callback(
-    Output("color_options", "options"),
-    Output("color_options", "value"),
+    Output("map_color_options", "options"),
+    Output("map_color_options", "value"),
     Input("submit", "n_clicks"),
     State("variable", "value"),
     State("project", "value"),
     State("map_signal", "children"),
-    State("color_options", "value"),
+    State("map_color_options", "value"),
 )
 @calls.log
 def dropdown_colors(submit, variable, project, signal, old_value):
@@ -713,8 +713,8 @@ def figure_chart(
     Output("map", "clickData"),
     Output("map_loading", "style"),
     Input("map_signal", "children"),
-    Input("basemap_options", "value"),
-    Input("color_options", "value"),
+    Input("map_basemap_options", "value"),
+    Input("map_color_options", "value"),
     Input("chart", "selectedData"),
     Input("map_point_size", "value"),
     Input("map_rev_color", "n_clicks"),
@@ -1007,7 +1007,7 @@ def figure_map(
     Output("chart_data_signal", "children"),
     Input("variable", "value"),
     Input("chart_x_var_options", "value"),
-    Input("state_options", "value"),
+    Input("map_state_options", "value"),
 )
 @calls.log
 def retrieve_chart_tables(y, x, state):
@@ -1048,8 +1048,8 @@ def retrieve_filters(submit, var1, var2, var3, var4, q1, q2, q3, q4):
     Output("pca_plot_1", "clickData"),
     Output("pca_plot_2", "clickData"),
     Input("submit", "n_clicks"),
-    Input("state_options", "value"),
-    Input("region_options", "value"),
+    Input("map_state_options", "value"),
+    Input("map_region_options", "value"),
     Input("chart_options", "value"),
     Input("chart_x_var_options", "value"),
     Input("additional_scenarios", "value"),
@@ -1315,10 +1315,10 @@ def tabs_chart(tab_choice, chart_choice):
 
 
 @app.callback(
-    Output("state_options", "style"),
-    Output("region_options", "style"),
-    Output("basemap_options_div", "style"),
-    Output("color_options_div", "style"),
+    Output("map_state_options", "style"),
+    Output("map_region_options", "style"),
+    Output("map_basemap_options_div", "style"),
+    Output("map_color_options_div", "style"),
     Input("map_options_tab", "value"),
 )
 def tabs_map(tab_choice):
