@@ -20,18 +20,16 @@ from reView.layout.styles import (
     TABLET_STYLE,
     TABLET_STYLE_CLOSED,
 )
-from reView.layout.options import (
-    BASEMAP_OPTIONS,
-    CHART_OPTIONS,
-    COLOR_OPTIONS,
-    REGION_OPTIONS,
-    STATE_OPTIONS,
-)
+from reView.layout.options import CHART_OPTIONS, REGION_OPTIONS
 from reView.utils.constants import DEFAULT_POINT_SIZE
 from reView.utils.classes import DiffUnitOptions
 from reView.environment.settings import IS_DEV_ENV
 from reView.utils.config import Config
-from reView.components import above_map_options_div, map_div, below_map_options_div
+from reView.components import (
+    above_map_options_div,
+    map_div,
+    below_map_options_div,
+)
 
 
 layout = html.Div(
