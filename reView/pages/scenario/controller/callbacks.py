@@ -46,6 +46,7 @@ from reView.pages.scenario.model import (
     cache_table,
     cache_chart_tables,
 )
+from reView.utils.bespoke import BespokeUnpacker
 from reView.utils.constants import SKIP_VARS
 from reView.utils.functions import (
     convert_to_title,
@@ -736,7 +737,6 @@ def figure_map(
     map_function,
 ):
     """Make the scatter plot map."""
-    trigger = callback_trigger()
 
     signal_dict = json.loads(signal)
     df = cache_map_data(signal_dict)
@@ -750,23 +750,26 @@ def figure_map(
         click_selection,
     )
 
+    if "clickData" in callback_trigger() and "turbine_y_coords" in df:
+        unpacker = BespokeUnpacker(df, click_selection)
+        df = unpacker.unpack_turbines()
+
     # Build figure
     map_builder = Map(
         df=df,
         project=project,
         basemap=basemap,
         color=color,
-        point_size=point_size,
-        reverse_color=reverse_color_clicks % 2 == 1,
-        click_selection=click_selection,
         map_selection=map_selection,
         signal_dict=signal_dict,
-        trigger=trigger,
         user_ymin=user_ymin,
         user_ymax=user_ymax,
         demand_data=demand_data,
     )
-    figure = map_builder.figure
+    figure = map_builder.figure(
+        point_size=point_size,
+        reverse_color=reverse_color_clicks % 2 == 1,
+    )
     mapcap = map_builder.mapcap
 
     return figure, json.dumps(mapcap), None, {"float": "left"}

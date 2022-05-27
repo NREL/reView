@@ -6,7 +6,6 @@ Used in (at least) the scenario and reeds pages.
 import os
 import copy
 
-
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
@@ -29,28 +28,20 @@ class Map:
         project,
         basemap,
         color,
-        point_size,
-        reverse_color,
         signal_dict,
-        trigger,
         user_ymin=None,
         user_ymax=None,
         map_selection=None,
-        click_selection=None,
         demand_data=None,
         title_size=18,
     ):
         """Initialize ScatterPlot object."""
         self.df = df
         self.basemap = basemap
-        self.click_selection = click_selection or {}
         self.color = color
         self.map_selection = map_selection
-        self.point_size = point_size
         self.project = project
-        self.reverse_color = reverse_color
         self.signal_dict = signal_dict
-        self.trigger = trigger
         self.title_size = title_size
         self.demand_data = demand_data
         self._y = self.signal_dict["y"]
@@ -59,11 +50,6 @@ class Map:
         self.units = config.units.get(self._y, "")
         self._ymin = user_ymin or config.scales.get(self._y, {}).get("min")
         self._ymax = user_ymax or config.scales.get(self._y, {}).get("max")
-
-        # Unpack bespoke turbines if available and a point was clicked
-        if "clickData" in self.trigger and "turbine_y_coords" in self.df:
-            unpacker = BespokeUnpacker(self.df, self.click_selection)
-            self.df = unpacker.unpack_turbines()
 
         # Store the capacity values up to this point
         self.mapcap = self.df[["sc_point_gid", "print_capacity"]].to_dict()
@@ -77,8 +63,7 @@ class Map:
         msg = f"<{name} object: {param_str}>"
         return msg
 
-    @property
-    def figure(self):
+    def figure(self, point_size, reverse_color=False):
         """Build scatter plot figure."""
         self.df["text"] = self.hover_text
         if self.df.empty:
@@ -106,7 +91,7 @@ class Map:
                 custom_data=["sc_point_gid", "print_capacity"],
                 hover_name="text",
             )
-            figure.update_traces(marker=self.marker)
+            figure.update_traces(marker=self.marker(point_size, reverse_color))
         else:
             # Create data object
             figure = px.scatter_mapbox(
@@ -116,7 +101,7 @@ class Map:
                 custom_data=["sc_point_gid", "print_capacity"],
                 hover_name="text",
             )
-            figure.update_traces(marker=self.marker)
+            figure.update_traces(marker=self.marker(point_size, reverse_color))
 
             if self.demand_data is not None:
                 self.demand_data["text"] = (
@@ -224,14 +209,13 @@ class Map:
         )
         return layout
 
-    @property
-    def marker(self):
+    def marker(self, point_size, reverse_color=False):
         """Return marker dictionary."""
         if self.units == "category":
             marker = dict(
                 opacity=1.0,
-                reversescale=self.reverse_color,
-                size=self.point_size,
+                reversescale=reverse_color,
+                size=point_size,
             )
         else:
             marker = dict(
@@ -240,8 +224,8 @@ class Map:
                 cmax=None if self.ymax is None else float(self.ymax),  # ?
                 cmin=None if self.ymin is None else float(self.ymin),
                 opacity=1.0,
-                reversescale=self.reverse_color,
-                size=self.point_size,
+                reversescale=reverse_color,
+                size=point_size,
                 colorbar=dict(
                     title=dict(
                         text=self.units,
