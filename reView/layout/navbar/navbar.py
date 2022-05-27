@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""The configuration page layout.
+"""The Navigation Bar layout.
 
 Created on Sun Aug 23 14:59:00 2020
 
