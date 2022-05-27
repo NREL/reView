@@ -31,7 +31,10 @@ from reView.layout.options import (
     COLOR_OPTIONS,
     COLOR_Q_OPTIONS,
 )
-from reView.components.callbacks import toggle_reverse_color_button_style
+from reView.components.callbacks import (
+    toggle_reverse_color_button_style,
+    display_selected_tab_above_map,
+)
 from reView.components.map import Map, build_title
 from reView.pages.scenario.controller.element_builders import Plots
 from reView.pages.scenario.controller.selection import (
@@ -60,6 +63,7 @@ from reView.utils import calls
 logger = logging.getLogger(__name__)
 COMMON_CALLBACKS = [
     toggle_reverse_color_button_style(id_prefix="map"),
+    display_selected_tab_above_map(id_prefix="map"),
 ]
 
 
@@ -1312,23 +1316,6 @@ def tabs_chart(tab_choice, chart_choice):
     tabs = chart_tab_div_children(chart_choice)
     styles = chart_tab_styles(tab_choice)
     return tabs, *styles
-
-
-@app.callback(
-    Output("map_state_options", "style"),
-    Output("map_region_options", "style"),
-    Output("map_basemap_options_div", "style"),
-    Output("map_color_options_div", "style"),
-    Input("map_options_tab", "value"),
-)
-def tabs_map(tab_choice):
-    """Choose which map tabs to display."""
-    # Styles
-    styles = [{"display": "none"}] * 4
-    order = ["state", "region", "basemap", "color"]
-    idx = order.index(tab_choice)
-    styles[idx] = {"width": "100%", "text-align": "center"}
-    return styles[0], styles[1], styles[2], styles[3]
 
 
 @app.callback(
