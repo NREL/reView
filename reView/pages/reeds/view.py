@@ -8,7 +8,11 @@ Created on Tue Jul  6 15:23:09 2021
 from dash import dcc, html
 
 from reView.utils.functions import data_paths
-from reView.components import map_div, below_map_options_div
+from reView.components import (
+    above_map_options_div,
+    map_div,
+    below_map_options_div,
+)
 
 
 PROJECT = str(list(data_paths()["reeds"].glob("*csv"))[0])
@@ -82,6 +86,10 @@ layout = html.Div(
             [dcc.Slider(id="years_reeds", step=2)],
             className="nine columns",
             style={"text-align": "center", "margin-bottom": "55px"},
+        ),
+        # Above Map Options
+        above_map_options_div(
+            id_prefix="map_reeds", class_name="nine columns"
         ),
         # The map
         map_div(id="map_reeds", class_name="nine columns"),
