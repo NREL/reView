@@ -10,8 +10,9 @@ from setuptools import setup
 
 
 REPO_DIR = os.path.abspath(os.path.dirname(__file__))
-DESCRIPTION = ("A data portal for reviewing Renewable Energy Potential Model "
-               "(reV) outputs")
+VERSION_FILE = os.path.join(REPO_DIR, "reView", "version.py")
+with open(VERSION_FILE, encoding="utf-8") as f:
+    VERSION = f.read().split("=")[-1].strip().strip('"').strip("'")
 
 with open(os.path.join(REPO_DIR, "README.md"), encoding="utf-8") as f:
     README = f.read()
@@ -19,7 +20,10 @@ with open(os.path.join(REPO_DIR, "README.md"), encoding="utf-8") as f:
 with open("requirements.txt") as f:
     INSTALL_REQUIREMENTS = f.readlines()
 
-
+DESCRIPTION = (
+    "A data portal for reviewing Renewable Energy Potential Model "
+    "(reV) outputs"
+)
 DEV_REQUIREMENTS = ["black", "pylint", "dash[testing]", "selenium"]
 TEST_REQUIREMENTS = ["pytest", "pytest-cov"]
 GUNICORN_REQUIREMENTS = ["gunicorn"]
@@ -27,20 +31,18 @@ GUNICORN_REQUIREMENTS = ["gunicorn"]
 
 setup(
     name="reView",
-    version="0.1.0",
+    version=VERSION,
     description=DESCRIPTION,
     long_description=README,
     author="Travis Williams",
     author_email="Travis.Williams@nrel.gov",
     packages=["reView"],
     entry_points={
-        "console_scripts": [
-            "reView=reView.index:main"
-        ],
+        "console_scripts": ["reView=reView.index:main"],
     },
     zip_safe=False,
     keywords="reView",
-    python_requires='>=3.9',
+    python_requires=">=3.9",
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Science/Research",
@@ -50,11 +52,7 @@ setup(
     ],
     test_suite="tests",
     include_package_data=True,
-    package_data={
-        "data": [
-            "*"
-        ]
-    },
+    package_data={"data": ["*"]},
     install_requires=INSTALL_REQUIREMENTS,
     extras_require={
         "gunicorn": GUNICORN_REQUIREMENTS,
