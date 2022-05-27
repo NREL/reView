@@ -24,7 +24,7 @@
 2. Create and activate conda environment:
     1) Create a conda env: ``conda create -n review python=3.9``
     2) Run the command: ``conda activate review``
-    3) cd into the repo: ``cd reView``.
+    3) cd into the repository: ``cd reView``.
     4) prior to running ``pip`` below, make sure the branch is correct (install from main!)
     5) Install ``reView`` and its dependencies by running:
        ``pip install -e .`` (or ``pip install -e .[dev]`` if running a dev branch or working on the source code)
@@ -82,4 +82,4 @@ This repository uses [pylint](https://pylint.pycqa.org/en/latest/) to lint the c
 If you wish to contribute to this repository, your code will have to adhere to both of these guidelines.
 In addition, your code must pass all existing tests. You will need to
 [download the Chrome Driver](https://chromedriver.chromium.org/getting-started) in order to run the integration tests
-included with this repo.
+included with this repository.
