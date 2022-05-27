@@ -54,8 +54,6 @@ def capacity_print(map_capacity, map_selection):
 @calls.log
 def slider_year(project, url):
     """Return year slider for given project."""
-    caller = inspect.stack()[0][3]
-    logger.info("%s, args: %s", caller, f"{project=}, {url=}")
 
     # Get unique years from table
     years = pd.read_csv(project, usecols=["year"])["year"].unique()
@@ -90,9 +88,6 @@ def figure_map_reeds(
     color_ymax,
 ):
     """Return buildout table from single year as map."""
-
-    caller = inspect.stack()[0][3]
-    logger.info("%s, args: %s", caller, f"{project=}, {year=}")
 
     # Get data
     color_var = "capacity_MW"
