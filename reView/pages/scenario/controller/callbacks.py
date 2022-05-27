@@ -733,8 +733,8 @@ def figure_map(
     chart_selection,
     point_size,
     reverse_color_clicks,
-    user_ymin,
-    user_ymax,
+    color_ymin,
+    color_ymax,
     map_selection,
     click_selection,
     project,
@@ -774,8 +774,8 @@ def figure_map(
         project=project,
         basemap=basemap,
         colorscale=color,
-        color_min=user_ymin,
-        color_max=user_ymax,
+        color_min=color_ymin,
+        color_max=color_ymax,
         demand_data=demand_data,
     )
     figure = map_builder.figure(
