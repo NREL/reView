@@ -46,11 +46,12 @@ from reView.pages.scenario.model import (
     cache_table,
     cache_chart_tables,
 )
+from reView.utils.bespoke import BespokeUnpacker
 from reView.utils.constants import SKIP_VARS
 from reView.utils.functions import (
     convert_to_title,
     callback_trigger,
-    format_capacity_title
+    format_capacity_title,
 )
 from reView.utils.config import Config
 from reView.utils import calls
@@ -169,7 +170,7 @@ def scenario_dropdowns(groups, class_names=None):
                         dcc.Dropdown(
                             options=options,
                             value=options[0]["value"],
-                            optionHeight=75
+                            optionHeight=75,
                         )
                     ],
                     className=class_names[-1],
@@ -193,7 +194,7 @@ def scenario_dropdowns(groups, class_names=None):
     Output("capacity_print", "children"),
     Output("site_print", "children"),
     Input("mapcap", "children"),
-    Input("map", "selectedData")
+    Input("map", "selectedData"),
 )
 @calls.log
 def capacity_print(map_capacity, map_selection):
@@ -204,7 +205,7 @@ def capacity_print(map_capacity, map_selection):
 @app.callback(
     Output("recalculate_with_new_costs", "hidden"),
     Input("project", "value"),
-    Input("toggle_options", "n_clicks")
+    Input("toggle_options", "n_clicks"),
 )
 def disable_recalculate_with_new_costs(project, __):
     """Disable recalculate option based on config."""
@@ -215,7 +216,7 @@ def disable_recalculate_with_new_costs(project, __):
     Output("map_function_div", "hidden"),
     Output("map_function", "value"),
     Input("project", "value"),
-    Input("toggle_options", "n_clicks")
+    Input("toggle_options", "n_clicks"),
 )
 def disable_mapping_function_dev(project, __):
     """Disable mapping option based on config."""
@@ -239,7 +240,7 @@ def dropdown_chart_types(project):
     State("variable", "value"),
     State("project", "value"),
     State("map_signal", "children"),
-    State("color_options", "value")
+    State("color_options", "value"),
 )
 @calls.log
 def dropdown_colors(submit, variable, project, signal, old_value):
@@ -271,13 +272,14 @@ def dropdown_colors(submit, variable, project, signal, old_value):
 
     return options, value
 
+
 # pylint: disable=no-member
 @app.callback(
     Output("minimizing_scenario_options", "children"),
     Input("url", "pathname"),
     Input("project", "value"),
     Input("minimizing_variable", "value"),
-    State("submit", "n_clicks")
+    State("submit", "n_clicks"),
 )
 @calls.log
 def dropdown_minimizing_scenarios(url, project, minimizing_variable, n_clicks):
@@ -338,7 +340,7 @@ def dropdown_minimizing_scenarios(url, project, minimizing_variable, n_clicks):
     Output("minimizing_target", "options"),
     Output("minimizing_target", "value"),
     Input("minimizing_scenario_options", "children"),
-    State("project", "value")
+    State("project", "value"),
 )
 def dropdown_minimizing_targets(scenario_options, project):
     """Set the minimizing target options."""
@@ -365,7 +367,7 @@ def dropdown_minimizing_targets(scenario_options, project):
     Output("project", "options"),
     Output("project", "value"),
     Input("url", "pathname"),
-    State("submit", "n_clicks")
+    State("submit", "n_clicks"),
 )
 @calls.log
 def dropdown_projects(pathname, n_clicks):
@@ -408,7 +410,7 @@ def dropdown_minimizing_plot_options(scenario_options, project):
     Output("scenario_b_options", "children"),
     Input("url", "pathname"),
     Input("project", "value"),
-    State("submit", "n_clicks")
+    State("submit", "n_clicks"),
 )
 @calls.log
 def dropdown_scenarios(url, project, n_clicks):
@@ -487,8 +489,9 @@ def dropdown_scenarios(url, project, n_clicks):
     Input("project", "value"),
 )
 @calls.log
-def dropdown_variables(url, scenario_a_options, scenario_b_options, b_div,
-                       project):
+def dropdown_variables(
+    url, scenario_a_options, scenario_b_options, b_div, project
+):
     """Update variable dropdown options."""
 
     variable_options = scrape_variable_options(
@@ -516,7 +519,7 @@ def dropdown_variables(url, scenario_a_options, scenario_b_options, b_div,
     Input("scenario_b_options", "children"),
     Input("scenario_b_div", "style"),
     Input("chart_options", "value"),
-    State("project", "value")
+    State("project", "value"),
 )
 def dropdown_x_variables(
     scenario_a_options, scenario_b_options, b_div, chart_type, project
@@ -546,7 +549,7 @@ def dropdown_x_variables(
     Output("additional_scenarios", "options"),
     Input("url", "pathname"),
     Input("project", "value"),
-    State("submit", "n_clicks")
+    State("submit", "n_clicks"),
 )
 @calls.log
 def dropdowns_additional_scenarios(
@@ -607,12 +610,25 @@ def dropdowns_additional_scenarios(
     State("chart", "selectedData"),
     State("project", "value"),
     State("chart", "relayoutData"),
-    State("map_function", "value")
+    State("map_function", "value"),
 )
 @calls.log
-def figure_chart(signal, chart, map_selection, point_size, op_values, region,
-                 user_ymin, user_ymax, bin_size, alpha, chart_selection,
-                 project, chart_view, map_func):
+def figure_chart(
+    signal,
+    chart,
+    map_selection,
+    point_size,
+    op_values,
+    region,
+    user_ymin,
+    user_ymax,
+    bin_size,
+    alpha,
+    chart_selection,
+    project,
+    chart_view,
+    map_func,
+):
     """Make one of a variety of charts."""
 
     # Unpack the signal
@@ -650,8 +666,12 @@ def figure_chart(signal, chart, map_selection, point_size, op_values, region,
     if map_selection:
         dfs = {
             k: apply_all_selections(
-                df, map_func, project, chart_selection, map_selection,
-                clicksel=None
+                df,
+                map_func,
+                project,
+                chart_selection,
+                map_selection,
+                clicksel=None,
             )[0]
             for k, df in dfs.items()
         }
@@ -699,15 +719,24 @@ def figure_chart(signal, chart, map_selection, point_size, op_values, region,
     Input("map", "selectedData"),
     Input("map", "clickData"),
     State("project", "value"),
-    State("map_function", "value")
+    State("map_function", "value"),
 )
 @calls.log
-def figure_map(signal, basemap, color, chart_selection, point_size,
-               reverse_color, user_ymin, user_ymax, map_selection,
-               click_selection, project,
-               map_function):
+def figure_map(
+    signal,
+    basemap,
+    color,
+    chart_selection,
+    point_size,
+    reverse_color_clicks,
+    user_ymin,
+    user_ymax,
+    map_selection,
+    click_selection,
+    project,
+    map_function,
+):
     """Make the scatter plot map."""
-    trigger = callback_trigger()
 
     signal_dict = json.loads(signal)
     df = cache_map_data(signal_dict)
@@ -718,28 +747,38 @@ def figure_map(signal, basemap, color, chart_selection, point_size,
         project,
         chart_selection,
         map_selection,
-        click_selection
+        click_selection,
     )
+
+    if "clickData" in callback_trigger() and "turbine_y_coords" in df:
+        unpacker = BespokeUnpacker(df, click_selection)
+        df = unpacker.unpack_turbines()
+
+    # Use demand counts if available
+    if "demand_connect_count" in df:
+        color_var = "demand_connect_count"
+    else:
+        color_var = signal_dict["y"]
+
+    title = build_title(df, signal_dict, map_selection=map_selection)
 
     # Build figure
     map_builder = Map(
         df=df,
-        basemap=basemap,
-        chart_selection=chart_selection,
-        click_selection=click_selection,
-        color=color,
-        map_selection=map_selection,
-        map_function=map_function,
-        point_size=point_size,
+        color_var=color_var,
+        plot_title=title,
         project=project,
-        reverse_color=reverse_color,
-        signal_dict=signal_dict,
-        trigger=trigger,
-        uymin=user_ymin,
-        uymax=user_ymax
+        basemap=basemap,
+        colorscale=color,
+        color_min=user_ymin,
+        color_max=user_ymax,
+        demand_data=demand_data,
     )
-    figure = map_builder.figure
-    mapcap = map_builder.mapcap
+    figure = map_builder.figure(
+        point_size=point_size,
+        reverse_color=reverse_color_clicks % 2 == 1,
+    )
+    mapcap = df[["sc_point_gid", "print_capacity"]].to_dict()
 
     return figure, json.dumps(mapcap), None, {"float": "left"}
 
@@ -964,7 +1003,7 @@ def figure_map(signal, basemap, color, chart_selection, point_size,
     Output("chart_data_signal", "children"),
     Input("variable", "value"),
     Input("chart_x_var_options", "value"),
-    Input("state_options", "value")
+    Input("state_options", "value"),
 )
 @calls.log
 def retrieve_chart_tables(y, x, state):
@@ -983,7 +1022,7 @@ def retrieve_chart_tables(y, x, state):
     State("filter_1", "value"),
     State("filter_2", "value"),
     State("filter_3", "value"),
-    State("filter_4", "value")
+    State("filter_4", "value"),
 )
 @calls.log
 def retrieve_filters(submit, var1, var2, var3, var4, q1, q2, q3, q4):
@@ -1028,7 +1067,7 @@ def retrieve_filters(submit, var1, var2, var3, var4, q1, q2, q3, q4):
     State("minimizing_target", "value"),
     State("minimizing_plot_value", "value"),
     State("pca_plot_map_value", "value"),
-    State("pca_plot_region", "value")
+    State("pca_plot_region", "value"),
 )
 @calls.log
 def retrieve_signal(
@@ -1188,8 +1227,9 @@ def retrieve_signal(
     Input("losses2", "value"),
     Input("project", "value"),
 )
-def retrieve_recalc_parameters(fcr1, capex1, opex1, losses1, fcr2, capex2,
-                               opex2, losses2, project):
+def retrieve_recalc_parameters(
+    fcr1, capex1, opex1, losses1, fcr2, capex2, opex2, losses2, project
+):
     """Retrieve all given recalc values and store them."""
     trig = callback_trigger()
     if "project" in trig:
@@ -1261,7 +1301,7 @@ def set_minimizing_variable_options(project, minimizing_scenarios_style):
     Output("chart_region_div", "style"),
     Output("additional_scenarios_div", "style"),
     Input("chart_options_tab", "value"),
-    Input("chart_options", "value")
+    Input("chart_options", "value"),
 )
 def tabs_chart(tab_choice, chart_choice):
     """Choose which chart tabs to display."""
@@ -1275,7 +1315,7 @@ def tabs_chart(tab_choice, chart_choice):
     Output("region_options", "style"),
     Output("basemap_options_div", "style"),
     Output("color_options_div", "style"),
-    Input("map_options_tab", "value")
+    Input("map_options_tab", "value"),
 )
 def tabs_map(tab_choice):
     """Choose which map tabs to display."""
@@ -1288,8 +1328,7 @@ def tabs_map(tab_choice):
 
 
 @app.callback(
-    Output("chart_x_bin_div", "style"),
-    Input("chart_options", "value")
+    Output("chart_x_bin_div", "style"), Input("chart_options", "value")
 )
 @calls.log
 def toggle_bins(chart_type):
@@ -1302,14 +1341,14 @@ def toggle_bins(chart_type):
 
 
 @app.callback(
-        Output("options", "style"),
-        Output("minimizing_scenarios", "style"),
-        Output("pca_scenarios", "style"),
-        Output("scenario_selection_tabs", "style"),
-        Output("toggle_options", "children"),
-        Output("toggle_options", "style"),
-        Input("toggle_options", "n_clicks"),
-        Input("scenario_selection_tabs", "value")
+    Output("options", "style"),
+    Output("minimizing_scenarios", "style"),
+    Output("pca_scenarios", "style"),
+    Output("scenario_selection_tabs", "style"),
+    Output("toggle_options", "children"),
+    Output("toggle_options", "style"),
+    Input("toggle_options", "n_clicks"),
+    Input("scenario_selection_tabs", "value"),
 )
 @calls.log
 def toggle_options(click, selection_ind):
@@ -1339,7 +1378,7 @@ def toggle_options(click, selection_ind):
     Output("recalc_a_options", "style"),
     Output("recalc_b_options", "style"),
     Input("recalc_tab", "value"),
-    Input("recalc_scenario", "value")
+    Input("recalc_scenario", "value"),
 )
 def toggle_recalc_tab(recalc, scenario):
     """Toggle the recalc options on and off."""
@@ -1359,9 +1398,9 @@ def toggle_recalc_tab(recalc, scenario):
 
 
 @app.callback(
-        Output("rev_color", "children"),
-        Output("rev_color", "style"),
-        Input("rev_color", "n_clicks")
+    Output("rev_color", "children"),
+    Output("rev_color", "style"),
+    Input("rev_color", "n_clicks"),
 )
 def toggle_rev_color_button(click):
     """Toggle Reverse Color on/off."""
@@ -1380,7 +1419,7 @@ def toggle_rev_color_button(click):
 @app.callback(
     Output("scenario_b_div", "style"),
     Input("difference", "value"),
-    Input("mask", "value")
+    Input("mask", "value"),
 )
 @calls.log
 def toggle_scenario_b(difference, mask):
@@ -1393,7 +1432,6 @@ def toggle_scenario_b(difference, mask):
     else:
         style = {"display": "none"}
     return style
-
 
 
 # @app.callback(

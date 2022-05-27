@@ -6,61 +6,88 @@ Used in (at least) the scenario and reeds pages.
 import os
 import copy
 
-import nltk
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
 
 from reView.pages.scenario.model import build_name
-from reView.pages.scenario.view import MAP_LAYOUT
-from reView.pages.scenario.model import apply_all_selections
 from reView.utils.classes import DiffUnitOptions
-from reView.utils.bespoke import BespokeUnpacker
 from reView.utils.config import Config
 from reView.utils.constants import AGGREGATIONS, COLORS
 from reView.utils.functions import convert_to_title
 
 
-# Download up-to-date version in package data
-nltk.download("words")
-WORDS = nltk.corpus.words.words()
+MAP_LAYOUT = dict(
+    dragmode="select",
+    font_family="Time New Roman",
+    font_size=15,
+    hovermode="closest",
+    legend=dict(size=20),
+    margin=dict(l=20, r=115, t=115, b=20),
+    paper_bgcolor="#1663B5",
+    plot_bgcolor="#083C04",
+    titlefont=dict(color="white", size=18, family="Time New Roman"),
+    title=dict(
+        yref="container",
+        x=0.05,
+        y=0.95,
+        yanchor="top",
+        pad=dict(b=10),
+    ),
+    mapbox=dict(
+        accesstoken=(
+            "pk.eyJ1IjoidHJhdmlzc2l1cyIsImEiOiJjamZiaHh4b28waXNkMnpt"
+            "aWlwcHZvdzdoIn0.9pxpgXxyyhM6qEF_dcyjIQ"
+        ),
+        style="satellite-streets",
+        center=dict(lon=-97.5, lat=39.5),
+        zoom=3.25,
+    ),
+)
 
 
 class Map:
     """Methods for building the mapbox scatter plot."""
 
-    def __init__(self, df, basemap, chart_selection, click_selection, color, map_function, map_selection,
-                 point_size, project, reverse_color, signal_dict, trigger,
-                 uymin, uymax, title_size=18):
+    def __init__(
+        self,
+        df,
+        color_var,
+        plot_title,
+        project=None,
+        basemap="light",
+        colorscale="Viridis",
+        color_min=None,
+        color_max=None,
+        demand_data=None,
+    ):
         """Initialize ScatterPlot object."""
         self.df = df
-        self.basemap = basemap
-        self.chart_selection = chart_selection
-        self.click_selection = click_selection
-        self.color = color
-        self.map_function = map_function
-        self.map_selection = map_selection
-        self.point_size = point_size
+        self.color_var = color_var
+        self.plot_title = plot_title
         self.project = project
-        self.reverse_color = reverse_color
-        self.signal_dict = signal_dict
-        self.trigger = trigger
-        self.title_size = title_size
-        self.uymax = uymax
-        self.uymin = uymin
-        self.unpack()
+        self.basemap = basemap
+        self.colorscale = colorscale
+        self.cmin, self.cmax = ColorRange(
+            df, color_var, project, color_min, color_max
+        )
+        self.demand_data = demand_data
+
+        if project:
+            self.units = Config(self.project).units.get(self.color_var, "")
+        else:
+            self.units = ""
 
     def __repr__(self):
         """Return representation string."""
         name = self.__class__.__name__
         params = [f"{k}={v}" for k, v in self.__dict__.items() if k != "df"]
-        params.append(f"df='dataframe with {self.df.shape[0]:,} rows'")
+        params.append(f"df='DataFrame with {self.df.shape[0]:,} rows'")
         param_str = ", ".join(params)
         msg = f"<{name} object: {param_str}>"
         return msg
 
-    @property
-    def figure(self):
+    def figure(self, point_size, reverse_color=False):
         """Build scatter plot figure."""
         self.df["text"] = self.hover_text
         if self.df.empty:
@@ -82,13 +109,13 @@ class Map:
             # Create data object
             figure = px.scatter_mapbox(
                 data_frame=self.df,
-                color=self.y,
+                color=self.color_var,
                 lon="longitude",
                 lat="latitude",
                 custom_data=["sc_point_gid", "print_capacity"],
-                hover_name="text"
+                hover_name="text",
             )
-            figure.update_traces(marker=self.marker)
+            figure.update_traces(marker=self.marker(point_size, reverse_color))
         else:
             # Create data object
             figure = px.scatter_mapbox(
@@ -96,9 +123,9 @@ class Map:
                 lon="longitude",
                 lat="latitude",
                 custom_data=["sc_point_gid", "print_capacity"],
-                hover_name="text"
+                hover_name="text",
             )
-            figure.update_traces(marker=self.marker)
+            figure.update_traces(marker=self.marker(point_size, reverse_color))
 
             if self.demand_data is not None:
                 self.demand_data["text"] = (
@@ -128,9 +155,6 @@ class Map:
     @property
     def hover_text(self):
         """Return hover text column."""
-        units = self.units
-        df = self.df
-        y = self.y
         if self.demand_data is not None:
             text = (
                 self.demand_data["sera_node"]
@@ -140,51 +164,59 @@ class Map:
                 + self.demand_data["load"].astype(str)
                 + " kg"
             )
-        elif units == "category":
+        elif self.units == "category":
             try:
                 text = (
-                    df["county"]
+                    self.df["county"]
                     + " County, "
-                    + df["state"]
+                    + self.df["state"]
                     + ": <br>   "
-                    + df[y].astype(str)
+                    + self.df[self.color_var].astype(str)
                     + " "
-                    + units
+                    + self.units
                 )
-            except:
-                text = round(df[y], 2).astype(str) + " " + units
+            except KeyError:
+                text = (
+                    round(self.df[self.color_var], 2).astype(str)
+                    + " "
+                    + self.units
+                )
         else:
             extra_str = ""
-            if "hydrogen_annual_kg" in df:
+            if "hydrogen_annual_kg" in self.df:
                 extra_str += (
                     "<br>    H2 Supply:    "
-                    + df["hydrogen_annual_kg"].apply(lambda x: f"{x:,}")
+                    + self.df["hydrogen_annual_kg"].apply(lambda x: f"{x:,}")
                     + " kg    "
                 )
-            if "dist_to_selected_load" in df:
+            if "dist_to_selected_load" in self.df:
                 extra_str += (
                     "<br>    Dist to load:    "
-                    + df["dist_to_selected_load"].apply(lambda x: f"{x:,.2f}")
+                    + self.df["dist_to_selected_load"].apply(
+                        lambda x: f"{x:,.2f}"
+                    )
                     + " km    "
                 )
 
             try:
                 text = (
-                    df["county"]
+                    self.df["county"]
                     + " County, "
-                    + df["state"]
+                    + self.df["state"]
                     + ":"
                     + extra_str
-                    + f"<br>    {self.to_human(y)}:   "
-                    + df[y].round(2).astype(str)
-                    + " " + units
+                    + f"<br>    {convert_to_title(self.color_var)}:   "
+                    + self.df[self.color_var].round(2).astype(str)
+                    + " "
+                    + self.units
                 )
-            except:
+            except KeyError:
                 text = (
-                  extra_str
-                  + f"<br>    {self.to_human(y)}:   "
-                  + df[y].round(2).astype(str)
-                  + " " + units
+                    extra_str
+                    + f"<br>    {convert_to_title(self.color_var)}:   "
+                    + self.df[self.color_var].round(2).astype(str)
+                    + " "
+                    + self.units
                 )
 
         return text
@@ -197,7 +229,7 @@ class Map:
         layout["showlegend"] = self.show_legend
         layout["title"]["text"] = self.plot_title
         layout["uirevision"] = True
-        layout["yaxis"] = dict(range=[self.ymin, self.ymax])
+        layout["yaxis"] = dict(range=[self.cmin, self.cmax])
         layout["legend"] = dict(
             title_font_family="Times New Roman",
             bgcolor="#E4ECF6",
@@ -205,132 +237,77 @@ class Map:
         )
         return layout
 
-    @property
-    def marker(self):
+    def marker(self, point_size, reverse_color=False):
         """Return marker dictionary."""
         if self.units == "category":
             marker = dict(
                 opacity=1.0,
-                reversescale=self.reverse_color,
-                size=self.point_size,
+                reversescale=reverse_color,
+                size=point_size,
             )
         else:
             marker = dict(
-                color=self.df[self.y],
-                colorscale=COLORS[self.color],
-                cmax=None if self.ymax is None else float(self.ymax),  # ?
-                cmin=None if self.ymin is None else float(self.ymin),
+                color=self.df[self.color_var],
+                colorscale=COLORS[self.colorscale],
+                cmin=None if self.cmin is None else float(self.cmin),
+                cmax=None if self.cmax is None else float(self.cmax),
                 opacity=1.0,
-                reversescale=self.reverse_color,
-                size=self.point_size,
+                reversescale=reverse_color,
+                size=point_size,
                 colorbar=dict(
                     title=dict(
                         text=self.units,
                         font=dict(
-                            size=15,
-                            color="white",
-                            family="New Times Roman"
+                            size=15, color="white", family="New Times Roman"
                         ),
                     ),
-                    tickfont=dict(
-                        color="white",
-                        family="New Times Roman"
-                    ),
+                    tickfont=dict(color="white", family="New Times Roman"),
                 ),
             )
 
         return marker
 
     @property
-    def plot_title(self):
-        """Build title for plot."""
-        title = build_title(
-            self.df, self.signal_dict, map_selection=self.map_selection
-        )
-        return title
-
-    @property
     def show_legend(self):
         """Boolean switch to show/hide legend."""
         return self.units == "category"
 
-    def to_human(self, string):
-        """Convert string to human readable format."""
-        parts = []
-        if string is not None:
-            for part in string.split("_"):
-                if part not in WORDS:
-                    part = part.upper()
-                else:
-                    part = part.title()
-                parts.append(part)
-        return " ".join(parts)
 
-    def unpack(self):
-        """Unpack signal and set values."""
-        # Unpack signal and derive elements
-        self.x = self.signal_dict["x"]
-        self._y = self.signal_dict["y"]
-        self.config = Config(self.project)
-        self.units = self.config.units.get(self._y, "")
-        scale = self.config.scales.get(self._y, {})
-        self._ymin = scale.get("min")
-        self._ymax = scale.get("max")
+class ColorRange:
+    """Helper class to represent the color range."""
 
-        # Reverse color
-        self.reverse_color = self.reverse_color % 2 == 1
+    def __init__(
+        self, df, color_var, project=None, color_min=None, color_max=None
+    ):
+        """Initialize ColorRange object."""
 
-        # Use user defined value ranges
-        if self.uymin:
-            self._ymin = self.uymin
-        if self.uymax:
-            self._ymax = self.uymax
+        self.df = df
+        self.color_var = color_var
+        if project:
+            scales = Config(project).scales.get(self.color_var, {})
+        else:
+            scales = {}
+        self._color_min = color_min or scales.get("min")
+        self._color_max = color_max or scales.get("max")
 
-        # Apply all farm level filters
-        self.df, self.demand_data = apply_all_selections(
-            self.df,
-            self.map_function,
-            self.project,
-            self.chart_selection,
-            self.map_selection,
-            self.click_selection
-        )
-
-        # Unpack bespoke turbines if available and a point was clicked
-        if "clickData" in self.trigger and "turbine_y_coords" in self.df:
-            unpacker = BespokeUnpacker(self.df, self.click_selection)
-            self.df = unpacker.unpack_turbines()
-
-        # Store the capacity values up to this point
-        self.mapcap = self.df[["sc_point_gid", "print_capacity"]].to_dict()
+    def __iter__(self):
+        return iter((self.min, self.max))
 
     @property
-    def y(self):
-        """Return appropriate y variable name."""
-        # Use demand counts if available
-        if "demand_connect_count" in self.df:
-            y = "demand_connect_count"
-        else:
-            y = self._y
-        return y
+    def min(self):
+        """Return appropriate color minimum value."""
+        if self._color_max and not self._color_min:
+            return self.df[self.color_var].min()
+
+        return self._color_min
 
     @property
-    def ymax(self):
-        """Return appropriate ymax value."""
-        if self._ymin and not self._ymax:
-            ymax = self.df[self.y].max()
-        else:
-            ymax = self._ymax
-        return ymax
+    def max(self):
+        """Return appropriate color maximum value."""
+        if self._color_min and not self._color_max:
+            return self.df[self.color_var].max()
 
-    @property
-    def ymin(self):
-        """Return appropriate ymax value."""
-        if self._ymax and not self._ymin:
-            ymin = self.df[self.y].min()
-        else:
-            ymin = self._ymin
-        return ymin
+        return self._color_max
 
 
 def build_title(df, signal_dict, map_selection=None, chart_selection=None):

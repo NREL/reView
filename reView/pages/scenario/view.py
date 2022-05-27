@@ -34,38 +34,6 @@ from reView.environment.settings import IS_DEV_ENV
 from reView.utils.config import Config
 
 
-MAP_LAYOUT = dict(
-    dragmode="select",
-    font_family="Time New Roman",
-    font_size=15,
-    hovermode="closest",
-    # legend=dict(size=20),
-    margin=dict(l=20, r=115, t=115, b=20),
-    paper_bgcolor="#1663B5",
-    plot_bgcolor="#083C04",
-    titlefont=dict(color="white", size=18, family="Time New Roman"),
-    title=dict(
-        # color="white",
-        # size=18,
-        # font_family="Times New Roman",
-        yref="container",
-        x=0.05,
-        y=0.95,
-        yanchor="top",
-        pad=dict(b=10),
-    ),
-    mapbox=dict(
-        accesstoken=(
-            "pk.eyJ1IjoidHJhdmlzc2l1cyIsImEiOiJjamZiaHh4b28waXNkMnpt"
-            "aWlwcHZvdzdoIn0.9pxpgXxyyhM6qEF_dcyjIQ"
-        ),
-        style="satellite-streets",
-        center=dict(lon=-97.5, lat=39.5),
-        zoom=3.25,
-    ),
-)
-
-
 layout = html.Div(
     children=[
         # Path Name
@@ -83,12 +51,11 @@ layout = html.Div(
                                 # pylint: disable=not-an-iterable
                                 {"label": project, "value": project}
                                 for project in Config.sorted_projects
-                            ]
+                            ],
                         ),
                     ],
                     className="three columns",
                 ),
-
                 # Print total capacity after all the filters are applied
                 html.Div(
                     [
@@ -102,7 +69,6 @@ layout = html.Div(
                     ],
                     className="three columns",
                 ),
-
                 # Print total capacity after all the filters are applied
                 html.Div(
                     [
@@ -120,7 +86,6 @@ layout = html.Div(
             className="row",
             style={"margin-bottom": "35px"},
         ),
-
         # Toggle Options Top
         html.Div(
             [
@@ -207,13 +172,14 @@ layout = html.Div(
                         html.H5("Variable"),
                         dcc.Dropdown(
                             id="variable",
-                            options=[{"label": "Capacity", "value": "capacity"}],
+                            options=[
+                                {"label": "Capacity", "value": "capacity"}
+                            ],
                             value="capacity",
-                        )
+                        ),
                     ],
                     className="two columns",
                 ),
-
                 # Show difference map
                 html.Div(
                     [
@@ -1026,7 +992,6 @@ layout = html.Div(
                             ],
                             className="row",
                         ),
-
                         # The map
                         html.Div(
                             children=[
@@ -1061,7 +1026,6 @@ layout = html.Div(
                                 ),
                             ]
                         ),
-
                         # Below Map Options
                         html.Div(
                             [
@@ -1123,7 +1087,6 @@ layout = html.Div(
                                     className="eight columns",
                                     style=BOTTOM_DIV_STYLE,
                                 ),
-
                                 # Right option
                                 html.Button(
                                     id="rev_color",
@@ -1139,21 +1102,17 @@ layout = html.Div(
                                 ),
                             ]
                         ),
-
                         # Loading State
                         html.Div(
                             [
-                                dcc.Loading(
-                                    id="map_loading"
-                                ),
+                                dcc.Loading(id="map_loading"),
                             ],
                             className="twelve_columns",
-                            style={"margin-top": "70px"}
+                            style={"margin-top": "70px"},
                         ),
                     ],
                     className="six columns",
                 ),
-
                 # The chart div
                 html.Div(
                     [
@@ -1264,7 +1223,6 @@ layout = html.Div(
                                 ),
                             ),
                         ),
-
                         # Below Chart Options
                         html.Div(
                             id="chart_extra_div",
@@ -1331,16 +1289,13 @@ layout = html.Div(
                             className="five columns",
                             style=BOTTOM_DIV_STYLE,
                         ),
-
                         # Loading State
                         html.Div(
                             [
-                                dcc.Loading(
-                                    id="chart_loading"
-                                ),
+                                dcc.Loading(id="chart_loading"),
                             ],
                             className="row",
-                            style={"margin-top": "70px"}
+                            style={"margin-top": "70px"},
                         ),
                     ],
                     className="six columns",
@@ -1348,22 +1303,16 @@ layout = html.Div(
             ],
             className="row",
         ),
-
         # To store option names for the map title
         html.Div(id="chosen_map_options", style={"display": "none"}),
-
         # To store option names for the chart title
         html.Div(id="chosen_chart_options", style={"display": "none"}),
-
         # For storing the data frame path and triggering updates
         html.Div(id="map_data_path", style={"display": "none"}),
-
         # For storing the signal need for the set of chart data frames
         html.Div(id="chart_data_signal", style={"display": "none"}),
-
         # Interim way to share data between map and chart
         html.Div(id="map_signal", style={"display": "none"}),
-
         # This table of recalc parameters
         html.Div(
             id="recalc_table",
@@ -1385,10 +1334,8 @@ layout = html.Div(
             ),
             style={"display": "none"},
         ),
-
         # Capacity after make_map (avoiding duplicate calls)
         html.Div(id="mapcap", style={"display": "none"}),
-
         # Filter list after being pieced together
         html.Div(id="filter_store", style={"display": "none"}),
     ]
