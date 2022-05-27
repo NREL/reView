@@ -71,6 +71,8 @@ def slider_year(project, url):
     Output("mapcap_reeds", "children"),
     Input("project_reeds", "value"),
     Input("years_reeds", "value"),
+    Input("map_reeds_basemap_options", "value"),
+    Input("map_reeds_color_options", "value"),
     Input("map_reeds_point_size", "value"),
     Input("map_reeds_rev_color", "n_clicks"),
     Input("map_reeds_color_min", "value"),
@@ -78,7 +80,14 @@ def slider_year(project, url):
 )
 @calls.log
 def figure_map_reeds(
-    project, year, point_size, reverse_color_clicks, color_ymin, color_ymax
+    project,
+    year,
+    basemap,
+    color,
+    point_size,
+    reverse_color_clicks,
+    color_ymin,
+    color_ymax,
 ):
     """Return buildout table from single year as map."""
 
@@ -97,6 +106,8 @@ def figure_map_reeds(
         df=df,
         color_var=color_var,
         plot_title=title,
+        basemap=basemap,
+        colorscale=color,
         color_min=color_ymin,
         color_max=color_ymax,
     )
