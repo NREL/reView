@@ -754,23 +754,31 @@ def figure_map(
         unpacker = BespokeUnpacker(df, click_selection)
         df = unpacker.unpack_turbines()
 
+    # Use demand counts if available
+    if "demand_connect_count" in df:
+        color_var = "demand_connect_count"
+    else:
+        color_var = signal_dict["y"]
+
+    title = build_title(df, signal_dict, map_selection=map_selection)
+
     # Build figure
     map_builder = Map(
         df=df,
+        color_var=color_var,
+        plot_title=title,
         project=project,
         basemap=basemap,
-        color=color,
-        map_selection=map_selection,
-        signal_dict=signal_dict,
-        user_ymin=user_ymin,
-        user_ymax=user_ymax,
+        colorscale=color,
+        color_min=user_ymin,
+        color_max=user_ymax,
         demand_data=demand_data,
     )
     figure = map_builder.figure(
         point_size=point_size,
         reverse_color=reverse_color_clicks % 2 == 1,
     )
-    mapcap = map_builder.mapcap
+    mapcap = df[["sc_point_gid", "print_capacity"]].to_dict()
 
     return figure, json.dumps(mapcap), None, {"float": "left"}
 
