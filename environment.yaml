@@ -11,7 +11,6 @@ dependencies:
   - flask-caching
   - gunicorn
   - matplotlib
-  - nltk
   - pandas
   - pip
   - pyproj

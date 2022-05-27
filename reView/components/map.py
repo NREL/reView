@@ -6,14 +6,13 @@ Used in (at least) the scenario and reeds pages.
 import os
 import copy
 
-import nltk
+
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
 
 from reView.pages.scenario.model import build_name
 from reView.pages.scenario.view import MAP_LAYOUT
-from reView.pages.scenario.model import apply_all_selections
 from reView.utils.classes import DiffUnitOptions
 from reView.utils.bespoke import BespokeUnpacker
 from reView.utils.config import Config
@@ -21,24 +20,31 @@ from reView.utils.constants import AGGREGATIONS, COLORS
 from reView.utils.functions import convert_to_title
 
 
-# Download up-to-date version in package data
-nltk.download("words")
-WORDS = nltk.corpus.words.words()
-
-
 class Map:
     """Methods for building the mapbox scatter plot."""
 
-    def __init__(self, df, basemap, chart_selection, click_selection, color, map_function, map_selection,
-                 point_size, project, reverse_color, signal_dict, trigger,
-                 uymin, uymax, title_size=18):
+    def __init__(
+        self,
+        df,
+        project,
+        basemap,
+        color,
+        point_size,
+        reverse_color,
+        signal_dict,
+        trigger,
+        user_ymin,
+        user_ymax,
+        map_selection=None,
+        click_selection=None,
+        demand_data=None,
+        title_size=18,
+    ):
         """Initialize ScatterPlot object."""
         self.df = df
         self.basemap = basemap
-        self.chart_selection = chart_selection
-        self.click_selection = click_selection
+        self.click_selection = click_selection or {}
         self.color = color
-        self.map_function = map_function
         self.map_selection = map_selection
         self.point_size = point_size
         self.project = project
@@ -46,8 +52,9 @@ class Map:
         self.signal_dict = signal_dict
         self.trigger = trigger
         self.title_size = title_size
-        self.uymax = uymax
-        self.uymin = uymin
+        self.user_ymax = user_ymax
+        self.user_ymin = user_ymin
+        self.demand_data = demand_data
         self.unpack()
 
     def __repr__(self):
@@ -86,7 +93,7 @@ class Map:
                 lon="longitude",
                 lat="latitude",
                 custom_data=["sc_point_gid", "print_capacity"],
-                hover_name="text"
+                hover_name="text",
             )
             figure.update_traces(marker=self.marker)
         else:
@@ -96,7 +103,7 @@ class Map:
                 lon="longitude",
                 lat="latitude",
                 custom_data=["sc_point_gid", "print_capacity"],
-                hover_name="text"
+                hover_name="text",
             )
             figure.update_traces(marker=self.marker)
 
@@ -175,16 +182,18 @@ class Map:
                     + df["state"]
                     + ":"
                     + extra_str
-                    + f"<br>    {self.to_human(y)}:   "
+                    + f"<br>    {convert_to_title(y)}:   "
                     + df[y].round(2).astype(str)
-                    + " " + units
+                    + " "
+                    + units
                 )
             except:
                 text = (
-                  extra_str
-                  + f"<br>    {self.to_human(y)}:   "
-                  + df[y].round(2).astype(str)
-                  + " " + units
+                    extra_str
+                    + f"<br>    {convert_to_title(y)}:   "
+                    + df[y].round(2).astype(str)
+                    + " "
+                    + units
                 )
 
         return text
@@ -227,15 +236,10 @@ class Map:
                     title=dict(
                         text=self.units,
                         font=dict(
-                            size=15,
-                            color="white",
-                            family="New Times Roman"
+                            size=15, color="white", family="New Times Roman"
                         ),
                     ),
-                    tickfont=dict(
-                        color="white",
-                        family="New Times Roman"
-                    ),
+                    tickfont=dict(color="white", family="New Times Roman"),
                 ),
             )
 
@@ -254,18 +258,6 @@ class Map:
         """Boolean switch to show/hide legend."""
         return self.units == "category"
 
-    def to_human(self, string):
-        """Convert string to human readable format."""
-        parts = []
-        if string is not None:
-            for part in string.split("_"):
-                if part not in WORDS:
-                    part = part.upper()
-                else:
-                    part = part.title()
-                parts.append(part)
-        return " ".join(parts)
-
     def unpack(self):
         """Unpack signal and set values."""
         # Unpack signal and derive elements
@@ -281,20 +273,10 @@ class Map:
         self.reverse_color = self.reverse_color % 2 == 1
 
         # Use user defined value ranges
-        if self.uymin:
-            self._ymin = self.uymin
-        if self.uymax:
-            self._ymax = self.uymax
-
-        # Apply all farm level filters
-        self.df, self.demand_data = apply_all_selections(
-            self.df,
-            self.map_function,
-            self.project,
-            self.chart_selection,
-            self.map_selection,
-            self.click_selection
-        )
+        if self.user_ymin:
+            self._ymin = self.user_ymin
+        if self.user_ymax:
+            self._ymax = self.user_ymax
 
         # Unpack bespoke turbines if available and a point was clicked
         if "clickData" in self.trigger and "turbine_y_coords" in self.df:
