@@ -33,8 +33,8 @@ class Map:
         reverse_color,
         signal_dict,
         trigger,
-        user_ymin,
-        user_ymax,
+        user_ymin=None,
+        user_ymax=None,
         map_selection=None,
         click_selection=None,
         demand_data=None,
@@ -52,10 +52,21 @@ class Map:
         self.signal_dict = signal_dict
         self.trigger = trigger
         self.title_size = title_size
-        self.user_ymax = user_ymax
-        self.user_ymin = user_ymin
         self.demand_data = demand_data
-        self.unpack()
+        self._y = self.signal_dict["y"]
+
+        config = Config(self.project)
+        self.units = config.units.get(self._y, "")
+        self._ymin = user_ymin or config.scales.get(self._y, {}).get("min")
+        self._ymax = user_ymax or config.scales.get(self._y, {}).get("max")
+
+        # Unpack bespoke turbines if available and a point was clicked
+        if "clickData" in self.trigger and "turbine_y_coords" in self.df:
+            unpacker = BespokeUnpacker(self.df, self.click_selection)
+            self.df = unpacker.unpack_turbines()
+
+        # Store the capacity values up to this point
+        self.mapcap = self.df[["sc_point_gid", "print_capacity"]].to_dict()
 
     def __repr__(self):
         """Return representation string."""
@@ -258,43 +269,13 @@ class Map:
         """Boolean switch to show/hide legend."""
         return self.units == "category"
 
-    def unpack(self):
-        """Unpack signal and set values."""
-        # Unpack signal and derive elements
-        self.x = self.signal_dict["x"]
-        self._y = self.signal_dict["y"]
-        self.config = Config(self.project)
-        self.units = self.config.units.get(self._y, "")
-        scale = self.config.scales.get(self._y, {})
-        self._ymin = scale.get("min")
-        self._ymax = scale.get("max")
-
-        # Reverse color
-        self.reverse_color = self.reverse_color % 2 == 1
-
-        # Use user defined value ranges
-        if self.user_ymin:
-            self._ymin = self.user_ymin
-        if self.user_ymax:
-            self._ymax = self.user_ymax
-
-        # Unpack bespoke turbines if available and a point was clicked
-        if "clickData" in self.trigger and "turbine_y_coords" in self.df:
-            unpacker = BespokeUnpacker(self.df, self.click_selection)
-            self.df = unpacker.unpack_turbines()
-
-        # Store the capacity values up to this point
-        self.mapcap = self.df[["sc_point_gid", "print_capacity"]].to_dict()
-
     @property
     def y(self):
         """Return appropriate y variable name."""
         # Use demand counts if available
         if "demand_connect_count" in self.df:
-            y = "demand_connect_count"
-        else:
-            y = self._y
-        return y
+            return "demand_connect_count"
+        return self._y
 
     @property
     def ymax(self):
