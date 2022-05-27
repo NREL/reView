@@ -15,7 +15,6 @@ import plotly.graph_objects as go
 from reView.layout.styles import (
     BOTTOM_DIV_STYLE,
     BUTTON_STYLES,
-    RC_STYLES,
     TAB_STYLE,
     TAB_BOTTOM_SELECTED_STYLE,
     TABLET_STYLE,
@@ -32,7 +31,7 @@ from reView.utils.constants import DEFAULT_POINT_SIZE
 from reView.utils.classes import DiffUnitOptions
 from reView.environment.settings import IS_DEV_ENV
 from reView.utils.config import Config
-from reView.components import map_div
+from reView.components import map_div, below_map_options_div
 
 
 layout = html.Div(
@@ -996,81 +995,7 @@ layout = html.Div(
                         # The map
                         map_div(id="map"),
                         # Below Map Options
-                        html.Div(
-                            [
-                                # Left options
-                                html.Div(
-                                    [
-                                        html.P(
-                                            "Point Size:",
-                                            style={
-                                                "margin-left": 5,
-                                                "margin-top": 7,
-                                            },
-                                            className="two columns",
-                                        ),
-                                        dcc.Input(
-                                            id="map_point_size",
-                                            value=DEFAULT_POINT_SIZE,
-                                            type="number",
-                                            debounce=False,
-                                            className="one columns",
-                                            style={
-                                                "margin-left": "-1px",
-                                                "width": "10%",
-                                            },
-                                        ),
-                                        html.P(
-                                            "Color Min: ",
-                                            style={"margin-top": 7},
-                                            className="two columns",
-                                        ),
-                                        dcc.Input(
-                                            id="map_color_min",
-                                            placeholder="",
-                                            type="number",
-                                            debounce=True,
-                                            className="one columns",
-                                            style={
-                                                "margin-left": "-1px",
-                                                "width": "10%",
-                                            },
-                                        ),
-                                        html.P(
-                                            "Color Max: ",
-                                            style={"margin-top": 7},
-                                            className="two columns",
-                                        ),
-                                        dcc.Input(
-                                            id="map_color_max",
-                                            placeholder="",
-                                            debounce=True,
-                                            type="number",
-                                            className="one columns",
-                                            style={
-                                                "margin-left": "-1px",
-                                                "width": "10%",
-                                            },
-                                        ),
-                                    ],
-                                    className="eight columns",
-                                    style=BOTTOM_DIV_STYLE,
-                                ),
-                                # Right option
-                                html.Button(
-                                    id="rev_color",
-                                    children="Reverse Color: Off",
-                                    n_clicks=0,
-                                    type="button",
-                                    title=(
-                                        "Click to render the map with the inverse "
-                                        "of the chosen color ramp."
-                                    ),
-                                    style=RC_STYLES["on"],
-                                    className="one column",
-                                ),
-                            ]
-                        ),
+                        below_map_options_div(id_prefix="map"),
                         # Loading State
                         html.Div(
                             [

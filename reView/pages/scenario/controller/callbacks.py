@@ -713,7 +713,7 @@ def figure_chart(
     Input("color_options", "value"),
     Input("chart", "selectedData"),
     Input("map_point_size", "value"),
-    Input("rev_color", "n_clicks"),
+    Input("map_rev_color", "n_clicks"),
     Input("map_color_min", "value"),
     Input("map_color_max", "value"),
     Input("map", "selectedData"),
@@ -1398,9 +1398,9 @@ def toggle_recalc_tab(recalc, scenario):
 
 
 @app.callback(
-    Output("rev_color", "children"),
-    Output("rev_color", "style"),
-    Input("rev_color", "n_clicks"),
+    Output("map_rev_color", "children"),
+    Output("map_rev_color", "style"),
+    Input("map_rev_color", "n_clicks"),
 )
 def toggle_rev_color_button(click):
     """Toggle Reverse Color on/off."""

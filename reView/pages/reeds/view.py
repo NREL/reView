@@ -8,7 +8,7 @@ Created on Tue Jul  6 15:23:09 2021
 from dash import dcc, html
 
 from reView.utils.functions import data_paths
-from reView.components import map_div
+from reView.components import map_div, below_map_options_div
 
 
 PROJECT = str(list(data_paths()["reeds"].glob("*csv"))[0])
@@ -85,6 +85,8 @@ layout = html.Div(
         ),
         # The map
         map_div(id="map_reeds"),
+        # Below Map Options
+        below_map_options_div(id_prefix="map"),
         # Capacity after make_map (avoiding duplicate calls)
         html.Div(id="mapcap_reeds", style={"display": "none"}),
     ]
