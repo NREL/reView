@@ -11,11 +11,39 @@ import plotly.graph_objects as go
 import plotly.express as px
 
 from reView.pages.scenario.model import build_name
-from reView.pages.scenario.view import MAP_LAYOUT
 from reView.utils.classes import DiffUnitOptions
 from reView.utils.config import Config
 from reView.utils.constants import AGGREGATIONS, COLORS
 from reView.utils.functions import convert_to_title
+
+
+MAP_LAYOUT = dict(
+    dragmode="select",
+    font_family="Time New Roman",
+    font_size=15,
+    hovermode="closest",
+    legend=dict(size=20),
+    margin=dict(l=20, r=115, t=115, b=20),
+    paper_bgcolor="#1663B5",
+    plot_bgcolor="#083C04",
+    titlefont=dict(color="white", size=18, family="Time New Roman"),
+    title=dict(
+        yref="container",
+        x=0.05,
+        y=0.95,
+        yanchor="top",
+        pad=dict(b=10),
+    ),
+    mapbox=dict(
+        accesstoken=(
+            "pk.eyJ1IjoidHJhdmlzc2l1cyIsImEiOiJjamZiaHh4b28waXNkMnpt"
+            "aWlwcHZvdzdoIn0.9pxpgXxyyhM6qEF_dcyjIQ"
+        ),
+        style="satellite-streets",
+        center=dict(lon=-97.5, lat=39.5),
+        zoom=3.25,
+    ),
+)
 
 
 class Map:
