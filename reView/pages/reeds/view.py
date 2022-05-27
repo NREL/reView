@@ -7,9 +7,8 @@ Created on Tue Jul  6 15:23:09 2021
 """
 from dash import dcc, html
 
-import plotly.graph_objects as go
-
 from reView.utils.functions import data_paths
+from reView.components import map_div
 
 
 PROJECT = str(list(data_paths()["reeds"].glob("*csv"))[0])
@@ -84,41 +83,8 @@ layout = html.Div(
             className="nine columns",
             style={"text-align": "center", "margin-bottom": "55px"},
         ),
-        #                 # The map
-        html.Div(
-            children=[
-                dcc.Graph(
-                    id="map_reeds",
-                    style={"height": 750},
-                    config={
-                        "showSendToCloud": True,
-                        "plotlyServerURL": "https://chart-studio.plotly.com",
-                        "toImageButtonOptions": {
-                            "width": 1250,
-                            "height": 750,
-                            "filename": "custom_review_map",
-                        },
-                    },
-                    mathjax=True,
-                    figure=go.Figure(
-                        layout={
-                            "xaxis": {"visible": False},
-                            "yaxis": {"visible": False},
-                            "annotations": [
-                                {
-                                    "text": "No data loaded",
-                                    "xref": "paper",
-                                    "yref": "paper",
-                                    "showarrow": False,
-                                    "font": {"size": 28},
-                                }
-                            ],
-                        }
-                    ),
-                ),
-            ],
-            className="six columns",
-        ),
+        # The map
+        map_div(id="map_reeds"),
         # Capacity after make_map (avoiding duplicate calls)
         html.Div(id="mapcap_reeds", style={"display": "none"}),
     ]

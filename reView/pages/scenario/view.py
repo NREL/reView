@@ -32,6 +32,7 @@ from reView.utils.constants import DEFAULT_POINT_SIZE
 from reView.utils.classes import DiffUnitOptions
 from reView.environment.settings import IS_DEV_ENV
 from reView.utils.config import Config
+from reView.components import map_div
 
 
 layout = html.Div(
@@ -993,39 +994,7 @@ layout = html.Div(
                             className="row",
                         ),
                         # The map
-                        html.Div(
-                            children=[
-                                dcc.Graph(
-                                    id="map",
-                                    style={"height": 750},
-                                    config={
-                                        "showSendToCloud": True,
-                                        "plotlyServerURL": "https://chart-studio.plotly.com",
-                                        "toImageButtonOptions": {
-                                            "width": 1250,
-                                            "height": 750,
-                                            "filename": "custom_review_map",
-                                        },
-                                    },
-                                    mathjax=True,
-                                    figure=go.Figure(
-                                        layout={
-                                            "xaxis": {"visible": False},
-                                            "yaxis": {"visible": False},
-                                            "annotations": [
-                                                {
-                                                    "text": "No data loaded",
-                                                    "xref": "paper",
-                                                    "yref": "paper",
-                                                    "showarrow": False,
-                                                    "font": {"size": 28},
-                                                }
-                                            ],
-                                        }
-                                    ),
-                                ),
-                            ]
-                        ),
+                        map_div(id="map"),
                         # Below Map Options
                         html.Div(
                             [
