@@ -31,7 +31,7 @@ from reView.utils.constants import DEFAULT_POINT_SIZE
 from reView.utils.classes import DiffUnitOptions
 from reView.environment.settings import IS_DEV_ENV
 from reView.utils.config import Config
-from reView.components import map_div, below_map_options_div
+from reView.components import above_map_options_div, map_div, below_map_options_div
 
 
 layout = html.Div(
@@ -904,94 +904,8 @@ layout = html.Div(
                 # The map div
                 html.Div(
                     [
-                        html.Div(
-                            [
-                                # Map options
-                                dcc.Tabs(
-                                    id="map_options_tab",
-                                    value="state",
-                                    style=TAB_STYLE,
-                                    children=[
-                                        dcc.Tab(
-                                            value="state",
-                                            label="State",
-                                            style=TABLET_STYLE,
-                                            selected_style=TABLET_STYLE,
-                                        ),
-                                        dcc.Tab(
-                                            value="region",
-                                            label="Region",
-                                            style=TABLET_STYLE,
-                                            selected_style=TABLET_STYLE,
-                                        ),
-                                        dcc.Tab(
-                                            value="basemap",
-                                            label="Basemap",
-                                            style=TABLET_STYLE,
-                                            selected_style=TABLET_STYLE,
-                                        ),
-                                        dcc.Tab(
-                                            value="color",
-                                            label="Color Ramp",
-                                            style=TABLET_STYLE,
-                                            selected_style=TABLET_STYLE,
-                                        ),
-                                    ],
-                                ),
-                                # State options
-                                html.Div(
-                                    id="map_state_options_div",
-                                    children=[
-                                        dcc.Dropdown(
-                                            id="map_state_options",
-                                            clearable=True,
-                                            options=STATE_OPTIONS,
-                                            multi=True,
-                                            value=None,
-                                        )
-                                    ],
-                                ),
-                                html.Div(
-                                    id="map_region_options_div",
-                                    children=[
-                                        dcc.Dropdown(
-                                            id="map_region_options",
-                                            clearable=True,
-                                            options=REGION_OPTIONS,
-                                            multi=True,
-                                            value=None,
-                                        )
-                                    ],
-                                ),
-                                # Basemap options
-                                html.Div(
-                                    id="map_basemap_options_div",
-                                    children=[
-                                        dcc.Dropdown(
-                                            id="map_basemap_options",
-                                            clearable=False,
-                                            options=BASEMAP_OPTIONS,
-                                            multi=False,
-                                            value="light",
-                                        )
-                                    ],
-                                ),
-                                # Color scale options
-                                html.Div(
-                                    id="map_color_options_div",
-                                    children=[
-                                        dcc.Dropdown(
-                                            id="map_color_options",
-                                            clearable=False,
-                                            options=COLOR_OPTIONS,
-                                            multi=False,
-                                            value="Viridis",
-                                        )
-                                    ],
-                                ),
-                            ],
-                            className="row",
-                        ),
+                        # Above Map Options
+                        above_map_options_div(id_prefix="map"),
                         # The map
                         map_div(id="map"),
                         # Below Map Options
