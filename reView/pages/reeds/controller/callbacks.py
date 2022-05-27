@@ -15,12 +15,16 @@ from dash.dependencies import Input, Output
 
 from reView.app import app
 
+from reView.components.callbacks import toggle_reverse_color_button_style
 from reView.components.map import Map
 from reView.pages.reeds.model import cache_reeds
 from reView.utils import calls
 from reView.utils.functions import format_capacity_title
 
 logger = logging.getLogger(__name__)
+COMMON_CALLBACKS = [
+    toggle_reverse_color_button_style(id_prefix="map_reeds"),
+]
 
 
 @app.callback(

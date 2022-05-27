@@ -86,7 +86,7 @@ layout = html.Div(
         # The map
         map_div(id="map_reeds"),
         # Below Map Options
-        below_map_options_div(id_prefix="map"),
+        below_map_options_div(id_prefix="map_reeds"),
         # Capacity after make_map (avoiding duplicate calls)
         html.Div(id="mapcap_reeds", style={"display": "none"}),
     ]

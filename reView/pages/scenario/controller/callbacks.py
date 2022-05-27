@@ -25,12 +25,13 @@ from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 
 from reView.app import app
-from reView.layout.styles import BUTTON_STYLES, TABLET_STYLE, RC_STYLES
+from reView.layout.styles import BUTTON_STYLES, TABLET_STYLE
 from reView.layout.options import (
     CHART_OPTIONS,
     COLOR_OPTIONS,
     COLOR_Q_OPTIONS,
 )
+from reView.components.callbacks import toggle_reverse_color_button_style
 from reView.components.map import Map, build_title
 from reView.pages.scenario.controller.element_builders import Plots
 from reView.pages.scenario.controller.selection import (
@@ -57,6 +58,9 @@ from reView.utils.config import Config
 from reView.utils import calls
 
 logger = logging.getLogger(__name__)
+COMMON_CALLBACKS = [
+    toggle_reverse_color_button_style(id_prefix="map"),
+]
 
 
 def build_specs(scenario, project):
@@ -1395,25 +1399,6 @@ def toggle_recalc_tab(recalc, scenario):
         recalc_a_style = {"display": "none"}
 
     return tab_style, recalc_a_style, recalc_b_style
-
-
-@app.callback(
-    Output("map_rev_color", "children"),
-    Output("map_rev_color", "style"),
-    Input("map_rev_color", "n_clicks"),
-)
-def toggle_rev_color_button(click):
-    """Toggle Reverse Color on/off."""
-    if not click:
-        click = 0
-    if click % 2 == 1:
-        children = "Reverse: Off"
-        style = RC_STYLES["off"]
-    else:
-        children = "Reverse: On"
-        style = RC_STYLES["on"]
-
-    return children, style
 
 
 @app.callback(
