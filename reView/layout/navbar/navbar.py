@@ -9,10 +9,11 @@ from dash import dcc
 from dash import html
 
 from reView.layout.styles import BUTTON_STYLES
+from reView.environment.settings import IS_DEV_ENV
 
 
 NAVBAR = html.Nav(
-    id='top-level-navbar',
+    id="top-level-navbar",
     className="top-bar fixed",
     children=[
         html.Div(
@@ -60,7 +61,7 @@ NAVBAR = html.Nav(
                 dcc.Link(
                     html.Button(
                         id="scenario_link_button",
-                        children="Scenario-based Page",
+                        children="reV",
                         type="button",
                         title=("Go to the scenario-based project page."),
                         style=BUTTON_STYLES["navbar"],
@@ -70,25 +71,29 @@ NAVBAR = html.Nav(
                 ),
                 dcc.Link(
                     html.Button(
-                        id="config_link_button",
-                        children="Configuration Page",
-                        type="button",
-                        title=("Go to the data configuration page."),
-                        style=BUTTON_STYLES["navbar"],
-                    ),
-                    id="config_link",
-                    href="/config_page",
-                ),
-                dcc.Link(
-                    html.Button(
                         id="reeds_link_button",
-                        children="ReEDS Buildout Page",
+                        children="ReEDS",
                         type="button",
                         title=("Go to the ReEDS buildout viewer page."),
                         style=BUTTON_STYLES["navbar"],
                     ),
                     id="reeds_link",
                     href="/reeds_page",
+                ),
+                dcc.Link(
+                    html.Button(
+                        id="config_link_button",
+                        children="Configuration",
+                        type="button",
+                        title=("Go to the data configuration page."),
+                        style=(
+                            BUTTON_STYLES["navbar"]
+                            if IS_DEV_ENV
+                            else {"display": "none"}
+                        ),
+                    ),
+                    id="config_link",
+                    href="/config_page",
                 ),
                 html.A(
                     html.Img(
