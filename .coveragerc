@@ -24,3 +24,7 @@ exclude_lines =
 omit =
     # omit log settings file
     */utils/log.py
+    # omit testing constants
+    */utils/constants.py
+    # omit div layouts, which are essentially just constants
+    */components/divs/*.py
