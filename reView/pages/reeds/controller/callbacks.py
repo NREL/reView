@@ -67,10 +67,15 @@ def slider_year(project, url):
     Output("mapcap_reeds", "children"),
     Input("project_reeds", "value"),
     Input("years_reeds", "value"),
+    Input("map_reeds_point_size", "value"),
     Input("map_reeds_rev_color", "n_clicks"),
+    Input("map_reeds_color_min", "value"),
+    Input("map_reeds_color_max", "value"),
 )
 @calls.log
-def figure_map_reeds(project, year, reverse_color_clicks):
+def figure_map_reeds(
+    project, year, point_size, reverse_color_clicks, color_ymin, color_ymax
+):
     """Return buildout table from single year as map."""
 
     caller = inspect.stack()[0][3]
@@ -84,9 +89,15 @@ def figure_map_reeds(project, year, reverse_color_clicks):
     agg = str(round(df[color_var].mean(), 2))
     title = f"Reference Advanced, 95% CO2 - {year} <br> Avg. {agg} MW"
 
-    mapper = Map(df, color_var, title)
+    mapper = Map(
+        df=df,
+        color_var=color_var,
+        plot_title=title,
+        color_min=color_ymin,
+        color_max=color_ymax,
+    )
     figure = mapper.figure(
-        point_size=4,
+        point_size=point_size,
         reverse_color=reverse_color_clicks % 2 == 1,
     )
 
