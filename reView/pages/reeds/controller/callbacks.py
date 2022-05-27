@@ -15,7 +15,8 @@ from dash.dependencies import Input, Output
 
 from reView.app import app
 
-from reView.pages.reeds.model import cache_reeds, Map
+from reView.components.map import Map
+from reView.pages.reeds.model import cache_reeds
 from reView.utils import calls
 from reView.utils.functions import format_capacity_title
 
@@ -26,14 +27,12 @@ logger = logging.getLogger(__name__)
     Output("capacity_print_reeds", "children"),
     Output("site_print_reeds", "children"),
     Input("mapcap_reeds", "children"),
-    Input("map_reeds", "selectedData")
+    Input("map_reeds", "selectedData"),
 )
 @calls.log
 def capacity_print(map_capacity, map_selection):
     """Calculate total remaining capacity after all filters are applied."""
-    return format_capacity_title(
-        map_capacity, map_selection, capacity_col_name="capacity_MW"
-    )
+    return format_capacity_title(map_capacity, map_selection)
 
 
 @app.callback(
@@ -63,7 +62,7 @@ def slider_year(project, url):
     Output("map_reeds", "figure"),
     Output("mapcap_reeds", "children"),
     Input("project_reeds", "value"),
-    Input("years_reeds", "value")
+    Input("years_reeds", "value"),
 )
 @calls.log
 def figure_map_reeds(project, year):
@@ -73,8 +72,16 @@ def figure_map_reeds(project, year):
     logger.info("%s, args: %s", caller, f"{project=}, {year=}")
 
     # Get data
+    color_var = "capacity_MW"
     df = cache_reeds(project, year)
-    mapper = Map(df, year)
-    figure = mapper.figure
+    df["print_capacity"] = df["capacity_MW"]
 
-    return figure, json.dumps(mapper.mapcap)
+    agg = str(round(df[color_var].mean(), 2))
+    title = f"Reference Advanced, 95% CO2 - {year} <br> Avg. {agg} MW"
+
+    mapper = Map(df, color_var, title)
+    figure = mapper.figure(point_size=4)
+
+    mapcap = df[["sc_point_gid", "print_capacity"]].to_dict()
+
+    return figure, json.dumps(mapcap)
