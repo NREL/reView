@@ -60,10 +60,10 @@ NAVBAR = html.Nav(
                 ),
                 dcc.Link(
                     html.Button(
-                        id="scenario_link_button",
+                        id="reV_link_button",
                         children="reV",
                         type="button",
-                        title=("Go to the scenario-based project page."),
+                        title=("Go to the reV viewer page."),
                         style=BUTTON_STYLES["navbar"],
                     ),
                     id="scenario_link",
