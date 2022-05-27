@@ -26,9 +26,9 @@ class Map:
         df,
         color_var,
         plot_title,
-        project,
-        basemap,
-        colorscale,
+        project=None,
+        basemap="light",
+        colorscale="Viridis",
         color_min=None,
         color_max=None,
         demand_data=None,
@@ -45,8 +45,10 @@ class Map:
         )
         self.demand_data = demand_data
 
-        config = Config(self.project)
-        self.units = config.units.get(self.color_var, "")
+        if project:
+            self.units = Config(self.project).units.get(self.color_var, "")
+        else:
+            self.units = ""
 
     def __repr__(self):
         """Return representation string."""
@@ -246,13 +248,17 @@ class Map:
 class ColorRange:
     """Helper class to represent the color range."""
 
-    def __init__(self, df, color_var, project, color_min=None, color_max=None):
+    def __init__(
+        self, df, color_var, project=None, color_min=None, color_max=None
+    ):
         """Initialize ColorRange object."""
 
         self.df = df
         self.color_var = color_var
-        config = Config(project)
-        scales = config.scales.get(self.color_var, {})
+        if project:
+            scales = Config(project).scales.get(self.color_var, {})
+        else:
+            scales = {}
         self._color_min = color_min or scales.get("min")
         self._color_max = color_max or scales.get("max")
 
