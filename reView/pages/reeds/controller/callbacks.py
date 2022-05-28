@@ -5,7 +5,6 @@ Created on Mon May 23 21:07:15 2022
 
 @author: twillia2
 """
-import inspect
 import json
 import logging
 
@@ -52,7 +51,7 @@ def capacity_print(map_capacity, map_selection):
     Input("url", "pathname"),
 )
 @calls.log
-def slider_year(project, url):
+def slider_year(project, __):
     """Return year slider for given project."""
 
     # Get unique years from table
