@@ -15,23 +15,21 @@ import plotly.graph_objects as go
 from reView.layout.styles import (
     BOTTOM_DIV_STYLE,
     BUTTON_STYLES,
-    RC_STYLES,
     TAB_STYLE,
     TAB_BOTTOM_SELECTED_STYLE,
     TABLET_STYLE,
     TABLET_STYLE_CLOSED,
 )
-from reView.layout.options import (
-    BASEMAP_OPTIONS,
-    CHART_OPTIONS,
-    COLOR_OPTIONS,
-    REGION_OPTIONS,
-    STATE_OPTIONS,
-)
+from reView.layout.options import CHART_OPTIONS, REGION_OPTIONS
 from reView.utils.constants import DEFAULT_POINT_SIZE
 from reView.utils.classes import DiffUnitOptions
 from reView.environment.settings import IS_DEV_ENV
 from reView.utils.config import Config
+from reView.components import (
+    above_map_options_div,
+    map_div,
+    below_map_options_div,
+)
 
 
 layout = html.Div(
@@ -904,204 +902,12 @@ layout = html.Div(
                 # The map div
                 html.Div(
                     [
-                        html.Div(
-                            [
-                                # Map options
-                                dcc.Tabs(
-                                    id="map_options_tab",
-                                    value="state",
-                                    style=TAB_STYLE,
-                                    children=[
-                                        dcc.Tab(
-                                            value="state",
-                                            label="State",
-                                            style=TABLET_STYLE,
-                                            selected_style=TABLET_STYLE,
-                                        ),
-                                        dcc.Tab(
-                                            value="region",
-                                            label="Region",
-                                            style=TABLET_STYLE,
-                                            selected_style=TABLET_STYLE,
-                                        ),
-                                        dcc.Tab(
-                                            value="basemap",
-                                            label="Basemap",
-                                            style=TABLET_STYLE,
-                                            selected_style=TABLET_STYLE,
-                                        ),
-                                        dcc.Tab(
-                                            value="color",
-                                            label="Color Ramp",
-                                            style=TABLET_STYLE,
-                                            selected_style=TABLET_STYLE,
-                                        ),
-                                    ],
-                                ),
-                                # State options
-                                html.Div(
-                                    id="state_options_div",
-                                    children=[
-                                        dcc.Dropdown(
-                                            id="state_options",
-                                            clearable=True,
-                                            options=STATE_OPTIONS,
-                                            multi=True,
-                                            value=None,
-                                        )
-                                    ],
-                                ),
-                                html.Div(
-                                    id="region_options_div",
-                                    children=[
-                                        dcc.Dropdown(
-                                            id="region_options",
-                                            clearable=True,
-                                            options=REGION_OPTIONS,
-                                            multi=True,
-                                            value=None,
-                                        )
-                                    ],
-                                ),
-                                # Basemap options
-                                html.Div(
-                                    id="basemap_options_div",
-                                    children=[
-                                        dcc.Dropdown(
-                                            id="basemap_options",
-                                            clearable=False,
-                                            options=BASEMAP_OPTIONS,
-                                            multi=False,
-                                            value="light",
-                                        )
-                                    ],
-                                ),
-                                # Color scale options
-                                html.Div(
-                                    id="color_options_div",
-                                    children=[
-                                        dcc.Dropdown(
-                                            id="color_options",
-                                            clearable=False,
-                                            options=COLOR_OPTIONS,
-                                            multi=False,
-                                            value="Viridis",
-                                        )
-                                    ],
-                                ),
-                            ],
-                            className="row",
-                        ),
+                        # Above Map Options
+                        above_map_options_div(id_prefix="map"),
                         # The map
-                        html.Div(
-                            children=[
-                                dcc.Graph(
-                                    id="map",
-                                    style={"height": 750},
-                                    config={
-                                        "showSendToCloud": True,
-                                        "plotlyServerURL": "https://chart-studio.plotly.com",
-                                        "toImageButtonOptions": {
-                                            "width": 1250,
-                                            "height": 750,
-                                            "filename": "custom_review_map",
-                                        },
-                                    },
-                                    mathjax=True,
-                                    figure=go.Figure(
-                                        layout={
-                                            "xaxis": {"visible": False},
-                                            "yaxis": {"visible": False},
-                                            "annotations": [
-                                                {
-                                                    "text": "No data loaded",
-                                                    "xref": "paper",
-                                                    "yref": "paper",
-                                                    "showarrow": False,
-                                                    "font": {"size": 28},
-                                                }
-                                            ],
-                                        }
-                                    ),
-                                ),
-                            ]
-                        ),
+                        map_div(id="map"),
                         # Below Map Options
-                        html.Div(
-                            [
-                                # Left options
-                                html.Div(
-                                    [
-                                        html.P(
-                                            "Point Size:",
-                                            style={
-                                                "margin-left": 5,
-                                                "margin-top": 7,
-                                            },
-                                            className="two columns",
-                                        ),
-                                        dcc.Input(
-                                            id="map_point_size",
-                                            value=DEFAULT_POINT_SIZE,
-                                            type="number",
-                                            debounce=False,
-                                            className="one columns",
-                                            style={
-                                                "margin-left": "-1px",
-                                                "width": "10%",
-                                            },
-                                        ),
-                                        html.P(
-                                            "Color Min: ",
-                                            style={"margin-top": 7},
-                                            className="two columns",
-                                        ),
-                                        dcc.Input(
-                                            id="map_color_min",
-                                            placeholder="",
-                                            type="number",
-                                            debounce=True,
-                                            className="one columns",
-                                            style={
-                                                "margin-left": "-1px",
-                                                "width": "10%",
-                                            },
-                                        ),
-                                        html.P(
-                                            "Color Max: ",
-                                            style={"margin-top": 7},
-                                            className="two columns",
-                                        ),
-                                        dcc.Input(
-                                            id="map_color_max",
-                                            placeholder="",
-                                            debounce=True,
-                                            type="number",
-                                            className="one columns",
-                                            style={
-                                                "margin-left": "-1px",
-                                                "width": "10%",
-                                            },
-                                        ),
-                                    ],
-                                    className="eight columns",
-                                    style=BOTTOM_DIV_STYLE,
-                                ),
-                                # Right option
-                                html.Button(
-                                    id="rev_color",
-                                    children="Reverse Color: Off",
-                                    n_clicks=0,
-                                    type="button",
-                                    title=(
-                                        "Click to render the map with the inverse "
-                                        "of the chosen color ramp."
-                                    ),
-                                    style=RC_STYLES["on"],
-                                    className="one column",
-                                ),
-                            ]
-                        ),
+                        below_map_options_div(id_prefix="map"),
                         # Loading State
                         html.Div(
                             [

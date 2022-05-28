@@ -322,6 +322,7 @@ ignored-classes=optparse.Values,thread._local,_thread._local
 # supports qualified module names, as well as Unix pattern matching.
 ignored-modules=flask,
                 dash,
+                pandas,
                 werkzeug,
 
 # Show a hint with possible names when a member name was not found. The aspect

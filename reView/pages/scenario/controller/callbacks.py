@@ -25,11 +25,15 @@ from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 
 from reView.app import app
-from reView.layout.styles import BUTTON_STYLES, TABLET_STYLE, RC_STYLES
+from reView.layout.styles import BUTTON_STYLES, TABLET_STYLE
 from reView.layout.options import (
     CHART_OPTIONS,
     COLOR_OPTIONS,
     COLOR_Q_OPTIONS,
+)
+from reView.components.callbacks import (
+    toggle_reverse_color_button_style,
+    display_selected_tab_above_map,
 )
 from reView.components.map import Map, build_title
 from reView.pages.scenario.controller.element_builders import Plots
@@ -57,6 +61,10 @@ from reView.utils.config import Config
 from reView.utils import calls
 
 logger = logging.getLogger(__name__)
+COMMON_CALLBACKS = [
+    toggle_reverse_color_button_style(id_prefix="map"),
+    display_selected_tab_above_map(id_prefix="map"),
+]
 
 
 def build_specs(scenario, project):
@@ -234,13 +242,13 @@ def dropdown_chart_types(project):
 
 
 @app.callback(
-    Output("color_options", "options"),
-    Output("color_options", "value"),
+    Output("map_color_options", "options"),
+    Output("map_color_options", "value"),
     Input("submit", "n_clicks"),
     State("variable", "value"),
     State("project", "value"),
     State("map_signal", "children"),
-    State("color_options", "value"),
+    State("map_color_options", "value"),
 )
 @calls.log
 def dropdown_colors(submit, variable, project, signal, old_value):
@@ -709,11 +717,11 @@ def figure_chart(
     Output("map", "clickData"),
     Output("map_loading", "style"),
     Input("map_signal", "children"),
-    Input("basemap_options", "value"),
-    Input("color_options", "value"),
+    Input("map_basemap_options", "value"),
+    Input("map_color_options", "value"),
     Input("chart", "selectedData"),
     Input("map_point_size", "value"),
-    Input("rev_color", "n_clicks"),
+    Input("map_rev_color", "n_clicks"),
     Input("map_color_min", "value"),
     Input("map_color_max", "value"),
     Input("map", "selectedData"),
@@ -729,8 +737,8 @@ def figure_map(
     chart_selection,
     point_size,
     reverse_color_clicks,
-    user_ymin,
-    user_ymax,
+    color_ymin,
+    color_ymax,
     map_selection,
     click_selection,
     project,
@@ -770,8 +778,8 @@ def figure_map(
         project=project,
         basemap=basemap,
         colorscale=color,
-        color_min=user_ymin,
-        color_max=user_ymax,
+        color_min=color_ymin,
+        color_max=color_ymax,
         demand_data=demand_data,
     )
     figure = map_builder.figure(
@@ -1003,7 +1011,7 @@ def figure_map(
     Output("chart_data_signal", "children"),
     Input("variable", "value"),
     Input("chart_x_var_options", "value"),
-    Input("state_options", "value"),
+    Input("map_state_options", "value"),
 )
 @calls.log
 def retrieve_chart_tables(y, x, state):
@@ -1044,8 +1052,8 @@ def retrieve_filters(submit, var1, var2, var3, var4, q1, q2, q3, q4):
     Output("pca_plot_1", "clickData"),
     Output("pca_plot_2", "clickData"),
     Input("submit", "n_clicks"),
-    Input("state_options", "value"),
-    Input("region_options", "value"),
+    Input("map_state_options", "value"),
+    Input("map_region_options", "value"),
     Input("chart_options", "value"),
     Input("chart_x_var_options", "value"),
     Input("additional_scenarios", "value"),
@@ -1311,23 +1319,6 @@ def tabs_chart(tab_choice, chart_choice):
 
 
 @app.callback(
-    Output("state_options", "style"),
-    Output("region_options", "style"),
-    Output("basemap_options_div", "style"),
-    Output("color_options_div", "style"),
-    Input("map_options_tab", "value"),
-)
-def tabs_map(tab_choice):
-    """Choose which map tabs to display."""
-    # Styles
-    styles = [{"display": "none"}] * 4
-    order = ["state", "region", "basemap", "color"]
-    idx = order.index(tab_choice)
-    styles[idx] = {"width": "100%", "text-align": "center"}
-    return styles[0], styles[1], styles[2], styles[3]
-
-
-@app.callback(
     Output("chart_x_bin_div", "style"), Input("chart_options", "value")
 )
 @calls.log
@@ -1395,25 +1386,6 @@ def toggle_recalc_tab(recalc, scenario):
         recalc_a_style = {"display": "none"}
 
     return tab_style, recalc_a_style, recalc_b_style
-
-
-@app.callback(
-    Output("rev_color", "children"),
-    Output("rev_color", "style"),
-    Input("rev_color", "n_clicks"),
-)
-def toggle_rev_color_button(click):
-    """Toggle Reverse Color on/off."""
-    if not click:
-        click = 0
-    if click % 2 == 1:
-        children = "Reverse: Off"
-        style = RC_STYLES["off"]
-    else:
-        children = "Reverse: On"
-        style = RC_STYLES["on"]
-
-    return children, style
 
 
 @app.callback(
