@@ -41,7 +41,8 @@
   max-width: 960px;
   margin: 0 auto;
   padding: 0 20px;
-  box-sizing: border-box; }
+  box-sizing: border-box;
+}
 .column,
 .columns {
   width: 100%;
@@ -52,19 +53,25 @@
 @media (min-width: 400px) {
   .container {
     width: 85%;
-    padding: 0; }
+    padding: 0;
+  }
 }
 
 /* For devices larger than 550px */
 @media (min-width: 550px) {
   .container {
-    width: 80%; }
+    width: 80%;
+    box-shadow: 10px 10px;
+  }
   .column,
   .columns {
-    margin-left: 4%; }
+    margin-left: 4%;
+   }
   .column:first-child,
   .columns:first-child {
-    margin-left: 0; }
+    margin-left: 0;
+  }
+
 
   .one.column,
   .one.columns                    { width: 4.66666666667%; }
@@ -77,8 +84,8 @@
   .eight.columns                  { width: 65.3333333333%; }
   .nine.columns                   { width: 74.0%;          }
   .ten.columns                    { width: 82.6666666667%; }
-  .eleven.columns                 { width: 91.3333333333%; }
-  .twelve.columns                 { width: 100%; margin-left: 0; }
+  .eleven.columns                 { width: 95.3333333333%; }
+  .twelve.columns                 { width: 100%; }
 
   .one-third.column               { width: 30.6666666667%; }
   .two-thirds.column              { width: 65.3333333333%; }
@@ -87,7 +94,7 @@
 
   /* Offsets */
   .offset-by-one.column,
-  .offset-by-one.columns          { margin-left: 8.66666666667%; }
+  .offset-by-one.columns          { margin-left: 5%, margin-right: 5% }
   .offset-by-two.column,
   .offset-by-two.columns          { margin-left: 17.3333333333%; }
   .offset-by-three.column,
@@ -126,13 +133,15 @@
 html is set to 62.5% so that all the REM measurements throughout Skeleton
 are based on 10px sizing. So basically 1.5rem = 15px :) */
 html {
-  font-size: 62.5%; }
+  font-size: 62.5%;
+}
 body {
   font-size: 1.5em; /* currently ems cause chrome bug misinterpreting rems on body element */
   line-height: 1.6;
   font-weight: 400;
   font-family: "Open Sans", "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  color: rgb(50, 50, 50); }
+  color: rgb(50, 50, 50);
+}
 
 
 /* Typography
@@ -324,13 +333,16 @@ th:not(.CalendarDay),
 td:not(.CalendarDay) {
   padding: 12px 15px;
   text-align: left;
-  border-bottom: 1px solid #E1E1E1; }
+  border-bottom: 1px solid #E1E1E1;
+}
 th:first-child:not(.CalendarDay),
 td:first-child:not(.CalendarDay) {
-  padding-left: 0; }
+  padding-left: 0;
+}
 th:last-child:not(.CalendarDay),
 td:last-child:not(.CalendarDay) {
-  padding-right: 0; }
+  padding-right: 0;
+}
 
 
 /* Spacing
@@ -374,7 +386,8 @@ hr {
   margin-top: 3rem;
   margin-bottom: 3.5rem;
   border-width: 0;
-  border-top: 1px solid #E1E1E1; }
+  border-top: 1px solid #E1E1E1;
+}
 
 
 /* Clearing
@@ -386,7 +399,8 @@ hr {
 .u-cf {
   content: "";
   display: table;
-  clear: both; }
+  clear: both;
+}
 
 
 /* Media Queries
@@ -413,4 +427,3 @@ there.
 
 /* Larger than Desktop HD */
 @media (min-width: 1200px) {}
-

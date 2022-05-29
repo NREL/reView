@@ -18,7 +18,7 @@ from reView.layout.options import (
 )
 
 
-def above_map_options_div(id_prefix, class_name=None):
+def above_map_options_div(id_prefix, className=None):
     """Standard "above map" options div.
 
     Parameters
@@ -145,12 +145,12 @@ def above_map_options_div(id_prefix, class_name=None):
                 ],
             ),
         ],
-        className=class_name,
+        className=className,
     )
 
 
 # pylint: disable=redefined-builtin,invalid-name
-def map_div(id, class_name=None):
+def map_div(id, className=None):
     """Standard reView map div.
 
     Parameters
@@ -197,11 +197,11 @@ def map_div(id, class_name=None):
                 ),
             ),
         ],
-        className=class_name,
+        className=className,
     )
 
 
-def below_map_options_div(id_prefix, class_name=None):
+def below_map_options_div(id_prefix, className=None):
     """Standard "below map" options div.
 
     Parameters
@@ -230,7 +230,6 @@ def below_map_options_div(id_prefix, class_name=None):
         A div containing the "below map" options that the user can
         interact with.
     """
-
     return html.Div(
         [
             # Left options
@@ -238,60 +237,49 @@ def below_map_options_div(id_prefix, class_name=None):
                 [
                     html.P(
                         "Point Size:",
-                        style={"margin-left": 5, "margin-top": 7},
-                        className="two columns",
+                        style={"display": "table-cell"}
                     ),
                     dcc.Input(
                         id=f"{id_prefix}_point_size",
                         value=DEFAULT_POINT_SIZE,
                         type="number",
                         debounce=False,
-                        className="one columns",
-                        style={"margin-left": "-1px", "width": "10%"},
+                        style={"margin-left": "-1px", "width": "50%"},
                     ),
                     html.P(
-                        "Color Min: ",
-                        style={"margin-top": 7},
-                        className="two columns",
+                        "Color Min/Max: ",
+                        style={"display": "table-cell"}
                     ),
                     dcc.Input(
                         id=f"{id_prefix}_color_min",
                         placeholder="",
                         type="number",
                         debounce=True,
-                        className="one columns",
-                        style={"margin-left": "-1px", "width": "10%"},
+                        style={"margin-left": "-1px", "width": "20%"},
                     ),
-                    html.P(
-                        "Color Max: ",
-                        style={"margin-top": 7},
-                        className="two columns",
-                    ),
+
                     dcc.Input(
                         id=f"{id_prefix}_color_max",
                         placeholder="",
                         debounce=True,
                         type="number",
-                        className="one columns",
-                        style={"margin-left": "-1px", "width": "10%"},
+                        style={"margin-left": "-1px", "width": "20%"},
+                    ),
+                    html.Button(
+                        id=f"{id_prefix}_rev_color",
+                        children="Reverse Color: Off",
+                        n_clicks=0,
+                        type="button",
+                        title=(
+                            "Click to render the map with the inverse "
+                            "of the chosen color ramp."
+                        ),
+                        style=RC_STYLES["on"],
                     ),
                 ],
-                className="eight columns",
                 style=BOTTOM_DIV_STYLE,
             ),
-            # Right option
-            html.Button(
-                id=f"{id_prefix}_rev_color",
-                children="Reverse Color: Off",
-                n_clicks=0,
-                type="button",
-                title=(
-                    "Click to render the map with the inverse "
-                    "of the chosen color ramp."
-                ),
-                style=RC_STYLES["on"],
-                className="one column",
-            ),
+
         ],
-        className=class_name,
+        className=className,
     )

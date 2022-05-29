@@ -22,6 +22,7 @@ layout = html.Div(
     children=[
         # Path Name
         dcc.Location(id="/reeds_page", refresh=False),
+
         # Constant info block
         html.Div(
             [
@@ -72,9 +73,10 @@ layout = html.Div(
                     className="three columns",
                 ),
             ],
-            className="row",
+            className="elevent columns",
             style={"margin-bottom": "35px"},
         ),
+
         # Year selection
         html.P(
             "Year: ",
@@ -83,20 +85,36 @@ layout = html.Div(
             style={"text-align": "left"},
         ),
         html.Div(
-            [dcc.Slider(id="years_reeds", step=2)],
+            [
+                dcc.Slider(
+                    id="years_reeds",
+                    step=2
+                )
+            ],
             className="nine columns",
             style={"text-align": "center", "margin-bottom": "55px"},
         ),
-        # Above Map Options
-        above_map_options_div(
-            id_prefix="map_reeds", class_name="nine columns"
-        ),
+
+
         # The map
-        map_div(id="map_reeds", class_name="nine columns"),
-        # Below Map Options
-        below_map_options_div(
-            id_prefix="map_reeds", class_name="nine columns"
+        html.Div(
+            style={
+                "box-shadow": "0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)"
+            },
+            className="ten columns",
+            children=[
+                above_map_options_div(
+                    id_prefix="map_reeds"
+                ),
+                map_div(
+                    id="map_reeds"
+                ),
+                below_map_options_div(
+                    id_prefix="map_reeds"
+                ),
+            ]
         ),
+
         # Capacity after make_map (avoiding duplicate calls)
         html.Div(id="mapcap_reeds", style={"display": "none"}),
     ]

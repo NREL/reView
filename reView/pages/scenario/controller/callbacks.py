@@ -357,7 +357,7 @@ def dropdown_minimizing_targets(scenario_options, project):
     path = choose_scenario(scenario_options, config)
     target_options = []
     if path and os.path.exists(path):
-        data = pd.read_csv(path)
+        data = pd.read_csv(path, nrows=1)
         columns = [c for c in data.columns if c.lower() not in SKIP_VARS]
         titles = {col: convert_to_title(col) for col in columns}
         titles.update(config.titles)
@@ -402,7 +402,7 @@ def dropdown_minimizing_plot_options(scenario_options, project):
     path = choose_scenario(scenario_options, config)
     plot_options = [{"label": "Variable", "value": "Variable"}]
     if path and os.path.exists(path):
-        data = pd.read_csv(path)
+        data = pd.read_csv(path, nrows=1)
         columns = [c for c in data.columns if c.lower() not in SKIP_VARS]
         titles = {col: convert_to_title(col) for col in columns}
         titles.update(config.titles)
@@ -1319,16 +1319,17 @@ def tabs_chart(tab_choice, chart_choice):
 
 
 @app.callback(
-    Output("chart_x_bin_div", "style"), Input("chart_options", "value")
+    Output("chart_x_bin_div", "style"),
+    Output("bin_size", "style"),
+    Input("chart_options", "value")
 )
 @calls.log
 def toggle_bins(chart_type):
     """Show the bin size option under the chart."""
-
     style = {"display": "none"}
-    if chart_type == "binned":
-        style = {"margin-left": "10px"}
-    return style
+    if chart_type == "binned" or chart_type == "histogram":
+        style = {"display": "table-cell"}
+    return style, style
 
 
 @app.callback(
@@ -1352,7 +1353,7 @@ def toggle_options(click, selection_ind):
 
     click = click or 0
     if click % 2 == 1:
-        scenario_styles[int(selection_ind)] = {"margin-bottom": "50px"}
+        scenario_styles[int(selection_ind)] = {"margin-bottom": "-1px"}
         tabs_style = {
             "width": "92%",
             "margin-left": "53px",

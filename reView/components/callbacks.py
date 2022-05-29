@@ -4,6 +4,7 @@ from dash.dependencies import Input, Output
 
 from reView.app import app
 from reView.layout.styles import RC_STYLES
+from reView.utils import calls
 
 
 def toggle_reverse_color_button_style(id_prefix):
@@ -25,12 +26,12 @@ def toggle_reverse_color_button_style(id_prefix):
         A callable function used by dash. Users should NOT invoke this
         function themselves.
     """
-
     @app.callback(
         Output(f"{id_prefix}_rev_color", "children"),
         Output(f"{id_prefix}_rev_color", "style"),
         Input(f"{id_prefix}_rev_color", "n_clicks"),
     )
+    @calls.log
     def _toggle_reverse_color_button_style(click):
         """Toggle Reverse Color on/off."""
         if not click:
@@ -75,6 +76,7 @@ def display_selected_tab_above_map(id_prefix):
         Output(f"{id_prefix}_color_options_div", "style"),
         Input(f"{id_prefix}_options_tab", "value"),
     )
+    @calls.log
     def _display_selected_tab_above_map(tab_choice):
         """Choose which map tabs to display."""
         # Styles

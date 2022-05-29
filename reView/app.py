@@ -8,13 +8,11 @@ Created on Sun Aug 23 16:39:45 2020
 import dash
 from flask_caching import Cache
 
-from reView.layout.styles import STYLESHEET
 from reView.layout.layout import layout
 
 app = dash.Dash(
     __name__,
     suppress_callback_exceptions=True,
-    external_stylesheets=[STYLESHEET],
 )
 app.layout = layout
 server = app.server

@@ -19,7 +19,7 @@ def main():
     """Run reView."""
     init_logger(level=LOG_LEVEL)
     log_versions()
-    app.run_server(host=APP_HOST, port=APP_PORT, debug=DASH_DEBUG)
+    app.run_server(host=APP_HOST, port=APP_PORT, debug=True)
 
 
 if __name__ == "__main__":

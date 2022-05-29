@@ -235,7 +235,7 @@ def cache_table(project, path, recalc_table=None, recalc="off"):
             path, recalc_table
         )
     else:
-        data = pd.read_csv(path)
+        data = pd.read_csv(path, low_memory=False)
 
     # We want some consistent fields
     data["index"] = data.index
@@ -249,8 +249,6 @@ def cache_table(project, path, recalc_table=None, recalc="off"):
 @cache2.memoize()
 def cache_map_data(signal_dict):
     """Read and store a data frame from the config and options given."""
-    # Save arguments for later
-
     # Get signal elements
     filters = signal_dict["filters"]
     mask = signal_dict["mask"]
@@ -273,24 +271,16 @@ def cache_map_data(signal_dict):
     # Apply filters
     df1 = apply_filters(df1, filters)
 
-    # For other functions this data frame needs an x field
-    # if y == x:
-    #     df1 = df1.iloc[:, 1:]
-
     # If there's a second table, read/cache the difference
     if path2:
         # Match the format of the first dataframe
         df2 = cache_table(project, path2, recalc_b, recalc)
         df2 = apply_filters(df2, filters)
-        # df2 = df2[keepers]
-
-        # if y == x:
-        #     df2 = df2.iloc[:, 1:]
 
         # If the difference option is specified difference
         if DiffUnitOptions.from_variable_name(signal_dict["y"]) is not None:
             # Save for later  <------------------------------------------------ How should we handle this? Optional save button...perhaps a clear saved datasets button?
-            target_dir = config.directory / ".review"
+            target_dir = config.directory.joinpath(".review")
             target_dir.mkdir(parents=True, exist_ok=True)
 
             s1 = os.path.basename(path).replace("_sc.csv", "")
@@ -306,7 +296,7 @@ def cache_map_data(signal_dict):
                 if not filters:
                     df.to_csv(dst, index=False)
             else:
-                df = pd.read_csv(dst)
+                df = pd.read_csv(dst, low_memory=False)
 
             # TODO: The two lines below might honestly be faster... I/O is SLOW
             # calculator = Difference(index_col='sc_point_gid')
@@ -349,8 +339,6 @@ def cache_chart_tables(
 
     # Unpack subsetting information
     states = signal_copy["states"]
-    # x = signal_copy["x"]
-    # y = signal_copy["y"]
 
     # If multiple tables selected, make a list of those files
     if signal_copy["added_scenarios"]:

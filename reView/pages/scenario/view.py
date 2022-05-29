@@ -33,9 +33,12 @@ from reView.components import (
 
 
 layout = html.Div(
+    # className="eleven columns",
+    style={"margin-left": "3%", "margin-right": "3%"},
     children=[
         # Path Name
         dcc.Location(id="/scenario_page", refresh=False),
+
         # Constant info block
         html.Div(
             [
@@ -54,6 +57,7 @@ layout = html.Div(
                     ],
                     className="three columns",
                 ),
+
                 # Print total capacity after all the filters are applied
                 html.Div(
                     [
@@ -67,6 +71,7 @@ layout = html.Div(
                     ],
                     className="three columns",
                 ),
+
                 # Print total capacity after all the filters are applied
                 html.Div(
                     [
@@ -84,6 +89,7 @@ layout = html.Div(
             className="row",
             style={"margin-bottom": "35px"},
         ),
+
         # Toggle Options Top
         html.Div(
             [
@@ -116,730 +122,518 @@ layout = html.Div(
                 "border-top": "3px solid #1663b5",
             },
         ),
+
         # Scen selection tabs - Tabs for selection options
-        dcc.Tabs(
-            id="scenario_selection_tabs",
-            value="0",
-            children=[
-                dcc.Tab(label="Default Scen", value="0"),
-                dcc.Tab(
-                    label="Lowest Scen",
-                    value="1",
-                ),
-                dcc.Tab(
-                    label="PCA" if IS_DEV_ENV else "Under construction",
-                    value="2",
-                    disabled=not IS_DEV_ENV,
-                ),
-            ],
-            style={"display": "none"},
-        ),
-        # Data Options
         html.Div(
-            [
-                # First Scenario
-                html.Div(
-                    [
-                        html.H5("Scenario A"),
-                        html.Div(
-                            id="scenario_a_options",
+            id="options_div",
+            # className="ten columns",
+            style={
+                "width": "92%",
+                "text-align": "center",
+                "margin-left": "53px",
+                "margin-right": "10px",
+                "box-shadow": "0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)",
+            },
+            children=[
+                dcc.Tabs(
+                    id="scenario_selection_tabs",
+                    value="0",
+                    children=[
+                        dcc.Tab(label="Default Scen", value="0"),
+                        dcc.Tab(
+                            label="Lowest Scen",
+                            value="1",
+                        ),
+                        dcc.Tab(
+                            label="PCA" if IS_DEV_ENV else "Under construction",
+                            value="2",
+                            disabled=not IS_DEV_ENV,
                         ),
                     ],
-                    className="three columns",
-                    style={"margin-left": "50px"},
+                    style={"display": "none"},
                 ),
-                # Second Scenario
+
+                # Data Options
                 html.Div(
-                    id="scenario_b_div",
-                    children=[
+                    [
+                        # First Scenario
                         html.Div(
                             [
-                                html.H5("Scenario B"),
+                                html.H5("Scenario A"),
                                 html.Div(
-                                    id="scenario_b_options",
+                                    id="scenario_a_options",
                                 ),
                             ],
                             className="three columns",
-                        )
-                    ],
-                    style={"margin-left": "50px"},
-                ),
-                # Variable options
-                html.Div(
-                    [
-                        html.H5("Variable"),
-                        dcc.Dropdown(
-                            id="variable",
-                            options=[
-                                {"label": "Capacity", "value": "capacity"}
-                            ],
-                            value="capacity",
+                            style={"margin-left": "50px"},
                         ),
-                    ],
-                    className="two columns",
-                ),
-                # Show difference map
-                html.Div(
-                    [
-                        html.H5("Scenario B Difference"),
-                        dcc.Tabs(
-                            id="difference",
-                            value="off",
-                            style=TAB_STYLE,
-                            children=[
-                                dcc.Tab(
-                                    value="on",
-                                    label="On",
-                                    style=TABLET_STYLE,
-                                    selected_style=TABLET_STYLE_CLOSED,
-                                ),
-                                dcc.Tab(
-                                    value="off",
-                                    label="Off",
-                                    style=TABLET_STYLE,
-                                    selected_style=TABLET_STYLE_CLOSED,
-                                ),
-                            ],
-                        ),
-                        dcc.Tabs(
-                            id="difference_units",
-                            value=str(DiffUnitOptions.PERCENTAGE),
-                            style=TAB_STYLE,
-                            children=[
-                                dcc.Tab(
-                                    value=str(DiffUnitOptions.PERCENTAGE),
-                                    label="Percentage",
-                                    style=TABLET_STYLE,
-                                    selected_style=TAB_BOTTOM_SELECTED_STYLE,
-                                ),
-                                dcc.Tab(
-                                    value=str(DiffUnitOptions.ORIGINAL),
-                                    label="Original Units",
-                                    style=TABLET_STYLE,
-                                    selected_style=TAB_BOTTOM_SELECTED_STYLE,
-                                ),
-                            ],
-                        ),
-                        dcc.Tabs(
-                            id="mask",
-                            value="off",
-                            style=TAB_STYLE,
-                            children=[
-                                dcc.Tab(
-                                    value="off",
-                                    label="No Mask",
-                                    style=TABLET_STYLE,
-                                    selected_style=TAB_BOTTOM_SELECTED_STYLE,
-                                ),
-                                dcc.Tab(
-                                    value="on",
-                                    label="Scenario B Mask",
-                                    style=TABLET_STYLE,
-                                    selected_style=TAB_BOTTOM_SELECTED_STYLE,
-                                ),
-                            ],
-                        ),
-                        html.Hr(),
-                    ],
-                    className="two columns",
-                ),
-                # Add in a map function option (demand meetiing)
-                html.Div(
-                    id="map_function_div",
-                    className="two columns",
-                    children=[
-                        html.H5("Mapping Function"),
-                        dcc.Dropdown(
-                            id="map_function",
-                            options=[
-                                {"label": "None", "value": "None"},
-                                {
-                                    "label": "Single Load Demand",
-                                    "value": "demand",
-                                },
-                                {
-                                    "label": "Meet Demand",
-                                    "value": "meet_demand",
-                                },
-                            ],
-                            value="None",
-                        ),
-                    ],
-                ),
-                # LCOE Recalc
-                html.Div(
-                    [
-                        html.H5(
-                            "Recalculate With New Costs*",
-                            title=(
-                                "Recalculating will not re-sort "
-                                "transmission connections so there will be "
-                                "some error with Transmission Capital "
-                                "Costs, LCOT, and Total LCOE."
-                            ),
-                        ),
-                        dcc.Tabs(
-                            id="recalc_tab",
-                            value="off",
-                            style=TAB_STYLE,
-                            children=[
-                                dcc.Tab(
-                                    value="on",
-                                    label="On",
-                                    style=TABLET_STYLE,
-                                    selected_style=TABLET_STYLE_CLOSED,
-                                ),
-                                dcc.Tab(
-                                    value="off",
-                                    label="Off",
-                                    style=TABLET_STYLE,
-                                    selected_style=TABLET_STYLE_CLOSED,
-                                ),
-                            ],
-                        ),
+                        # Second Scenario
                         html.Div(
-                            id="recalc_tab_options",
+                            id="scenario_b_div",
                             children=[
+                                html.Div(
+                                    [
+                                        html.H5("Scenario B"),
+                                        html.Div(
+                                            id="scenario_b_options",
+                                        ),
+                                    ],
+                                    className="three columns",
+                                )
+                            ],
+                            style={"margin-left": "50px"},
+                        ),
+                        # Variable options
+                        html.Div(
+                            [
+                                html.H5("Variable"),
+                                dcc.Dropdown(
+                                    id="variable",
+                                    options=[
+                                        {"label": "Capacity", "value": "capacity"}
+                                    ],
+                                    value="capacity",
+                                ),
+                            ],
+                            className="two columns",
+                        ),
+                        # Show difference map
+                        html.Div(
+                            [
+                                html.H5("Scenario B Difference"),
                                 dcc.Tabs(
-                                    id="recalc_scenario",
-                                    value="scenario_a",
+                                    id="difference",
+                                    value="off",
                                     style=TAB_STYLE,
                                     children=[
                                         dcc.Tab(
-                                            value="scenario_a",
-                                            label="Scenario A",
+                                            value="on",
+                                            label="On",
                                             style=TABLET_STYLE,
                                             selected_style=TABLET_STYLE_CLOSED,
                                         ),
                                         dcc.Tab(
-                                            value="scenario_b",
-                                            label="Scenario B",
+                                            value="off",
+                                            label="Off",
                                             style=TABLET_STYLE,
                                             selected_style=TABLET_STYLE_CLOSED,
                                         ),
                                     ],
                                 ),
-                                # Long table of scenario A recalc parameters
-                                html.Div(
-                                    id="recalc_a_options",
+                                dcc.Tabs(
+                                    id="difference_units",
+                                    value=str(DiffUnitOptions.PERCENTAGE),
+                                    style=TAB_STYLE,
                                     children=[
-                                        # FCR A
-                                        html.Div(
-                                            [
-                                                html.P(
-                                                    "FCR % (A): ",
-                                                    className="three columns",
-                                                    style={"height": "60%"},
-                                                ),
-                                                dcc.Input(
-                                                    id="fcr1",
-                                                    type="number",
-                                                    className="nine columns",
-                                                    style={"height": "60%"},
-                                                    value=None,
-                                                ),
-                                            ],
-                                            className="row",
+                                        dcc.Tab(
+                                            value=str(DiffUnitOptions.PERCENTAGE),
+                                            label="Percentage",
+                                            style=TABLET_STYLE,
+                                            selected_style=TAB_BOTTOM_SELECTED_STYLE,
                                         ),
-                                        # CAPEX A
-                                        html.Div(
-                                            [
-                                                html.P(
-                                                    "CAPEX $/KW (A): ",
-                                                    className="three columns",
-                                                    style={"height": "60%"},
-                                                ),
-                                                dcc.Input(
-                                                    id="capex1",
-                                                    type="number",
-                                                    className="nine columns",
-                                                    style={"height": "60%"},
-                                                ),
-                                            ],
-                                            className="row",
+                                        dcc.Tab(
+                                            value=str(DiffUnitOptions.ORIGINAL),
+                                            label="Original Units",
+                                            style=TABLET_STYLE,
+                                            selected_style=TAB_BOTTOM_SELECTED_STYLE,
                                         ),
-                                        # OPEX A
-                                        html.Div(
-                                            [
-                                                html.P(
-                                                    "OPEX $/KW (A): ",
-                                                    className="three columns",
-                                                    style={"height": "60%"},
-                                                ),
-                                                dcc.Input(
-                                                    id="opex1",
-                                                    type="number",
-                                                    className="nine columns",
-                                                    style={"height": "60%"},
-                                                ),
-                                            ],
-                                            className="row",
+                                    ],
+                                ),
+                                dcc.Tabs(
+                                    id="mask",
+                                    value="off",
+                                    style=TAB_STYLE,
+                                    children=[
+                                        dcc.Tab(
+                                            value="off",
+                                            label="No Mask",
+                                            style=TABLET_STYLE,
+                                            selected_style=TAB_BOTTOM_SELECTED_STYLE,
                                         ),
-                                        # Losses A
-                                        html.Div(
-                                            [
-                                                html.P(
-                                                    "Losses % (A): ",
-                                                    className="three columns",
-                                                    style={"height": "60%"},
-                                                ),
-                                                dcc.Input(
-                                                    id="losses1",
-                                                    type="number",
-                                                    className="nine columns",
-                                                    style={"height": "60%"},
-                                                ),
-                                            ],
-                                            className="row",
+                                        dcc.Tab(
+                                            value="on",
+                                            label="Scenario B Mask",
+                                            style=TABLET_STYLE,
+                                            selected_style=TAB_BOTTOM_SELECTED_STYLE,
+                                        ),
+                                    ],
+                                ),
+                                html.Hr(),
+                            ],
+                            className="two columns",
+                        ),
+
+                        # Add in a map function option (demand meetiing)
+                        html.Div(
+                            id="map_function_div",
+                            className="two columns",
+                            children=[
+                                html.H5("Mapping Function"),
+                                dcc.Dropdown(
+                                    id="map_function",
+                                    options=[
+                                        {"label": "None", "value": "None"},
+                                        {
+                                            "label": "Single Load Demand",
+                                            "value": "demand",
+                                        },
+                                        {
+                                            "label": "Meet Demand",
+                                            "value": "meet_demand",
+                                        },
+                                    ],
+                                    value="None",
+                                ),
+                            ],
+                        ),
+
+                        # LCOE Recalc
+                        html.Div(
+                            [
+                                html.H5(
+                                    "Recalculate With New Costs*",
+                                    title=(
+                                        "Recalculating will not re-sort "
+                                        "transmission connections so there will be "
+                                        "some error with Transmission Capital "
+                                        "Costs, LCOT, and Total LCOE."
+                                    ),
+                                ),
+                                dcc.Tabs(
+                                    id="recalc_tab",
+                                    value="off",
+                                    style=TAB_STYLE,
+                                    children=[
+                                        dcc.Tab(
+                                            value="on",
+                                            label="On",
+                                            style=TABLET_STYLE,
+                                            selected_style=TABLET_STYLE_CLOSED,
+                                        ),
+                                        dcc.Tab(
+                                            value="off",
+                                            label="Off",
+                                            style=TABLET_STYLE,
+                                            selected_style=TABLET_STYLE_CLOSED,
                                         ),
                                     ],
                                 ),
                                 html.Div(
-                                    id="recalc_b_options",
+                                    id="recalc_tab_options",
                                     children=[
-                                        # FCR B
-                                        html.Div(
-                                            [
-                                                html.P(
-                                                    "FCR % (B): ",
-                                                    className="three columns",
-                                                    style={"height": "60%"},
+                                        dcc.Tabs(
+                                            id="recalc_scenario",
+                                            value="scenario_a",
+                                            style=TAB_STYLE,
+                                            children=[
+                                                dcc.Tab(
+                                                    value="scenario_a",
+                                                    label="Scenario A",
+                                                    style=TABLET_STYLE,
+                                                    selected_style=TABLET_STYLE_CLOSED,
                                                 ),
-                                                dcc.Input(
-                                                    id="fcr2",
-                                                    type="number",
-                                                    className="nine columns",
-                                                    style={"height": "60%"},
+                                                dcc.Tab(
+                                                    value="scenario_b",
+                                                    label="Scenario B",
+                                                    style=TABLET_STYLE,
+                                                    selected_style=TABLET_STYLE_CLOSED,
                                                 ),
                                             ],
-                                            className="row",
                                         ),
-                                        # CAPEX B
+
+                                        # Long table of scenario A recalc parameters
                                         html.Div(
-                                            [
-                                                html.P(
-                                                    "CAPEX $/KW (B): ",
-                                                    className="three columns",
-                                                    style={"height": "60%"},
+                                            id="recalc_a_options",
+                                            children=[
+                                                # FCR A
+                                                html.Div(
+                                                    [
+                                                        html.P(
+                                                            "FCR % (A): ",
+                                                            className="three columns",
+                                                            style={"height": "60%"},
+                                                        ),
+                                                        dcc.Input(
+                                                            id="fcr1",
+                                                            type="number",
+                                                            className="nine columns",
+                                                            style={"height": "60%"},
+                                                            value=None,
+                                                        ),
+                                                    ],
+                                                    className="row",
                                                 ),
-                                                dcc.Input(
-                                                    id="capex2",
-                                                    type="number",
-                                                    className="nine columns",
-                                                    style={"height": "60%"},
+                                                # CAPEX A
+                                                html.Div(
+                                                    [
+                                                        html.P(
+                                                            "CAPEX $/KW (A): ",
+                                                            className="three columns",
+                                                            style={"height": "60%"},
+                                                        ),
+                                                        dcc.Input(
+                                                            id="capex1",
+                                                            type="number",
+                                                            className="nine columns",
+                                                            style={"height": "60%"},
+                                                        ),
+                                                    ],
+                                                    className="row",
+                                                ),
+                                                # OPEX A
+                                                html.Div(
+                                                    [
+                                                        html.P(
+                                                            "OPEX $/KW (A): ",
+                                                            className="three columns",
+                                                            style={"height": "60%"},
+                                                        ),
+                                                        dcc.Input(
+                                                            id="opex1",
+                                                            type="number",
+                                                            className="nine columns",
+                                                            style={"height": "60%"},
+                                                        ),
+                                                    ],
+                                                    className="row",
+                                                ),
+                                                # Losses A
+                                                html.Div(
+                                                    [
+                                                        html.P(
+                                                            "Losses % (A): ",
+                                                            className="three columns",
+                                                            style={"height": "60%"},
+                                                        ),
+                                                        dcc.Input(
+                                                            id="losses1",
+                                                            type="number",
+                                                            className="nine columns",
+                                                            style={"height": "60%"},
+                                                        ),
+                                                    ],
+                                                    className="row",
                                                 ),
                                             ],
-                                            className="row",
                                         ),
-                                        # OPEX B
                                         html.Div(
-                                            [
-                                                html.P(
-                                                    "OPEX $/KW (B): ",
-                                                    className="three columns",
-                                                    style={"height": "60%"},
+                                            id="recalc_b_options",
+                                            children=[
+                                                # FCR B
+                                                html.Div(
+                                                    [
+                                                        html.P(
+                                                            "FCR % (B): ",
+                                                            className="three columns",
+                                                            style={"height": "60%"},
+                                                        ),
+                                                        dcc.Input(
+                                                            id="fcr2",
+                                                            type="number",
+                                                            className="nine columns",
+                                                            style={"height": "60%"},
+                                                        ),
+                                                    ],
+                                                    className="row",
                                                 ),
-                                                dcc.Input(
-                                                    id="opex2",
-                                                    type="number",
-                                                    className="nine columns",
-                                                    style={"height": "60%"},
+                                                # CAPEX B
+                                                html.Div(
+                                                    [
+                                                        html.P(
+                                                            "CAPEX $/KW (B): ",
+                                                            className="three columns",
+                                                            style={"height": "60%"},
+                                                        ),
+                                                        dcc.Input(
+                                                            id="capex2",
+                                                            type="number",
+                                                            className="nine columns",
+                                                            style={"height": "60%"},
+                                                        ),
+                                                    ],
+                                                    className="row",
+                                                ),
+                                                # OPEX B
+                                                html.Div(
+                                                    [
+                                                        html.P(
+                                                            "OPEX $/KW (B): ",
+                                                            className="three columns",
+                                                            style={"height": "60%"},
+                                                        ),
+                                                        dcc.Input(
+                                                            id="opex2",
+                                                            type="number",
+                                                            className="nine columns",
+                                                            style={"height": "60%"},
+                                                        ),
+                                                    ],
+                                                    className="row",
+                                                ),
+                                                # Losses B
+                                                html.Div(
+                                                    [
+                                                        html.P(
+                                                            "Losses % (B): ",
+                                                            className="three columns",
+                                                            style={"height": "60%"},
+                                                        ),
+                                                        dcc.Input(
+                                                            id="losses2",
+                                                            type="number",
+                                                            className="nine columns",
+                                                            style={"height": "60%"},
+                                                        ),
+                                                    ],
+                                                    className="row",
                                                 ),
                                             ],
-                                            className="row",
-                                        ),
-                                        # Losses B
-                                        html.Div(
-                                            [
-                                                html.P(
-                                                    "Losses % (B): ",
-                                                    className="three columns",
-                                                    style={"height": "60%"},
-                                                ),
-                                                dcc.Input(
-                                                    id="losses2",
-                                                    type="number",
-                                                    className="nine columns",
-                                                    style={"height": "60%"},
-                                                ),
-                                            ],
-                                            className="row",
                                         ),
                                     ],
                                 ),
+                                html.Hr(),
                             ],
+                            id="recalculate_with_new_costs",
+                            className="four columns",
                         ),
-                        html.Hr(),
-                    ],
-                    id="recalculate_with_new_costs",
-                    className="four columns",
-                ),
-                # Filters
-                html.Div(
-                    [
-                        html.H5(
-                            "Filters",
-                            title=(
-                                "Filter map and charts with variable "
-                                "value thresholds. Enter <variable> "
-                                "<operator> <value> (working on a "
-                                "more intuitive way)"
-                            ),
-                            id="filter_title",
-                        ),
-                        # dcc.Dropdown(
-                        #     id="filter_lookup",
-                        #     className="twelve columns",
-                        #     style={"width": "98%"},
-                        #     placeholder="Use these original field names.",
-                        # ),
+
+                        # Filters
                         html.Div(
                             [
-                                dcc.Dropdown(
-                                    id="filter_variables_1",
-                                    placeholder="Choose variable.",
-                                    className="six columns",
-                                    style={"margin-right": -1},
+                                html.H5(
+                                    "Filters",
+                                    title=(
+                                        "Filter map and charts with variable "
+                                        "value thresholds. Enter <variable> "
+                                        "<operator> <value> (working on a "
+                                        "more intuitive way)"
+                                    ),
+                                    id="filter_title",
                                 ),
-                                dcc.Input(
-                                    id="filter_1",
-                                    placeholder="Filter 1",
-                                    className="six columns",
-                                    style={
-                                        "background-color": "#f9f9f9",
-                                        "margin-left": -1,
-                                    },
-                                ),
-                            ],
-                            style={"width": "100%"},
-                        ),
-                        html.Div(
-                            [
-                                dcc.Dropdown(
-                                    id="filter_variables_2",
-                                    placeholder="Choose variable.",
-                                    className="six columns",
-                                    style={
-                                        "margin-right": -1,
-                                    },
-                                ),
-                                dcc.Input(
-                                    id="filter_2",
-                                    placeholder="Filter 2",
-                                    className="six columns",
-                                    style={
-                                        "background-color": "#f9f9f9",
-                                        "margin-left": -1,
-                                    },
-                                ),
-                            ]
-                        ),
-                        html.Div(
-                            [
-                                dcc.Dropdown(
-                                    id="filter_variables_3",
-                                    placeholder="Choose variable.",
-                                    className="six columns",
-                                    style={
-                                        "margin-right": -1,
-                                    },
-                                ),
-                                dcc.Input(
-                                    id="filter_3",
-                                    placeholder="Filter 3",
-                                    className="six columns",
-                                    style={
-                                        "background-color": "#f9f9f9",
-                                        "margin-left": -1,
-                                    },
-                                ),
-                            ]
-                        ),
-                        html.Div(
-                            [
-                                dcc.Dropdown(
-                                    id="filter_variables_4",
-                                    placeholder="Choose variable.",
-                                    className="six columns",
-                                    style={
-                                        "margin-right": -1,
-                                    },
-                                ),
-                                dcc.Input(
-                                    id="filter_4",
-                                    placeholder="Filter 4",
-                                    className="six columns",
-                                    style={
-                                        "background-color": "#f9f9f9",
-                                        "margin-left": -1,
-                                    },
-                                ),
-                            ],
-                            className="twelve columns",
-                        ),
-                    ],
-                    className="four columns",
-                ),
-            ],
-            id="options",
-            className="row",
-            style={"display": "none"},
-        ),
-        html.Div(
-            [
-                # First Scenario
-                html.Div(
-                    [
-                        html.H5("Scenario"),
-                        html.Div(
-                            id="minimizing_scenario_options",
-                        ),
-                    ],
-                    className="three columns",
-                    style={"margin-left": "50px"},
-                ),
-                # Variable options
-                html.Div(
-                    [
-                        html.H5("Variable"),
-                        dcc.Dropdown(
-                            id="minimizing_variable",
-                            options=[{"label": "None", "value": "None"}],
-                            value="None",
-                        ),
-                    ],
-                    className="two columns",
-                ),
-                # Target options
-                html.Div(
-                    [
-                        html.H5("Minimization Target"),
-                        dcc.Dropdown(
-                            id="minimizing_target",
-                            options=[{"label": "None", "value": "None"}],
-                            value="None",
-                        ),
-                    ],
-                    className="two columns",
-                ),
-                # Plot options
-                html.Div(
-                    [
-                        html.H5("Plot Value"),
-                        dcc.Dropdown(
-                            id="minimizing_plot_value",
-                            options=[
-                                {"label": "Variable", "value": "Variable"},
-                            ],
-                            value="Variable",
-                        ),
-                    ],
-                    className="two columns",
-                ),
-            ],
-            id="minimizing_scenarios",
-            className="row",
-            style={"display": "none"},
-        ),
-        html.Div(
-            [
-                # Both PCA plot
-                html.Div(
-                    [
-                        # The PCA plot
-                        dcc.Graph(
-                            id="pca_plot_1",
-                            style={"height": 500, "width": 800},
-                            className="row",
-                            # style={"margin-left": "50px"},
-                            config={
-                                "showSendToCloud": True,
-                                "plotlyServerURL": "https://chart-studio.plotly.com",
-                                "toImageButtonOptions": {
-                                    "width": 500,
-                                    "height": 500,
-                                    "filename": "custom_pca_plot",
-                                },
-                            },
-                        ),
-                        # The second PCA plot
-                        dcc.Graph(
-                            id="pca_plot_2",
-                            style={"height": 500, "width": 800},
-                            className="row",
-                            # style={"margin-left": "50px"},
-                            config={
-                                "showSendToCloud": True,
-                                "plotlyServerURL": "https://chart-studio.plotly.com",
-                                "toImageButtonOptions": {
-                                    "width": 500,
-                                    "height": 500,
-                                    "filename": "custom_pca_plot",
-                                },
-                            },
-                        ),
-                    ],
-                    className="two rows",
-                ),
-                # Below PCA plot Options
-                html.Div(
-                    [
-                        # Left options
-                        html.Div(
-                            [
-                                html.P(
-                                    "Top Min: ",
-                                    # style={
-                                    #     "margin-left": 5,
-                                    #     "margin-top": 7,
-                                    # },
-                                    className="column",
-                                ),
-                                dcc.Input(
-                                    id="pca1_color_min",
-                                    type="number",
-                                    debounce=False,
-                                    className="column",
-                                    # style={
-                                    #     "margin-left": "-1px",
-                                    #     "width": "15%",
-                                    # },
-                                ),
-                                html.P(
-                                    "Top Max: ",
-                                    style={"margin-top": 7},
-                                    className="column",
-                                ),
-                                dcc.Input(
-                                    id="pca1_color_max",
-                                    debounce=False,
-                                    type="number",
-                                    className="column",
-                                    # style={
-                                    #     "margin-left": "-1px",
-                                    #     "width": "15%",
-                                    # },
-                                ),
-                                html.P(
-                                    "Bottom Min: ",
-                                    # style={
-                                    #     "margin-left": 5,
-                                    #     "margin-top": 7,
-                                    # },
-                                    className="column",
-                                ),
-                                dcc.Input(
-                                    id="pca2_color_min",
-                                    type="number",
-                                    debounce=False,
-                                    className="column",
-                                    # style={
-                                    #     "margin-left": "-1px",
-                                    #     "width": "15%",
-                                    # },
-                                ),
-                                html.P(
-                                    "Bottom Max: ",
-                                    style={"margin-top": 7},
-                                    className="column",
-                                ),
-                                dcc.Input(
-                                    id="pca2_color_max",
-                                    debounce=False,
-                                    type="number",
-                                    className="column",
-                                    # style={
-                                    #     "margin-left": "-1px",
-                                    #     "width": "15%",
-                                    # },
-                                ),
-                            ],
-                            className="eight columns",
-                            # style=BOTTOM_DIV_STYLE,
-                        ),
-                    ]
-                ),
-                # PCA Plot options
-                html.Div(
-                    [
-                        # Plot options
-                        html.Div(
-                            [
-                                html.H5("Region"),
-                                dcc.Dropdown(
-                                    id="pca_plot_region",
-                                    options=[
-                                        {"label": "CONUS", "value": "CONUS"},
+                                html.Div(
+                                    [
+                                        dcc.Dropdown(
+                                            id="filter_variables_1",
+                                            placeholder="Choose variable.",
+                                            className="six columns",
+                                            style={"margin-right": -1},
+                                        ),
+                                        dcc.Input(
+                                            id="filter_1",
+                                            placeholder="Filter 1",
+                                            className="six columns",
+                                            style={
+                                                "background-color": "#f9f9f9",
+                                                "margin-left": -1,
+                                            },
+                                        ),
                                     ],
-                                    value="CONUS",
+                                    style={"width": "100%"},
+                                ),
+                                html.Div(
+                                    [
+                                        dcc.Dropdown(
+                                            id="filter_variables_2",
+                                            placeholder="Choose variable.",
+                                            className="six columns",
+                                            style={
+                                                "margin-right": -1,
+                                            },
+                                        ),
+                                        dcc.Input(
+                                            id="filter_2",
+                                            placeholder="Filter 2",
+                                            className="six columns",
+                                            style={
+                                                "background-color": "#f9f9f9",
+                                                "margin-left": -1,
+                                            },
+                                        ),
+                                    ]
+                                ),
+                                html.Div(
+                                    [
+                                        dcc.Dropdown(
+                                            id="filter_variables_3",
+                                            placeholder="Choose variable.",
+                                            className="six columns",
+                                            style={
+                                                "margin-right": -1,
+                                            },
+                                        ),
+                                        dcc.Input(
+                                            id="filter_3",
+                                            placeholder="Filter 3",
+                                            className="six columns",
+                                            style={
+                                                "background-color": "#f9f9f9",
+                                                "margin-left": -1,
+                                            },
+                                        ),
+                                    ]
+                                ),
+                                html.Div(
+                                    [
+                                        dcc.Dropdown(
+                                            id="filter_variables_4",
+                                            placeholder="Choose variable.",
+                                            className="six columns",
+                                            style={
+                                                "margin-right": -1,
+                                            },
+                                        ),
+                                        dcc.Input(
+                                            id="filter_4",
+                                            placeholder="Filter 4",
+                                            className="six columns",
+                                            style={
+                                                "background-color": "#f9f9f9",
+                                                "margin-left": -1,
+                                            },
+                                        ),
+                                    ],
+                                    className="twelve columns",
                                 ),
                             ],
-                            className="two columns",
+                            className="four columns",
                         ),
+                    ],
+                    id="options",
+                    className="row",
+                    style={"display": "none"},
+                ),
+                html.Div(
+                    [
+                        # First Scenario
                         html.Div(
                             [
-                                html.H5("PCA Plot (Top) Color Value"),
+                                html.H5("Scenario"),
+                                html.Div(
+                                    id="minimizing_scenario_options",
+                                ),
+                            ],
+                            className="three columns",
+                            style={"margin-left": "50px"},
+                        ),
+                        # Variable options
+                        html.Div(
+                            [
+                                html.H5("Variable"),
                                 dcc.Dropdown(
-                                    id="pca_plot_value_1",
-                                    options=[
-                                        {"label": "None", "value": "None"},
-                                    ],
+                                    id="minimizing_variable",
+                                    options=[{"label": "None", "value": "None"}],
                                     value="None",
                                 ),
                             ],
                             className="two columns",
                         ),
-                        # PCA Plot 2 options
+                        # Target options
                         html.Div(
                             [
-                                html.H5("PCA Plot (Bottom) Color Value"),
+                                html.H5("Minimization Target"),
                                 dcc.Dropdown(
-                                    id="pca_plot_value_2",
-                                    options=[
-                                        {"label": "None", "value": "None"},
-                                    ],
-                                    value="None",
-                                ),
-                            ],
-                            className="two columns",
-                        ),
-                        # Plot options
-                        html.Div(
-                            [
-                                html.H5("Axis 1"),
-                                dcc.Dropdown(
-                                    id="pca_plot_axis1",
-                                    options=[
-                                        {"label": "None", "value": "None"},
-                                    ],
-                                    value="None",
-                                ),
-                            ],
-                            className="two columns",
-                        ),
-                        # Plot options
-                        html.Div(
-                            [
-                                html.H5("Axis 2"),
-                                dcc.Dropdown(
-                                    id="pca_plot_axis2",
-                                    options=[
-                                        {"label": "None", "value": "None"},
-                                    ],
-                                    value="None",
-                                ),
-                            ],
-                            className="two columns",
-                        ),
-                        # Plot options
-                        html.Div(
-                            [
-                                html.H5("Axis 3"),
-                                dcc.Dropdown(
-                                    id="pca_plot_axis3",
-                                    options=[
-                                        {"label": "None", "value": "None"},
-                                    ],
+                                    id="minimizing_target",
+                                    options=[{"label": "None", "value": "None"}],
                                     value="None",
                                 ),
                             ],
@@ -850,23 +644,249 @@ layout = html.Div(
                             [
                                 html.H5("Plot Value"),
                                 dcc.Dropdown(
-                                    id="pca_plot_map_value",
+                                    id="minimizing_plot_value",
                                     options=[
-                                        {"label": "None", "value": "None"},
+                                        {"label": "Variable", "value": "Variable"},
                                     ],
-                                    value="None",
+                                    value="Variable",
                                 ),
                             ],
                             className="two columns",
                         ),
                     ],
-                    className="fourteen columns",
+                    id="minimizing_scenarios",
+                    className="row",
+                    style={"display": "none"},
                 ),
-            ],
-            id="pca_scenarios",
-            className="eight columns",
-            style={"display": "none"},
+                html.Div(
+                    [
+                        # Both PCA plot
+                        html.Div(
+                            [
+                                # The PCA plot
+                                dcc.Graph(
+                                    id="pca_plot_1",
+                                    style={"height": 500, "width": 800},
+                                    className="row",
+                                    # style={"margin-left": "50px"},
+                                    config={
+                                        "showSendToCloud": True,
+                                        "plotlyServerURL": "https://chart-studio.plotly.com",
+                                        "toImageButtonOptions": {
+                                            "width": 500,
+                                            "height": 500,
+                                            "filename": "custom_pca_plot",
+                                        },
+                                    },
+                                ),
+                                # The second PCA plot
+                                dcc.Graph(
+                                    id="pca_plot_2",
+                                    style={"height": 500, "width": 800},
+                                    className="row",
+                                    # style={"margin-left": "50px"},
+                                    config={
+                                        "showSendToCloud": True,
+                                        "plotlyServerURL": "https://chart-studio.plotly.com",
+                                        "toImageButtonOptions": {
+                                            "width": 500,
+                                            "height": 500,
+                                            "filename": "custom_pca_plot",
+                                        },
+                                    },
+                                ),
+                            ],
+                            className="two rows",
+                        ),
+                        # Below PCA plot Options
+                        html.Div(
+                            [
+                                # Left options
+                                html.Div(
+                                    [
+                                        html.P(
+                                            "Top Min: ",
+                                            # style={
+                                            #     "margin-left": 5,
+                                            #     "margin-top": 7,
+                                            # },
+                                            className="column",
+                                        ),
+                                        dcc.Input(
+                                            id="pca1_color_min",
+                                            type="number",
+                                            debounce=False,
+                                            className="column",
+                                            # style={
+                                            #     "margin-left": "-1px",
+                                            #     "width": "15%",
+                                            # },
+                                        ),
+                                        html.P(
+                                            "Top Max: ",
+                                            style={"margin-top": 7},
+                                            className="column",
+                                        ),
+                                        dcc.Input(
+                                            id="pca1_color_max",
+                                            debounce=False,
+                                            type="number",
+                                            className="column",
+                                            # style={
+                                            #     "margin-left": "-1px",
+                                            #     "width": "15%",
+                                            # },
+                                        ),
+                                        html.P(
+                                            "Bottom Min: ",
+                                            # style={
+                                            #     "margin-left": 5,
+                                            #     "margin-top": 7,
+                                            # },
+                                            className="column",
+                                        ),
+                                        dcc.Input(
+                                            id="pca2_color_min",
+                                            type="number",
+                                            debounce=False,
+                                            className="column",
+                                            # style={
+                                            #     "margin-left": "-1px",
+                                            #     "width": "15%",
+                                            # },
+                                        ),
+                                        html.P(
+                                            "Bottom Max: ",
+                                            style={"margin-top": 7},
+                                            className="column",
+                                        ),
+                                        dcc.Input(
+                                            id="pca2_color_max",
+                                            debounce=False,
+                                            type="number",
+                                            className="column",
+                                            # style={
+                                            #     "margin-left": "-1px",
+                                            #     "width": "15%",
+                                            # },
+                                        ),
+                                    ],
+                                    className="eight columns",
+                                    # style=BOTTOM_DIV_STYLE,
+                                ),
+                            ]
+                        ),
+                        # PCA Plot options
+                        html.Div(
+                            [
+                                # Plot options
+                                html.Div(
+                                    [
+                                        html.H5("Region"),
+                                        dcc.Dropdown(
+                                            id="pca_plot_region",
+                                            options=[
+                                                {"label": "CONUS", "value": "CONUS"},
+                                            ],
+                                            value="CONUS",
+                                        ),
+                                    ],
+                                    className="two columns",
+                                ),
+                                html.Div(
+                                    [
+                                        html.H5("PCA Plot (Top) Color Value"),
+                                        dcc.Dropdown(
+                                            id="pca_plot_value_1",
+                                            options=[
+                                                {"label": "None", "value": "None"},
+                                            ],
+                                            value="None",
+                                        ),
+                                    ],
+                                    className="two columns",
+                                ),
+                                # PCA Plot 2 options
+                                html.Div(
+                                    [
+                                        html.H5("PCA Plot (Bottom) Color Value"),
+                                        dcc.Dropdown(
+                                            id="pca_plot_value_2",
+                                            options=[
+                                                {"label": "None", "value": "None"},
+                                            ],
+                                            value="None",
+                                        ),
+                                    ],
+                                    className="two columns",
+                                ),
+                                # Plot options
+                                html.Div(
+                                    [
+                                        html.H5("Axis 1"),
+                                        dcc.Dropdown(
+                                            id="pca_plot_axis1",
+                                            options=[
+                                                {"label": "None", "value": "None"},
+                                            ],
+                                            value="None",
+                                        ),
+                                    ],
+                                    className="two columns",
+                                ),
+                                # Plot options
+                                html.Div(
+                                    [
+                                        html.H5("Axis 2"),
+                                        dcc.Dropdown(
+                                            id="pca_plot_axis2",
+                                            options=[
+                                                {"label": "None", "value": "None"},
+                                            ],
+                                            value="None",
+                                        ),
+                                    ],
+                                    className="two columns",
+                                ),
+                                # Plot options
+                                html.Div(
+                                    [
+                                        html.H5("Axis 3"),
+                                        dcc.Dropdown(
+                                            id="pca_plot_axis3",
+                                            options=[
+                                                {"label": "None", "value": "None"},
+                                            ],
+                                            value="None",
+                                        ),
+                                    ],
+                                    className="two columns",
+                                ),
+                                # Plot options
+                                html.Div(
+                                    [
+                                        html.H5("Plot Value"),
+                                        dcc.Dropdown(
+                                            id="pca_plot_map_value",
+                                            options=[
+                                                {"label": "None", "value": "None"},
+                                            ],
+                                            value="None",
+                                        ),
+                                    ],
+                                    className="two columns",
+                                ),
+                            ],
+                            className="fourteen columns",
+                        ),
+                    ],
+                    id="pca_scenarios",
+                    className="eight columns",
+                    style={"display": "none"},
+                ),
+            ]
         ),
+
         html.Hr(
             style={
                 "width": "92%",
@@ -878,6 +898,7 @@ layout = html.Div(
                 "border-bottom": "3px solid #1663b5",
             }
         ),
+
         # Submit Button to avoid repeated callbacks
         html.Div(
             [
@@ -896,18 +917,29 @@ layout = html.Div(
             },
             className="row",
         ),
+
         # The chart and map div
         html.Div(
             [
                 # The map div
                 html.Div(
-                    [
+                    style={
+                        "box-shadow": "0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)"
+                    },
+                    className="six columns",
+                    children=[
                         # Above Map Options
                         above_map_options_div(id_prefix="map"),
+
                         # The map
                         map_div(id="map"),
+
                         # Below Map Options
-                        below_map_options_div(id_prefix="map"),
+                        below_map_options_div(
+                            id_prefix="map",
+                            className="eleven columns",
+                        ),
+
                         # Loading State
                         html.Div(
                             [
@@ -917,11 +949,15 @@ layout = html.Div(
                             style={"margin-top": "70px"},
                         ),
                     ],
-                    className="six columns",
                 ),
+
                 # The chart div
                 html.Div(
-                    [
+                    style={
+                        "box-shadow": " 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)"
+                    },
+                    className="six columns",
+                    children=[
                         html.Div(
                             [
                                 html.Div(
@@ -932,6 +968,7 @@ layout = html.Div(
                                             value="chart",
                                             style=TAB_STYLE,
                                         ),
+
                                         # Type of chart
                                         html.Div(
                                             id="chart_options_div",
@@ -945,6 +982,7 @@ layout = html.Div(
                                                 )
                                             ],
                                         ),
+
                                         # X-axis Variable
                                         html.Div(
                                             id="chart_x_variable_options_div",
@@ -963,6 +1001,7 @@ layout = html.Div(
                                                 )
                                             ],
                                         ),
+
                                         # Region grouping
                                         html.Div(
                                             id="chart_region_div",
@@ -976,6 +1015,7 @@ layout = html.Div(
                                                 )
                                             ],
                                         ),
+
                                         # Scenario grouping
                                         html.Div(
                                             id="additional_scenarios_div",
@@ -996,8 +1036,8 @@ layout = html.Div(
                                     ]
                                 ),
                             ],
-                            className="row",
                         ),
+
                         # The chart
                         html.Div(
                             children=dcc.Graph(
@@ -1029,72 +1069,60 @@ layout = html.Div(
                                 ),
                             ),
                         ),
+
                         # Below Chart Options
                         html.Div(
                             id="chart_extra_div",
                             children=[
                                 html.P(
                                     "Point Size:",
-                                    style={
-                                        "margin-left": 5,
-                                        "margin-top": 7,
-                                    },
-                                    className="three columns",
+                                    style={"display": "table-cell"}
                                 ),
                                 dcc.Input(
                                     id="chart_point_size",
                                     value=DEFAULT_POINT_SIZE,
                                     type="number",
                                     debounce=False,
-                                    className="two columns",
-                                    style={"margin-left": "-1px"},
+                                    style={"width": "30%"}
+                                ),
+                                html.P(
+                                    "Bin Size:",
+                                    id="bin_size",
+                                    style={"display": "none"}
                                 ),
                                 html.Div(
                                     id="chart_x_bin_div",
-                                    style={"margin-left": "10px"},
+                                    style={"display": "none"},
                                     children=[
-                                        html.P(
-                                            "Bin Size:",
-                                            style={
-                                                "margin-top": 7,
-                                                "margin-left": 5,
-                                            },
-                                            className="three columns",
-                                        ),
                                         dcc.Input(
-                                            className="two columns",
-                                            style={"margin-left": 5},
                                             id="chart_x_bin",
                                             debounce=False,
                                             value=None,
                                             type="number",
+                                            style={"width": "30%"}
                                         ),
                                     ],
                                 ),
+                                html.P(
+                                    "Opacity:",
+                                    style={"display": "table-cell"},
+                                ),
                                 html.Div(
-                                    [
-                                        html.P(
-                                            "Opacity:",
-                                            style={
-                                                "margin-left": 5,
-                                                "margin-top": 7,
-                                            },
-                                            className="three columns",
-                                        ),
+                                    style={"display": "table-cell"},
+                                    children=[
                                         dcc.Input(
                                             id="chart_alpha",
                                             value=1,
                                             type="number",
                                             debounce=False,
-                                            className="two columns",
-                                            style={"margin-left": "-1px"},
-                                        ),
+                                            style={"width": "30%"}                                        ),
                                     ]
                                 ),
                             ],
-                            className="five columns",
+                            className="twelve columns",
                             style=BOTTOM_DIV_STYLE,
                         ),
+
                         # Loading State
                         html.Div(
                             [
@@ -1104,7 +1132,6 @@ layout = html.Div(
                             style={"margin-top": "70px"},
                         ),
                     ],
-                    className="six columns",
                 ),
             ],
             className="row",
