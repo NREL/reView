@@ -79,12 +79,11 @@ def display_selected_tab_above_map(id_prefix):
     )
     def _display_selected_tab_above_map(tab_choice):
         """Choose which map tabs to display."""
-        # Styles
         styles = [{"display": "none"}] * 4
         order = ["state", "region", "basemap", "color"]
         idx = order.index(tab_choice)
         styles[idx] = {"width": "100%", "text-align": "center"}
-        return styles[0], styles[1], styles[2], styles[3]
+        return styles
 
     return _display_selected_tab_above_map
 
