@@ -4,6 +4,7 @@ from dash.dependencies import Input, Output
 
 from reView.app import app
 from reView.layout.styles import RC_STYLES
+from reView.components.logic import tab_styles
 from reView.utils import calls
 from reView.utils.functions import format_capacity_title
 
@@ -79,11 +80,9 @@ def display_selected_tab_above_map(id_prefix):
     )
     def _display_selected_tab_above_map(tab_choice):
         """Choose which map tabs to display."""
-        styles = [{"display": "none"}] * 4
-        order = ["state", "region", "basemap", "color"]
-        idx = order.index(tab_choice)
-        styles[idx] = {"width": "100%", "text-align": "center"}
-        return styles
+        return tab_styles(
+            tab_choice, options=["state", "region", "basemap", "color"]
+        )
 
     return _display_selected_tab_above_map
 

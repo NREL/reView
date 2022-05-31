@@ -36,6 +36,7 @@ from reView.components.callbacks import (
     toggle_reverse_color_button_style,
     display_selected_tab_above_map,
 )
+from reView.components.logic import tab_styles
 from reView.components.map import Map, build_title
 from reView.pages.scenario.controller.element_builders import Plots
 from reView.pages.scenario.controller.selection import (
@@ -91,15 +92,6 @@ def build_spec_split(path, project):
         row = "| {} | {}% |\n".format(row["s"], row["p"])
         table = table + row
     return table
-
-
-def chart_tab_styles(tab_choice):
-    """Set correct tab styles for the chosen option."""
-    styles = [{"display": "none"}] * 4
-    order = ["chart", "x_variable", "region", "scenarios"]
-    idx = order.index(tab_choice)
-    styles[idx] = {"width": "100%", "text-align": "center"}
-    return styles
 
 
 def chart_tab_div_children(chart_choice):
@@ -1300,7 +1292,9 @@ def set_minimizing_variable_options(project, minimizing_scenarios_style):
 def tabs_chart(tab_choice, chart_choice):
     """Choose which chart tabs to display."""
     tabs = chart_tab_div_children(chart_choice)
-    styles = chart_tab_styles(tab_choice)
+    styles = tab_styles(
+        tab_choice, options=["chart", "x_variable", "region", "scenarios"]
+    )
     return tabs, *styles
 
 
