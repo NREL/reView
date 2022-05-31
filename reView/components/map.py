@@ -19,10 +19,11 @@ from reView.utils.functions import convert_to_title
 
 MAP_LAYOUT = dict(
     dragmode="select",
-    font_family="Time New Roman",
-    font_size=15,
     hovermode="closest",
-    legend=dict(size=20),
+    font_family="Time New Roman",
+    title_font_family="Times New Roman",
+    font_size=15,
+    font_color="white",
     margin=dict(l=20, r=115, t=115, b=20),
     paper_bgcolor="#1663B5",
     plot_bgcolor="#083C04",
@@ -43,6 +44,12 @@ MAP_LAYOUT = dict(
         center=dict(lon=-97.5, lat=39.5),
         zoom=3.25,
     ),
+    legend=dict(
+        title_font_family="Times New Roman",
+        bgcolor="#E4ECF6",
+        font=dict(family="Times New Roman", size=15, color="black"),
+    ),
+    uirevision=True,
 )
 
 
@@ -228,13 +235,7 @@ class Map:
         layout["mapbox"]["style"] = self.basemap
         layout["showlegend"] = self.show_legend
         layout["title"]["text"] = self.plot_title
-        layout["uirevision"] = True
         layout["yaxis"] = dict(range=[self.cmin, self.cmax])
-        layout["legend"] = dict(
-            title_font_family="Times New Roman",
-            bgcolor="#E4ECF6",
-            font=dict(family="Times New Roman", size=15, color="black"),
-        )
         return layout
 
     def marker(self, point_size, reverse_color=False):
