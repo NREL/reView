@@ -25,29 +25,29 @@ def above_map_options_div(id_prefix, class_name=None):
     ----------
     id_prefix : str
         A string representing the prefix to use for individual
-        components. Assuming `id_prefix="map"`, the components are:
-            - map_options_tab
+        components. Assuming `id_prefix="rev"`, the components are:
+            - rev_map_options_tab
                 A `dcc.Tabs` with tabs representing the map options for
                 user.
-            - map_state_options_div
+            - rev_map_state_options_div
                 A `html.Div` that holds the `dcc.Dropdown` that includes
                 all state options.
-            - map_state_options
+            - rev_map_state_options
                 A `dcc.Dropdown` to include all state options.
-            - map_region_options_div
+            - rev_map_region_options_div
                 A `html.Div` that holds the `dcc.Dropdown` that includes
                 all region options.
-            - map_region_options
+            - rev_map_region_options
                 A `dcc.Dropdown` to include all region options.
-            - map_basemap_options_div
+            - rev_map_basemap_options_div
                 A `html.Div` that holds the `dcc.Dropdown` that includes
                 all basemap options.
-            - map_basemap_options
+            - rev_map_basemap_options
                 A `dcc.Dropdown` to include all basemap options.
-            - map_color_options_div
+            - rev_map_color_options_div
                 A `html.Div` that holds the `dcc.Dropdown` that includes
                 all color options.
-            - map_color_options
+            - rev_map_color_options
                 A `dcc.Dropdown` to include all color options.
     class_name : str, optional
         The classname of the "above map" options div.
@@ -63,7 +63,7 @@ def above_map_options_div(id_prefix, class_name=None):
     return html.Div(
         [
             dcc.Tabs(
-                id=f"{id_prefix}_options_tab",
+                id=f"{id_prefix}_map_options_tab",
                 value="state",
                 style=TAB_STYLE,
                 children=[
@@ -95,10 +95,10 @@ def above_map_options_div(id_prefix, class_name=None):
             ),
             # State options
             html.Div(
-                id=f"{id_prefix}_state_options_div",
+                id=f"{id_prefix}_map_state_options_div",
                 children=[
                     dcc.Dropdown(
-                        id=f"{id_prefix}_state_options",
+                        id=f"{id_prefix}_map_state_options",
                         clearable=True,
                         options=STATE_OPTIONS,
                         multi=True,
@@ -107,10 +107,10 @@ def above_map_options_div(id_prefix, class_name=None):
                 ],
             ),
             html.Div(
-                id=f"{id_prefix}_region_options_div",
+                id=f"{id_prefix}_map_region_options_div",
                 children=[
                     dcc.Dropdown(
-                        id=f"{id_prefix}_region_options",
+                        id=f"{id_prefix}_map_region_options",
                         clearable=True,
                         options=REGION_OPTIONS,
                         multi=True,
@@ -120,10 +120,10 @@ def above_map_options_div(id_prefix, class_name=None):
             ),
             # Basemap options
             html.Div(
-                id=f"{id_prefix}_basemap_options_div",
+                id=f"{id_prefix}_map_basemap_options_div",
                 children=[
                     dcc.Dropdown(
-                        id=f"{id_prefix}_basemap_options",
+                        id=f"{id_prefix}_map_basemap_options",
                         clearable=False,
                         options=BASEMAP_OPTIONS,
                         multi=False,
@@ -133,10 +133,10 @@ def above_map_options_div(id_prefix, class_name=None):
             ),
             # Color scale options
             html.Div(
-                id=f"{id_prefix}_color_options_div",
+                id=f"{id_prefix}_map_color_options_div",
                 children=[
                     dcc.Dropdown(
-                        id=f"{id_prefix}_color_options",
+                        id=f"{id_prefix}_map_color_options",
                         clearable=False,
                         options=COLOR_OPTIONS,
                         multi=False,
@@ -150,13 +150,14 @@ def above_map_options_div(id_prefix, class_name=None):
 
 
 # pylint: disable=redefined-builtin,invalid-name
-def map_div(id, class_name=None):
+def map_div(id_prefix, class_name=None):
     """Standard reView map div.
 
     Parameters
     ----------
     id : str
-        ID to use for Graph component.
+        A string representing the prefix of the Graph component that
+        displays the map. The final id will be "<id_prefix>_map".
     class_name : str, optional
         The classname of the map div. By default, `None`.
 
@@ -168,7 +169,7 @@ def map_div(id, class_name=None):
     return html.Div(
         children=[
             dcc.Graph(
-                id=id,
+                id=f"{id_prefix}_map",
                 style={"height": 750},
                 config={
                     "showSendToCloud": True,
@@ -208,16 +209,16 @@ def below_map_options_div(id_prefix, class_name=None):
     ----------
     id_prefix : str
         A string representing the prefix to use for individual
-        components. Assuming `id_prefix="map"`, the components are:
-            - map_point_size
+        components. Assuming `id_prefix="rev"`, the components are:
+            - rev_map_point_size
                 A `dcc.Input` for users to specify point size.
-            - map_color_min
+            - rev_map_color_min
                 A `dcc.Input` for users to specify the minimum color
                 scale value.
-            - map_color_max
+            - rev_map_color_max
                 A `dcc.Input` for users to specify the maximum color
                 scale value.
-            - map_rev_color
+            - rev_map_rev_color
                 An `html.Button` that users can click to request a
                 colorscale reversal.
     class_name : str, optional
@@ -242,7 +243,7 @@ def below_map_options_div(id_prefix, class_name=None):
                         className="two columns",
                     ),
                     dcc.Input(
-                        id=f"{id_prefix}_point_size",
+                        id=f"{id_prefix}_map_point_size",
                         value=DEFAULT_POINT_SIZE,
                         type="number",
                         debounce=False,
@@ -255,7 +256,7 @@ def below_map_options_div(id_prefix, class_name=None):
                         className="two columns",
                     ),
                     dcc.Input(
-                        id=f"{id_prefix}_color_min",
+                        id=f"{id_prefix}_map_color_min",
                         placeholder="",
                         type="number",
                         debounce=True,
@@ -268,7 +269,7 @@ def below_map_options_div(id_prefix, class_name=None):
                         className="two columns",
                     ),
                     dcc.Input(
-                        id=f"{id_prefix}_color_max",
+                        id=f"{id_prefix}_map_color_max",
                         placeholder="",
                         debounce=True,
                         type="number",
@@ -281,7 +282,7 @@ def below_map_options_div(id_prefix, class_name=None):
             ),
             # Right option
             html.Button(
-                id=f"{id_prefix}_rev_color",
+                id=f"{id_prefix}_map_rev_color",
                 children="Reverse Color: Off",
                 n_clicks=0,
                 type="button",

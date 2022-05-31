@@ -32,6 +32,7 @@ from reView.layout.options import (
     COLOR_Q_OPTIONS,
 )
 from reView.components.callbacks import (
+    capacity_print,
     toggle_reverse_color_button_style,
     display_selected_tab_above_map,
 )
@@ -52,18 +53,15 @@ from reView.pages.scenario.model import (
 )
 from reView.utils.bespoke import BespokeUnpacker
 from reView.utils.constants import SKIP_VARS
-from reView.utils.functions import (
-    convert_to_title,
-    callback_trigger,
-    format_capacity_title,
-)
+from reView.utils.functions import convert_to_title, callback_trigger
 from reView.utils.config import Config
 from reView.utils import calls
 
 logger = logging.getLogger(__name__)
 COMMON_CALLBACKS = [
-    toggle_reverse_color_button_style(id_prefix="map"),
-    display_selected_tab_above_map(id_prefix="map"),
+    capacity_print(id_prefix="rev"),
+    toggle_reverse_color_button_style(id_prefix="rev"),
+    display_selected_tab_above_map(id_prefix="rev"),
 ]
 
 
@@ -199,18 +197,6 @@ def scenario_dropdowns(groups, class_names=None):
 
 
 @app.callback(
-    Output("capacity_print", "children"),
-    Output("site_print", "children"),
-    Input("mapcap", "children"),
-    Input("map", "selectedData"),
-)
-@calls.log
-def capacity_print(map_capacity, map_selection):
-    """Calculate total remaining capacity after all filters are applied."""
-    return format_capacity_title(map_capacity, map_selection)
-
-
-@app.callback(
     Output("recalculate_with_new_costs", "hidden"),
     Input("project", "value"),
     Input("toggle_options", "n_clicks"),
@@ -242,13 +228,13 @@ def dropdown_chart_types(project):
 
 
 @app.callback(
-    Output("map_color_options", "options"),
-    Output("map_color_options", "value"),
+    Output("rev_map_color_options", "options"),
+    Output("rev_map_color_options", "value"),
     Input("submit", "n_clicks"),
     State("variable", "value"),
     State("project", "value"),
     State("map_signal", "children"),
-    State("map_color_options", "value"),
+    State("rev_map_color_options", "value"),
 )
 @calls.log
 def dropdown_colors(submit, variable, project, signal, old_value):
@@ -607,12 +593,12 @@ def dropdowns_additional_scenarios(
     Output("chart_loading", "style"),
     Input("map_signal", "children"),
     Input("chart_options", "value"),
-    Input("map", "selectedData"),
+    Input("rev_map", "selectedData"),
     Input("chart_point_size", "value"),
     Input("chosen_map_options", "children"),
     Input("chart_region", "value"),
-    Input("map_color_min", "value"),
-    Input("map_color_max", "value"),
+    Input("rev_map_color_min", "value"),
+    Input("rev_map_color_max", "value"),
     Input("chart_x_bin", "value"),
     Input("chart_alpha", "value"),
     State("chart", "selectedData"),
@@ -712,20 +698,20 @@ def figure_chart(
 
 
 @app.callback(
-    Output("map", "figure"),
-    Output("mapcap", "children"),
-    Output("map", "clickData"),
+    Output("rev_map", "figure"),
+    Output("rev_mapcap", "children"),
+    Output("rev_map", "clickData"),
     Output("map_loading", "style"),
     Input("map_signal", "children"),
-    Input("map_basemap_options", "value"),
-    Input("map_color_options", "value"),
+    Input("rev_map_basemap_options", "value"),
+    Input("rev_map_color_options", "value"),
     Input("chart", "selectedData"),
-    Input("map_point_size", "value"),
-    Input("map_rev_color", "n_clicks"),
-    Input("map_color_min", "value"),
-    Input("map_color_max", "value"),
-    Input("map", "selectedData"),
-    Input("map", "clickData"),
+    Input("rev_map_point_size", "value"),
+    Input("rev_map_rev_color", "n_clicks"),
+    Input("rev_map_color_min", "value"),
+    Input("rev_map_color_max", "value"),
+    Input("rev_map", "selectedData"),
+    Input("rev_map", "clickData"),
     State("project", "value"),
     State("map_function", "value"),
 )
@@ -1011,7 +997,7 @@ def figure_map(
     Output("chart_data_signal", "children"),
     Input("variable", "value"),
     Input("chart_x_var_options", "value"),
-    Input("map_state_options", "value"),
+    Input("rev_map_state_options", "value"),
 )
 @calls.log
 def retrieve_chart_tables(y, x, state):
@@ -1052,8 +1038,8 @@ def retrieve_filters(submit, var1, var2, var3, var4, q1, q2, q3, q4):
     Output("pca_plot_1", "clickData"),
     Output("pca_plot_2", "clickData"),
     Input("submit", "n_clicks"),
-    Input("map_state_options", "value"),
-    Input("map_region_options", "value"),
+    Input("rev_map_state_options", "value"),
+    Input("rev_map_region_options", "value"),
     Input("chart_options", "value"),
     Input("chart_x_var_options", "value"),
     Input("additional_scenarios", "value"),
