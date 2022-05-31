@@ -4,9 +4,8 @@ from dash.dependencies import Input, Output
 
 from reView.app import app
 from reView.layout.styles import RC_STYLES
-from reView.components.logic import tab_styles
+from reView.components.logic import tab_styles, format_capacity_title
 from reView.utils import calls
-from reView.utils.functions import format_capacity_title
 
 
 def toggle_reverse_color_button_style(id_prefix):
