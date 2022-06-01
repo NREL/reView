@@ -3,14 +3,12 @@
 
 Used in (at least) the scenario and reeds pages.
 """
-import os
 import copy
 
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
 
-from reView.pages.scenario.model import build_name
 from reView.utils.classes import DiffUnitOptions
 from reView.utils.config import Config
 from reView.utils.constants import AGGREGATIONS, COLORS
@@ -314,13 +312,10 @@ class ColorRange:
 def build_title(df, signal_dict, map_selection=None, chart_selection=None):
     """Create chart title."""
     # Unpack signal
-    path = signal_dict["path"]
-    path2 = signal_dict["path2"]
 
     # Project configuration object
     config = Config(signal_dict["project"])
 
-    recalc = signal_dict["recalc"]
     y = signal_dict["y"]
     y_no_diff_suffix = DiffUnitOptions.remove_from_variable_name(y)
     diff = DiffUnitOptions.from_variable_name(y) is not None
@@ -332,32 +327,8 @@ def build_title(df, signal_dict, map_selection=None, chart_selection=None):
     else:
         units = config.units.get(y_no_diff_suffix, "")
 
-    if recalc == "off":
-        recalc_table = None
-    else:
-        recalc_table = signal_dict["recalc_table"]
-
-    # Infer scenario name from path
-    s1 = build_name(path)
-
-    # User specified FCR?
-    if recalc_table and "least" not in s1.lower():
-        msgs = []
-        for k, v in recalc_table["scenario_a"].items():
-            if v:
-                msgs.append(f"{k}: {v}")
-        if msgs:
-            reprint = ", ".join(msgs)
-            s1 += f" ({reprint})"
-
-    # Least Cost
-    if "least" in s1.lower():
-        s1 = infer_recalc(s1)
-
     # Append variable title
-    title = "<br>".join(
-        [s1, config.titles.get(y_no_diff_suffix, convert_to_title(y))]
-    )
+    title = config.titles.get(y_no_diff_suffix, convert_to_title(y))
 
     # Add variable aggregation value
     if y_no_diff_suffix in AGGREGATIONS:
@@ -374,20 +345,6 @@ def build_title(df, signal_dict, map_selection=None, chart_selection=None):
 
     # Difference title
     if diff:
-        s2 = os.path.basename(path2).replace("_sc.csv", "")
-        s2 = " ".join([s.capitalize() for s in s2.split("_")])
-        if recalc_table:
-            msgs = []
-            for k, v in recalc_table["scenario_b"].items():
-                if v:
-                    msgs.append(f"{k}: {v}")
-            if msgs:
-                reprint = ", ".join(msgs)
-                s2 += f" ({reprint})"
-
-        title = "{} vs. <br>{}<br>".format(s1, s2) + config.titles.get(
-            y_no_diff_suffix, convert_to_title(y)
-        )
         conditioner = f"{units} Difference | Average"
         punits = ""
 
@@ -427,23 +384,4 @@ def build_title(df, signal_dict, map_selection=None, chart_selection=None):
         )
         title = "<br>".join([title, chart_selection_print])
 
-    return title
-
-
-# should do something more rigorous than this
-def infer_recalc(title):
-    """Quick title fix for recalc least cost paths."""
-    variables = ["fcr", "capex", "opex", "losses"]
-    if "least" in title.lower():
-        title = " ".join(title.split(" ")[:-1])
-        if any([v in title for v in variables]):
-            title = title.replace("-", ".")
-            first_part = title.split("  ")[0]
-            recalc_part = title.split("  ")[1]
-            new_part = []
-            for part in recalc_part.split():
-                letters = "".join([c for c in part if c.isalpha()])
-                numbers = part.replace(letters, "")
-                new_part.append(letters + ": " + numbers)
-            title = first_part + " (" + ", ".join(new_part) + ")"
     return title
