@@ -10,6 +10,7 @@ import json
 from dash import dcc
 from dash import html
 
+import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
 
 from reView.layout.styles import (
@@ -34,8 +35,15 @@ from reView.components import (
 
 
 layout = html.Div(
-    # className="eleven columns",
-    style={"margin-left": "3%", "margin-right": "3%"},
+    className="eleven columns",
+    style={
+        "margin-top": "100px",
+        "margin-bottom": "100px",
+        "margin-right": "3%",
+        "margin-left": "3%",
+        "backgroundColor": "white",
+        "text-align": "center"
+    },
     children=[
         # Path Name
         dcc.Location(id="/scenario_page", refresh=False),
@@ -911,6 +919,21 @@ layout = html.Div(
 
                         # The map
                         map_div(id_prefix="rev"),
+
+                        # Button to reveal below options
+                        dbc.Button(
+                            "Options",
+                            id="rev_map_below_options_button",
+                            className="mb-1",
+                            color="white",
+                            n_clicks=0,
+                            size="s",
+                            style={
+                                "float": "left",
+                                "margin-left": "15px",
+                                "height": "50%"
+                            }
+                        ),
 
                         # Below Map Options
                         below_map_options_div(id_prefix="rev"),

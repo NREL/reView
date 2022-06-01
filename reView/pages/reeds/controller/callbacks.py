@@ -10,7 +10,7 @@ import logging
 
 import pandas as pd
 
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
 
 from reView.app import app
 
@@ -26,7 +26,7 @@ from reView.utils import calls
 logger = logging.getLogger(__name__)
 COMMON_CALLBACKS = [
     capacity_print(id_prefix="reeds"),
-    toggle_reverse_color_button_style(id_prefix="reeds"),
+    # toggle_reverse_color_button_style(id_prefix="reeds"),
     display_selected_tab_above_map(id_prefix="reeds"),
 ]
 
@@ -102,3 +102,16 @@ def figure_map_reeds(
     mapcap = df[["sc_point_gid", "print_capacity"]].to_dict()
 
     return figure, json.dumps(mapcap)
+
+
+@app.callback(
+    Output("reeds_map_below_options", "is_open"),
+    Input("reeds_map_below_options_button", "n_clicks"),
+    State("reeds_map_below_options", "is_open"),
+)
+@calls.log
+def toggle_reeds_map_below_options(n, is_open):
+    print("REEDS OPTIONS BUTTON TRIGGERED...")
+    if n:
+        return not is_open
+    return is_open

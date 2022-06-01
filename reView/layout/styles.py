@@ -28,15 +28,16 @@ BUTTON_STYLES = {
         "margin-top": "-2px",
     },
     "navbar": {
-        "height": "55px",
-        "width": "215px",
+        "height": "45px",
+        "width": "190px",
         "padding": "0px",
         "background-color": "#FCCD34",
         "border-radius": "4px",
         "border-color": "#1663b5",
         "font-family": "Times New Roman",
-        "font-size": "14px",
-        "margin-top": "-2px",
+        "font-size": "18px",
+        "margin-top": "3px",
+        "textTransform": "none"
     },
 }
 BOTTOM_DIV_STYLE = {
@@ -64,3 +65,21 @@ RC_STYLES["off"]["margin-top"] = RC_STYLES["on"]["margin-top"] = "-3px"
 RC_STYLES["off"]["display"] = RC_STYLES["on"]["display"] = "table:cell"
 RC_STYLES["off"]["float"] = RC_STYLES["on"]["float"] = "right"
 # Everything above goes into css
+
+
+OPTION_TITLE_STYLE = {
+    "float": "left",
+    "font-size": "10px",
+    "font-family": "Helvetica",
+    "width": "100%",
+    "margin-bottom": "-1px"
+}
+OPTION_STYLE = {
+    "height": "30px",
+    "width": "100%",
+    "float": "left",
+    "display": "inline-block",
+    "font-size": "10px",
+    "margin-top": "-1px"
+}
+

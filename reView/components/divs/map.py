@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 """A common map div."""
-from dash import dcc, html
+import dash_bootstrap_components as  dbc
 import plotly.graph_objects as go
+
+from dash import dcc, html
 
 from reView.utils.constants import DEFAULT_POINT_SIZE
 from reView.layout.styles import (
     BOTTOM_DIV_STYLE,
+    OPTION_STYLE,
+    OPTION_TITLE_STYLE,
     RC_STYLES,
     TAB_STYLE,
     TABLET_STYLE,
@@ -197,6 +201,26 @@ def map_div(id_prefix, class_name=None):
                     }
                 ),
             ),
+            # Button to reveal below options
+            dbc.Button(
+                "Options",
+                id=f"{id_prefix}_map_below_options_button",
+                className="mb-1",
+                color="white",
+                n_clicks=0,
+                size="s",
+                style={
+                    "float": "left",
+                    "margin-left": "15px",
+                    "height": "50%"
+                }
+            ),
+
+            # Below Map Options
+            below_map_options_div(
+                id_prefix=id_prefix,
+                class_name="twelve columns"
+            ),
         ],
         className=class_name,
     )
@@ -231,69 +255,101 @@ def below_map_options_div(id_prefix, class_name=None):
         A div containing the "below map" options that the user can
         interact with.
     """
-    return html.Div(
-        [
-            # Left options
-            html.Div(
-                [
-                    html.P(
-                        "Point Size:",
-                        style={"display": "table-cell"}
-                    ),
-                    dcc.Input(
-                        id=f"{id_prefix}_map_point_size",
-                        value=DEFAULT_POINT_SIZE,
-                        type="number",
-                        debounce=False,
-                        style={"margin-left": "-1px", "width": "50%"},
-                    ),
-                    html.P(
-                        "Color Min/Max: ",
-                        style={"display": "table-cell"}
-                    ),
-                    dcc.Input(
-                        id=f"{id_prefix}_map_color_min",
-                        placeholder="",
-                        type="number",
-                        debounce=True,
-                        style={"margin-left": "-1px", "width": "20%"},
-                    ),
-
-                    dcc.Input(
-                        id=f"{id_prefix}_map_color_max",
-                        placeholder="",
-                        debounce=True,
-                        type="number",
-                        style={"margin-left": "-1px", "width": "20%"},
-                    ),
-                    html.Button(
-                        id=f"{id_prefix}_rev_color",
-                        children="Reverse Color: Off",
-                        n_clicks=0,
-                        type="button",
-                        title=(
-                            "Click to render the map with the inverse "
-                            "of the chosen color ramp."
+    return dbc.Collapse(
+        dbc.CardBody(
+            children=[
+                html.Div(
+                    className="two columns",
+                    children=[
+                        html.P(
+                            "POINT SIZE",
+                            style=OPTION_TITLE_STYLE
                         ),
-                        style=RC_STYLES["on"],
-                    ),
-                ],
-                style=BOTTOM_DIV_STYLE,
-            ),
-
-            # Right option
-            html.Button(
-                id=f"{id_prefix}_map_rev_color",
-                children="Reverse Color: Off",
-                n_clicks=0,
-                type="button",
-                title=(
-                    "Click to render the map with the inverse "
-                    "of the chosen color ramp."
+                        dcc.Input(
+                            id=f"{id_prefix}_map_point_size",
+                            value=DEFAULT_POINT_SIZE,
+                            type="number",
+                            debounce=False,
+                            style=OPTION_STYLE,
+                        )
+                    ]
                 ),
-                style=RC_STYLES["on"],
-                className="one column",
-            ),
-        ],
-        className=class_name,
+                html.Div(
+                    className="two columns",
+                    children=[
+                        html.P(
+                            "COLOR MIN",
+                            style=OPTION_TITLE_STYLE
+                        ),
+                        dcc.Input(
+                            id=f"{id_prefix}_map_color_min",
+                            placeholder="",
+                            type="number",
+                            debounce=True,
+                            style=OPTION_STYLE,
+                        ),
+                    ]
+                ),
+               html.Div(
+                   className="two columns",
+                   children=[
+                       html.P(
+                           "COLOR MAX",
+                           style=OPTION_TITLE_STYLE
+                       ),
+                       dcc.Input(
+                           id=f"{id_prefix}_map_color_max",
+                           placeholder="",
+                           type="number",
+                           debounce=True,
+                           style=OPTION_STYLE,
+                       ),
+                   ]
+               ),
+               html.Div(
+                   className="two columns",
+                   children=[
+                       html.P(
+                           "REVERSE COLOR",
+                           style=OPTION_TITLE_STYLE
+                       ),
+                       dbc.Button(
+                           "    CLICK    ",
+                           id=f"{id_prefix}_map_rev_color",
+                           className="me-1",
+                           color="dark",
+                           outline=True,
+                           n_clicks=0,
+                           size="lg",
+                           style={
+                               "height": "98%",
+                               "margin-top": "-1px",
+                               "color": "gray",
+                               "border-color": "gray",
+                               "width": "125%"
+                            }
+                       ),
+                   
+                    ]
+                ),
+
+               # # Right option
+               # html.Button(
+               #     id=f"{id_prefix}_map_rev_color",
+               #     children="Reverse Color: Off",
+               #     n_clicks=0,
+               #     type="button",
+               #     title=(
+               #         "Click to render the map with the inverse "
+               #         "of the chosen color ramp."
+               #     ),
+               #     style=RC_STYLES["on"],
+               #     className="one column",
+               # ),
+           ]
+        ),
+        id=f"{id_prefix}_map_below_options",
+        className="row",
+        is_open=False,
+        style={"margin-top": "5px", "margin-left": "150px"}
     )

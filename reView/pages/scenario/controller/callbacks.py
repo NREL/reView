@@ -1313,6 +1313,18 @@ def toggle_bins(chart_type):
 
 
 @app.callback(
+    Output("rev_map_below_options", "is_open"),
+    Input("rev_map_below_options_button", "n_clicks"),
+    State("rev_map_below_options", "is_open"),
+)
+@calls.log
+def toggle_rev_map_below_options(n, is_open):
+    if n:
+        return not is_open
+    return is_open
+
+
+@app.callback(
     Output("options", "style"),
     Output("minimizing_scenarios", "style"),
     Output("pca_scenarios", "style"),

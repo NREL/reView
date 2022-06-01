@@ -5,8 +5,7 @@ Created on Sun Aug 23 14:59:00 2020
 
 @author: travis
 """
-from dash import dcc
-from dash import html
+from dash import dcc, html
 
 from reView.layout.styles import BUTTON_STYLES
 from reView.environment.settings import IS_DEV_ENV
@@ -50,18 +49,10 @@ NAVBAR = html.Nav(
                         ),
                     ]
                 ),
-                # Not implemented yet
-                html.Button(
-                    id="reset_chart",
-                    children="Reset Selections",
-                    title="Clear Point Selection Filters.",
-                    # style=BUTTON_STYLES["on"],
-                    style={"display": "none"},
-                ),
                 dcc.Link(
                     html.Button(
                         id="reV_link_button",
-                        children="reV",
+                        children="reV Page",
                         type="button",
                         title=("Go to the reV viewer page."),
                         style=BUTTON_STYLES["navbar"],
@@ -72,7 +63,7 @@ NAVBAR = html.Nav(
                 dcc.Link(
                     html.Button(
                         id="reeds_link_button",
-                        children="ReEDS",
+                        children="ReEDS Page",
                         type="button",
                         title=("Go to the ReEDS buildout viewer page."),
                         style=BUTTON_STYLES["navbar"],
@@ -100,12 +91,17 @@ NAVBAR = html.Nav(
                         src=("/static/nrel_logo.png"),
                         className="twelve columns",
                         style={
-                            "height": 70,
-                            "width": 180,
-                            "float": "right",
-                            "position": "relative",
-                            "margin-left": "10",
-                            "border-bottom-right-radius": "3px",
+                          "height": "70px",
+                          "width": "175px",
+                          "float": "right",
+                          "position": "relative",
+                          "margin-left": "10px",
+                          "margin-right": "5px",
+                          "margin-top": "7px",
+                          "border-bottom-right-radius": "3px",
+                          "border-bottom-left-radius": "3px",
+                          "border-top-left-radius": "3px",
+                          "border-top-right-radius": "3px"
                         },
                     ),
                     href="https://www.nrel.gov/",
@@ -114,16 +110,18 @@ NAVBAR = html.Nav(
             ],
             style={
                 "background-color": "#1663B5",
-                "width": "100%",
-                "height": 70,
-                "margin-right": "0px",
-                "margin-top": "-15px",
+                "width": "99%",
+                "height": "85px",
+                "margin-left": "10px",
+                "margin-right": "15px",
+                "margin-top": "-10px",
                 "margin-bottom": "15px",
-                # "border": "3px solid #FCCD34",
                 "border-radius": "5px",
-                "box-shadow": " 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)"
+                "position": "fixed",
+                "box-shadow": " 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)",
+                "zIndex": 9999
             },
-            className="row",
+            className="eleven columns"
         ),
     ],
 )
