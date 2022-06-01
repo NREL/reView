@@ -26,6 +26,7 @@ from reView.utils.classes import DiffUnitOptions
 from reView.environment.settings import IS_DEV_ENV
 from reView.utils.config import Config
 from reView.components import (
+    capacity_header,
     above_map_options_div,
     map_div,
     below_map_options_div,
@@ -56,37 +57,14 @@ layout = html.Div(
                         ),
                     ],
                     className="three columns",
+                    style={"margin-right": "100px"}
                 ),
-
-                # Print total capacity after all the filters are applied
-                html.Div(
-                    [
-                        html.H5("Remaining Generation Capacity: "),
-                        dcc.Loading(
-                            children=[
-                                html.H1(id="capacity_print", children=""),
-                            ],
-                            type="circle",
-                        ),
-                    ],
-                    className="three columns",
-                ),
-
-                # Print total capacity after all the filters are applied
-                html.Div(
-                    [
-                        html.H5("Number of Sites: "),
-                        dcc.Loading(
-                            children=[
-                                html.H1(id="site_print", children=""),
-                            ],
-                            type="circle",
-                        ),
-                    ],
-                    className="three columns",
+                capacity_header(
+                    id_prefix="rev",
+                    class_name="four columns"
                 ),
             ],
-            className="row",
+            className="twelve columns",
             style={"margin-bottom": "35px"},
         ),
 
@@ -929,17 +907,14 @@ layout = html.Div(
                     className="six columns",
                     children=[
                         # Above Map Options
-                        above_map_options_div(id_prefix="map"),
+                        above_map_options_div(id_prefix="rev"),
 
                         # The map
-                        map_div(id="map"),
+                        map_div(id_prefix="rev"),
 
                         # Below Map Options
-                        below_map_options_div(
-                            id_prefix="map",
-                            className="eleven columns",
-                        ),
-
+                        below_map_options_div(id_prefix="rev"),
+                    
                         # Loading State
                         html.Div(
                             [
@@ -1168,7 +1143,7 @@ layout = html.Div(
             style={"display": "none"},
         ),
         # Capacity after make_map (avoiding duplicate calls)
-        html.Div(id="mapcap", style={"display": "none"}),
+        html.Div(id="rev_mapcap", style={"display": "none"}),
         # Filter list after being pieced together
         html.Div(id="filter_store", style={"display": "none"}),
     ]

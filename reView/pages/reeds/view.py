@@ -9,6 +9,7 @@ from dash import dcc, html
 
 from reView.utils.functions import data_paths
 from reView.components import (
+    capacity_header,
     above_map_options_div,
     map_div,
     below_map_options_div,
@@ -44,36 +45,9 @@ layout = html.Div(
                     ],
                     className="three columns",
                 ),
-                # Print total capacity after all the filters are applied
-                html.Div(
-                    [
-                        html.H5("Remaining Generation Capacity: "),
-                        dcc.Loading(
-                            children=[
-                                html.H1(
-                                    id="capacity_print_reeds", children=""
-                                ),
-                            ],
-                            type="circle",
-                        ),
-                    ],
-                    className="three columns",
-                ),
-                # Print total capacity after all the filters are applied
-                html.Div(
-                    [
-                        html.H5("Number of Sites: "),
-                        dcc.Loading(
-                            children=[
-                                html.H1(id="site_print_reeds", children=""),
-                            ],
-                            type="circle",
-                        ),
-                    ],
-                    className="three columns",
-                ),
+                capacity_header(id_prefix="reeds", class_name="three columns"),
             ],
-            className="elevent columns",
+            className="row",
             style={"margin-bottom": "35px"},
         ),
 
@@ -95,27 +69,16 @@ layout = html.Div(
             style={"text-align": "center", "margin-bottom": "55px"},
         ),
 
+        # Above Map Options
+        above_map_options_div(id_prefix="reeds", class_name="nine columns"),
 
         # The map
-        html.Div(
-            style={
-                "box-shadow": "0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)"
-            },
-            className="ten columns",
-            children=[
-                above_map_options_div(
-                    id_prefix="map_reeds"
-                ),
-                map_div(
-                    id="map_reeds"
-                ),
-                below_map_options_div(
-                    id_prefix="map_reeds"
-                ),
-            ]
-        ),
+        map_div(id_prefix="reeds", class_name="nine columns"),
+
+        # Below Map Options
+        below_map_options_div(id_prefix="reeds", class_name="nine columns"),
 
         # Capacity after make_map (avoiding duplicate calls)
-        html.Div(id="mapcap_reeds", style={"display": "none"}),
+        html.Div(id="reeds_mapcap", style={"display": "none"}),
     ]
 )

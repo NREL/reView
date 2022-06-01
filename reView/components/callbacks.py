@@ -4,6 +4,7 @@ from dash.dependencies import Input, Output
 
 from reView.app import app
 from reView.layout.styles import RC_STYLES
+from reView.components.logic import tab_styles, format_capacity_title
 from reView.utils import calls
 
 
@@ -27,9 +28,9 @@ def toggle_reverse_color_button_style(id_prefix):
         function themselves.
     """
     @app.callback(
-        Output(f"{id_prefix}_rev_color", "children"),
-        Output(f"{id_prefix}_rev_color", "style"),
-        Input(f"{id_prefix}_rev_color", "n_clicks"),
+        Output(f"{id_prefix}_map_rev_color", "children"),
+        Output(f"{id_prefix}_map_rev_color", "style"),
+        Input(f"{id_prefix}_map_rev_color", "n_clicks"),
     )
     @calls.log
     def _toggle_reverse_color_button_style(click):
@@ -70,20 +71,54 @@ def display_selected_tab_above_map(id_prefix):
     """
 
     @app.callback(
-        Output(f"{id_prefix}_state_options_div", "style"),
-        Output(f"{id_prefix}_region_options_div", "style"),
-        Output(f"{id_prefix}_basemap_options_div", "style"),
-        Output(f"{id_prefix}_color_options_div", "style"),
-        Input(f"{id_prefix}_options_tab", "value"),
+        Output(f"{id_prefix}_map_state_options_div", "style"),
+        Output(f"{id_prefix}_map_region_options_div", "style"),
+        Output(f"{id_prefix}_map_basemap_options_div", "style"),
+        Output(f"{id_prefix}_map_color_options_div", "style"),
+        Input(f"{id_prefix}_map_options_tab", "value"),
     )
     @calls.log
     def _display_selected_tab_above_map(tab_choice):
         """Choose which map tabs to display."""
-        # Styles
-        styles = [{"display": "none"}] * 4
-        order = ["state", "region", "basemap", "color"]
-        idx = order.index(tab_choice)
-        styles[idx] = {"width": "100%", "text-align": "center"}
-        return styles[0], styles[1], styles[2], styles[3]
+        return tab_styles(
+            tab_choice, options=["state", "region", "basemap", "color"]
+        )
 
     return _display_selected_tab_above_map
+
+
+def capacity_print(id_prefix):
+    """Update the aggregate capacity and number of sites values.
+
+    This method assumes you have all the elements added by
+    `reView.components.divs.capacity_header` somewhere
+    in your layout.
+
+    Parameters
+    ----------
+    id_prefix : str
+        A string representing the prefix of the capacity headers.
+        It is expected that the id of the divs follows the format
+        "<id_prefix>_capacity_print" and "<id_prefix>__site_print".
+        This is guaranteed if you use
+        `reView.components.divs.capacity_header` to build your layout.
+
+    Returns
+    -------
+    callable
+        A callable function used by dash. Users should NOT invoke this
+        function themselves.
+    """
+
+    @app.callback(
+        Output(f"{id_prefix}_capacity_print", "children"),
+        Output(f"{id_prefix}_site_print", "children"),
+        Input(f"{id_prefix}_mapcap", "children"),
+        Input(f"{id_prefix}_map", "selectedData"),
+    )
+    @calls.log
+    def _capacity_print(map_capacity, map_selection):
+        """Calculate total remaining capacity."""
+        return format_capacity_title(map_capacity, map_selection)
+
+    return _capacity_print

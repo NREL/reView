@@ -15,31 +15,20 @@ from dash.dependencies import Input, Output
 from reView.app import app
 
 from reView.components.callbacks import (
+    capacity_print,
     toggle_reverse_color_button_style,
     display_selected_tab_above_map,
 )
 from reView.components.map import Map
 from reView.pages.reeds.model import cache_reeds
 from reView.utils import calls
-from reView.utils.functions import format_capacity_title
 
 logger = logging.getLogger(__name__)
 COMMON_CALLBACKS = [
-    toggle_reverse_color_button_style(id_prefix="map_reeds"),
-    display_selected_tab_above_map(id_prefix="map_reeds"),
+    capacity_print(id_prefix="reeds"),
+    toggle_reverse_color_button_style(id_prefix="reeds"),
+    display_selected_tab_above_map(id_prefix="reeds"),
 ]
-
-
-@app.callback(
-    Output("capacity_print_reeds", "children"),
-    Output("site_print_reeds", "children"),
-    Input("mapcap_reeds", "children"),
-    Input("map_reeds", "selectedData"),
-)
-@calls.log
-def capacity_print(map_capacity, map_selection):
-    """Calculate total remaining capacity after all filters are applied."""
-    return format_capacity_title(map_capacity, map_selection)
 
 
 @app.callback(
@@ -64,16 +53,16 @@ def slider_year(project, __):
 
 
 @app.callback(
-    Output("map_reeds", "figure"),
-    Output("mapcap_reeds", "children"),
+    Output("reeds_map", "figure"),
+    Output("reeds_mapcap", "children"),
     Input("project_reeds", "value"),
     Input("years_reeds", "value"),
-    Input("map_reeds_basemap_options", "value"),
-    Input("map_reeds_color_options", "value"),
-    Input("map_reeds_point_size", "value"),
-    Input("map_reeds_rev_color", "n_clicks"),
-    Input("map_reeds_color_min", "value"),
-    Input("map_reeds_color_max", "value"),
+    Input("reeds_map_basemap_options", "value"),
+    Input("reeds_map_color_options", "value"),
+    Input("reeds_map_point_size", "value"),
+    Input("reeds_map_rev_color", "n_clicks"),
+    Input("reeds_map_color_min", "value"),
+    Input("reeds_map_color_max", "value"),
 )
 @calls.log
 def figure_map_reeds(

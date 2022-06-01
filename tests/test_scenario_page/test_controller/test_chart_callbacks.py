@@ -2,11 +2,9 @@
 """Chart callback tests."""
 import pytest
 
-
 from reView.pages.scenario.controller.callbacks import (
     options_chart_type,
     chart_tab_div_children,
-    chart_tab_styles,
 )
 
 
@@ -17,15 +15,6 @@ def test_options_chart_type():
 
     labels = {opt["label"] for opt in options_chart_type("Hydrogen Minimal")}
     assert "Characterizations" not in labels
-
-
-@pytest.mark.parametrize(
-    "tab_choice", ["chart", "x_variable", "region", "scenarios"]
-)
-def test_chart_tab_styles(tab_choice):
-    """Test that only options for one chart tabs are displayed."""
-    styles = chart_tab_styles(tab_choice)
-    assert sum(s != {"display": "none"} for s in styles) == 1
 
 
 @pytest.mark.parametrize(
