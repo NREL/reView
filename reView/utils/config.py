@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from reView.utils.constants import UNITS, SCALE_OVERRIDES
+from reView.utils.constants import COMMON_REV_COLUMN_UNITS, SCALE_OVERRIDES
 from reView.utils.functions import (
     deep_replace,
     strip_rev_filename_endings,
@@ -142,7 +142,7 @@ class Config:
     def units(self):
         """Return a units dictionary with extra fields."""
         provided_units = self._config.get("units", {})
-        units = UNITS.copy()
+        units = COMMON_REV_COLUMN_UNITS.copy()
         units.update(provided_units)
         return units
 

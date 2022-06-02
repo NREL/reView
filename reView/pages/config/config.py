@@ -14,7 +14,6 @@ from functools import lru_cache
 
 from glob import glob
 
-import dash
 import numpy as np
 import pandas as pd
 import tkinter as tk
@@ -27,7 +26,7 @@ from dash.exceptions import PreventUpdate
 from reView.utils.constants import (
     ORIGINAL_FIELDS,
     TITLES,
-    UNITS,
+    COMMON_REV_COLUMN_UNITS,
 )
 from reView import REVIEW_CONFIG_DIR
 from reView.utils.config import Config, PROJECT_NAMES
@@ -1037,7 +1036,7 @@ def build_config(n_clicks, group_dt, name, directory, fields, groups):
     # Combine all titles and units
     units = dict(zip(field_df["FIELD"], field_df["UNITS"]))
     titles = dict(zip(field_df["FIELD"], field_df["TITLE"]))
-    field_units = {**units, **UNITS}
+    field_units = {**units, **COMMON_REV_COLUMN_UNITS}
     titles = {**titles, **TITLES}
     for field, title in titles.items():
         if title == "N/A":

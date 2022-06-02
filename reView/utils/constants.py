@@ -267,20 +267,25 @@ TITLES = {
     "trans_type": "Transmission Feature Type",
     "windspeed_class": "Windspeed Class",
 }
-UNITS = {
+COMMON_REV_COLUMN_UNITS = {
     "area_sq_km": "square km",
     "elevation": "m",  # Double check this
     "capacity": "MW",
     "dist_mi": "miles",
-    "lcot": "$/MWh",
+    "dist_km": "km",
+    "lcot": "USD/MWh",
     "mean_cf": "ratio",
-    "mean_lcoe": "$/MWh",
-    "mean_res": "m/s",  # This will change based on resource
+    "mean_lcoe": "USD/MWh",
+    "mean_capital_cost": "USD",
+    "mean_fixed_operating_cost": "USD",
+    "mean_system_capacity": "kW",
+    "mean_variable_operating_cost": "USD",
     "scenario": "category",
-    "total_lcoe": "$/MWh",
+    "total_lcoe": "USD/MWh",
     "trans_capacity": "MW",
-    "trans_cap_cost": "$/MW",
-    "transmission_multiplier": "",
+    "trans_cap_cost": "USD/MW",
+    "transmission_multiplier": "multiplier",
+    "trans_cap_cost_per_mw": "USD/MW",
     "trans_type": "category",
     "windspeed_class": "category",
 }
