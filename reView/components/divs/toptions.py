@@ -579,7 +579,7 @@ REV_TOPTIONS_DIV = html.Div(
         ),
 
         html.Div(
-            style={"margin-top": "200px"},
+            style={"margin-top": "20px"},
             children=[
                 # Hide/show options
                 dbc.Button(

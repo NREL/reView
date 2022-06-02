@@ -86,7 +86,6 @@ layout = html.Div(
                     id_prefix="rev",
                     class_name="six columns"
                 ),
-        
                 # The chart
                 chart_div(
                     id_prefix="rev",
