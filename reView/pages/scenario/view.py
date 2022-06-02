@@ -181,7 +181,10 @@ layout = html.Div(
                 # Show difference map
                 html.Div(
                     [
-                        html.H5("Scenario B Difference", title="(B - A) / A"),
+                        html.H5(
+                            "Scenario B Difference",
+                            title="(SCEN_B - SCEN_A) / SCEN_A",
+                        ),
                         dcc.Tabs(
                             id="difference",
                             value="off",
