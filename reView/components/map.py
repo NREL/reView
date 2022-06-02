@@ -297,7 +297,6 @@ def build_title(
     y,
     project,
     map_selection=None,
-    chart_selection=None,
     delimiter="  |  ",
 ):
     """Create chart title."""
@@ -351,10 +350,5 @@ def build_title(
         n_points_selected = len(map_selection["points"])
         map_selection_print = f"Selected point count: {n_points_selected:,}"
         title = delimiter.join([title, map_selection_print])
-
-    if chart_selection:
-        n_points_selected = len(chart_selection["points"])
-        chart_selection_print = f"Selected point count: {n_points_selected:,}"
-        title = delimiter.join([title, chart_selection_print])
 
     return title

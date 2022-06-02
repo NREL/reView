@@ -662,12 +662,16 @@ def figure_chart(
             for k, df in dfs.items()
         }
 
+    if chart_selection:
+        n_points_selected = len(chart_selection["points"])
+        title = f"Selected point count: {n_points_selected:,}"
+    else:
+        title = None
+
     plotter = Plots(
         project,
         dfs,
-        plot_title=build_title(
-            dfs, y, project, chart_selection=chart_selection
-        ),
+        plot_title=title,
         point_size=point_size,
         user_scale=(user_ymin, user_ymax),
         alpha=alpha,
