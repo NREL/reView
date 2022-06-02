@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """A common map div."""
-import dash_bootstrap_components as  dbc
+import dash_bootstrap_components as dbc
 
 from dash import dcc, html
 
@@ -10,7 +10,7 @@ from reView.layout.styles import (
     TAB_BOTTOM_SELECTED_STYLE,
     TAB_STYLE,
     TABLET_STYLE,
-    TABLET_STYLE_CLOSED
+    TABLET_STYLE_CLOSED,
 )
 
 
@@ -21,10 +21,9 @@ REV_TOPTIONS_DIV = html.Div(
         "border-radius": "5px",
         "margin-bottom": "50px",
         "margin-top": "25px",
-        "margin-left": "0px"
+        "margin-left": "0px",
     },
     children=[
-
         # Scen selection tabs - Tabs for selection options
         dbc.Collapse(
             className="twelve columns",
@@ -48,7 +47,9 @@ REV_TOPTIONS_DIV = html.Div(
                             selected_style=TABLET_STYLE,
                         ),
                         dcc.Tab(
-                            label="PCA" if IS_DEV_ENV else "Under construction",
+                            label="PCA"
+                            if IS_DEV_ENV
+                            else "Under construction",
                             value="2",
                             disabled=not IS_DEV_ENV,
                             style=TABLET_STYLE,
@@ -57,7 +58,6 @@ REV_TOPTIONS_DIV = html.Div(
                     ],
                     style={"display": "none"},
                 ),
-
                 # Data Options
                 html.Div(
                     [
@@ -76,7 +76,6 @@ REV_TOPTIONS_DIV = html.Div(
                                     className="four columns",
                                     style={"margin-left": "25px"},
                                 ),
-
                                 # Second Scenario
                                 html.Div(
                                     id="scenario_b_div",
@@ -89,12 +88,12 @@ REV_TOPTIONS_DIV = html.Div(
                                                 ),
                                             ],
                                             className="three columns",
-                                            style={"margin-left": "5px"}
+                                            style={"margin-left": "5px"},
                                         )
                                     ],
                                 ),
-                        ]),
-
+                            ],
+                        ),
                         # Variable options
                         html.Div(
                             [
@@ -102,18 +101,23 @@ REV_TOPTIONS_DIV = html.Div(
                                 dcc.Dropdown(
                                     id="variable",
                                     options=[
-                                        {"label": "Capacity", "value": "capacity"}
+                                        {
+                                            "label": "Capacity",
+                                            "value": "capacity",
+                                        }
                                     ],
                                     value="capacity",
                                 ),
                             ],
                             className="two columns",
                         ),
-
                         # Show difference map
                         html.Div(
                             [
-                                html.H5("Scenario B Difference"),
+                                html.H5(
+                                    "Scenario B Difference",
+                                    title="(SCEN_B - SCEN_A) / SCEN_A",
+                                ),
                                 dcc.Tabs(
                                     id="difference",
                                     value="off",
@@ -139,13 +143,17 @@ REV_TOPTIONS_DIV = html.Div(
                                     style=TAB_STYLE,
                                     children=[
                                         dcc.Tab(
-                                            value=str(DiffUnitOptions.PERCENTAGE),
+                                            value=str(
+                                                DiffUnitOptions.PERCENTAGE
+                                            ),
                                             label="Percentage",
                                             style=TABLET_STYLE,
                                             selected_style=TAB_BOTTOM_SELECTED_STYLE,
                                         ),
                                         dcc.Tab(
-                                            value=str(DiffUnitOptions.ORIGINAL),
+                                            value=str(
+                                                DiffUnitOptions.ORIGINAL
+                                            ),
                                             label="Original Units",
                                             style=TABLET_STYLE,
                                             selected_style=TAB_BOTTOM_SELECTED_STYLE,
@@ -175,7 +183,6 @@ REV_TOPTIONS_DIV = html.Div(
                             ],
                             className="four columns",
                         ),
-
                         # Add in a map function option (demand meeting)
                         html.Div(
                             id="map_function_div",
@@ -199,7 +206,6 @@ REV_TOPTIONS_DIV = html.Div(
                                 ),
                             ],
                         ),
-
                         # LCOE Recalc
                         html.Div(
                             [
@@ -253,7 +259,6 @@ REV_TOPTIONS_DIV = html.Div(
                                                 ),
                                             ],
                                         ),
-
                                         # Long table of scenario A recalc parameters
                                         html.Div(
                                             id="recalc_a_options",
@@ -264,13 +269,17 @@ REV_TOPTIONS_DIV = html.Div(
                                                         html.P(
                                                             "FCR % (A): ",
                                                             className="three columns",
-                                                            style={"height": "60%"},
+                                                            style={
+                                                                "height": "60%"
+                                                            },
                                                         ),
                                                         dcc.Input(
                                                             id="fcr1",
                                                             type="number",
                                                             className="nine columns",
-                                                            style={"height": "60%"},
+                                                            style={
+                                                                "height": "60%"
+                                                            },
                                                             value=None,
                                                         ),
                                                     ],
@@ -282,13 +291,17 @@ REV_TOPTIONS_DIV = html.Div(
                                                         html.P(
                                                             "CAPEX $/KW (A): ",
                                                             className="three columns",
-                                                            style={"height": "60%"},
+                                                            style={
+                                                                "height": "60%"
+                                                            },
                                                         ),
                                                         dcc.Input(
                                                             id="capex1",
                                                             type="number",
                                                             className="nine columns",
-                                                            style={"height": "60%"},
+                                                            style={
+                                                                "height": "60%"
+                                                            },
                                                         ),
                                                     ],
                                                     className="row",
@@ -299,13 +312,17 @@ REV_TOPTIONS_DIV = html.Div(
                                                         html.P(
                                                             "OPEX $/KW (A): ",
                                                             className="three columns",
-                                                            style={"height": "60%"},
+                                                            style={
+                                                                "height": "60%"
+                                                            },
                                                         ),
                                                         dcc.Input(
                                                             id="opex1",
                                                             type="number",
                                                             className="nine columns",
-                                                            style={"height": "60%"},
+                                                            style={
+                                                                "height": "60%"
+                                                            },
                                                         ),
                                                     ],
                                                     className="row",
@@ -316,13 +333,17 @@ REV_TOPTIONS_DIV = html.Div(
                                                         html.P(
                                                             "Losses % (A): ",
                                                             className="three columns",
-                                                            style={"height": "60%"},
+                                                            style={
+                                                                "height": "60%"
+                                                            },
                                                         ),
                                                         dcc.Input(
                                                             id="losses1",
                                                             type="number",
                                                             className="nine columns",
-                                                            style={"height": "60%"},
+                                                            style={
+                                                                "height": "60%"
+                                                            },
                                                         ),
                                                     ],
                                                     className="row",
@@ -338,13 +359,17 @@ REV_TOPTIONS_DIV = html.Div(
                                                         html.P(
                                                             "FCR % (B): ",
                                                             className="three columns",
-                                                            style={"height": "60%"},
+                                                            style={
+                                                                "height": "60%"
+                                                            },
                                                         ),
                                                         dcc.Input(
                                                             id="fcr2",
                                                             type="number",
                                                             className="nine columns",
-                                                            style={"height": "60%"},
+                                                            style={
+                                                                "height": "60%"
+                                                            },
                                                         ),
                                                     ],
                                                     className="row",
@@ -355,13 +380,17 @@ REV_TOPTIONS_DIV = html.Div(
                                                         html.P(
                                                             "CAPEX $/KW (B): ",
                                                             className="three columns",
-                                                            style={"height": "60%"},
+                                                            style={
+                                                                "height": "60%"
+                                                            },
                                                         ),
                                                         dcc.Input(
                                                             id="capex2",
                                                             type="number",
                                                             className="nine columns",
-                                                            style={"height": "60%"},
+                                                            style={
+                                                                "height": "60%"
+                                                            },
                                                         ),
                                                     ],
                                                     className="row",
@@ -372,13 +401,17 @@ REV_TOPTIONS_DIV = html.Div(
                                                         html.P(
                                                             "OPEX $/KW (B): ",
                                                             className="three columns",
-                                                            style={"height": "60%"},
+                                                            style={
+                                                                "height": "60%"
+                                                            },
                                                         ),
                                                         dcc.Input(
                                                             id="opex2",
                                                             type="number",
                                                             className="nine columns",
-                                                            style={"height": "60%"},
+                                                            style={
+                                                                "height": "60%"
+                                                            },
                                                         ),
                                                     ],
                                                     className="row",
@@ -389,13 +422,17 @@ REV_TOPTIONS_DIV = html.Div(
                                                         html.P(
                                                             "Losses % (B): ",
                                                             className="three columns",
-                                                            style={"height": "60%"},
+                                                            style={
+                                                                "height": "60%"
+                                                            },
                                                         ),
                                                         dcc.Input(
                                                             id="losses2",
                                                             type="number",
                                                             className="nine columns",
-                                                            style={"height": "60%"},
+                                                            style={
+                                                                "height": "60%"
+                                                            },
                                                         ),
                                                     ],
                                                     className="row",
@@ -409,7 +446,6 @@ REV_TOPTIONS_DIV = html.Div(
                             id="recalculate_with_new_costs",
                             className="four columns",
                         ),
-
                         # Filters
                         html.Div(
                             children=[
@@ -513,7 +549,6 @@ REV_TOPTIONS_DIV = html.Div(
                     id="options",
                     className="row",
                 ),
-
                 html.Div(
                     [
                         # First Scenario
@@ -533,7 +568,9 @@ REV_TOPTIONS_DIV = html.Div(
                                 html.H5("Variable"),
                                 dcc.Dropdown(
                                     id="minimizing_variable",
-                                    options=[{"label": "None", "value": "None"}],
+                                    options=[
+                                        {"label": "None", "value": "None"}
+                                    ],
                                     value="None",
                                 ),
                             ],
@@ -545,7 +582,9 @@ REV_TOPTIONS_DIV = html.Div(
                                 html.H5("Minimization Target"),
                                 dcc.Dropdown(
                                     id="minimizing_target",
-                                    options=[{"label": "None", "value": "None"}],
+                                    options=[
+                                        {"label": "None", "value": "None"}
+                                    ],
                                     value="None",
                                 ),
                             ],
@@ -558,7 +597,10 @@ REV_TOPTIONS_DIV = html.Div(
                                 dcc.Dropdown(
                                     id="minimizing_plot_value",
                                     options=[
-                                        {"label": "Variable", "value": "Variable"},
+                                        {
+                                            "label": "Variable",
+                                            "value": "Variable",
+                                        },
                                     ],
                                     value="Variable",
                                 ),
@@ -570,16 +612,14 @@ REV_TOPTIONS_DIV = html.Div(
                     className="row",
                     style={"display": "none"},
                 ),
-            ]
+            ],
         ),
-
-
         html.Div(
             children=[
                 html.H5(
                     id="options_label",
                     children="OPTIONS",
-                    style={"display": "none"}
+                    style={"display": "none"},
                 ),
                 html.Div(
                     className="eleven columns",
@@ -591,7 +631,7 @@ REV_TOPTIONS_DIV = html.Div(
                                 "margin-left": "-50px",
                                 "height": "3px",
                                 "margin-bottom": "0px",
-                                "opacity": "1"
+                                "opacity": "1",
                             },
                         ),
                         html.Hr(
@@ -602,12 +642,11 @@ REV_TOPTIONS_DIV = html.Div(
                                 "height": "2px",
                                 "margin-top": "0px",
                                 "margin-bottom": "1px",
-                                "opacity": "1"
+                                "opacity": "1",
                             },
                         ),
-                    ]
+                    ],
                 ),
-
                 # Hide/show options
                 dbc.Button(
                     id="toggle_options",
@@ -620,10 +659,9 @@ REV_TOPTIONS_DIV = html.Div(
                     style={
                         "float": "left",
                         "margin-left": "15px",
-                        "height": "50%"
-                    }
+                        "height": "50%",
+                    },
                 ),
-
                 # Submit Button to avoid repeated callbacks
                 dbc.Button(
                     id="submit",
@@ -636,11 +674,10 @@ REV_TOPTIONS_DIV = html.Div(
                     style={
                         "float": "left",
                         "margin-left": "15px",
-                        "height": "50%"
-                    }
+                        "height": "50%",
+                    },
                 ),
             ]
-        )
-
-    ]
+        ),
+    ],
 )
