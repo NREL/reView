@@ -237,8 +237,8 @@ def dropdown_colors(submit, variable, project, signal, old_value):
         raise PreventUpdate  # @IgnoreException
     old_variable = json.loads(signal)["y"]
     config = Config(project)
-    units = config.units.get(variable, "")
-    old_units = config.units.get(old_variable, "")
+    units = config.units.get(variable)
+    old_units = config.units.get(old_variable)
 
     # There is only one condition where we have to do this
     if old_variable == variable:
