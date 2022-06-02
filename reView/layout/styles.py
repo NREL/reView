@@ -28,32 +28,25 @@ BUTTON_STYLES = {
         "margin-top": "-2px",
     },
     "navbar": {
-        "height": "55px",
-        "width": "215px",
+        "height": "45px",
+        "width": "190px",
         "padding": "0px",
         "background-color": "#FCCD34",
         "border-radius": "4px",
         "border-color": "#1663b5",
         "font-family": "Times New Roman",
-        "font-size": "14px",
-        "margin-top": "-2px",
+        "font-size": "18px",
+        "margin-top": "3px",
+        "textTransform": "none"
     },
 }
 BOTTOM_DIV_STYLE = {
-    # "height": "65px",
-    "float": "left",
-    "margin-top": "-2px",
-    "margin-left": -1,
-    "border": "3px solid #1663b5",
-    "border-radius": "4px",
-    "border-width": "3px",
-    "border-top-width": "0px",
-    "border-radius-top-left": "0px",
-    "border-radius-top-right": "0px",
+    "display": "table",
+    "width": "100%",
 }
-STYLESHEET = "https://codepen.io/chriddyp/pen/bWLwgP.css"
 TAB_STYLE = {"height": "25px", "padding": "0"}
 TABLET_STYLE = {"line-height": "25px", "padding": "0"}
+
 # Everything below goes into a css
 TABLET_STYLE_CLOSED = {
     **TABLET_STYLE,
@@ -68,9 +61,25 @@ TAB_BOTTOM_SELECTED_STYLE = {
 RC_STYLES = copy.deepcopy(BUTTON_STYLES)
 RC_STYLES["off"]["border-color"] = RC_STYLES["on"]["border-color"] = "#1663b5"
 RC_STYLES["off"]["border-width"] = RC_STYLES["on"]["border-width"] = "3px"
-RC_STYLES["off"]["border-top-width"] = "0px"
-RC_STYLES["on"]["border-top-width"] = "0px"
-RC_STYLES["off"]["border-radius-top-left"] = "0px"
-RC_STYLES["on"]["border-radius-top-right"] = "0px"
+RC_STYLES["off"]["margin-top"] = RC_STYLES["on"]["margin-top"] = "-3px"
+RC_STYLES["off"]["display"] = RC_STYLES["on"]["display"] = "table:cell"
 RC_STYLES["off"]["float"] = RC_STYLES["on"]["float"] = "right"
 # Everything above goes into css
+
+
+OPTION_TITLE_STYLE = {
+    "float": "left",
+    "font-size": "12px",
+    "font-family": "Helvetica",
+    "width": "100%",
+    "margin-bottom": "-1px"
+}
+OPTION_STYLE = {
+    "height": "30px",
+    "width": "100%",
+    "text-align": "center",
+    "display": "inline-block",
+    "font-size": "12px",
+    "margin-top": "-1px"
+}
+

@@ -1,27 +1,24 @@
 # -*- coding: utf-8 -*-
-"""A common map div."""
+"""Chart Divs
+
+Functions for generating a chart divs with a given element type and class.
+"""
 import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
 
 from dash import dcc, html
 
+from reView.layout.options import CHART_OPTIONS, REGION_OPTIONS
 from reView.utils.constants import DEFAULT_POINT_SIZE
 from reView.layout.styles import (
     OPTION_STYLE,
     OPTION_TITLE_STYLE,
     TAB_STYLE,
-    TABLET_STYLE,
-)
-from reView.layout.options import (
-    BASEMAP_OPTIONS,
-    COLOR_OPTIONS,
-    REGION_OPTIONS,
-    STATE_OPTIONS,
 )
 
 
-def above_map_options_div(id_prefix, class_name=None):
-    """Standard "above map" options div.
+def above_chart_options_div(id_prefix, class_name=None):
+    """Standard "above chart" options div.
 
     Parameters
     ----------
@@ -31,25 +28,25 @@ def above_map_options_div(id_prefix, class_name=None):
             - rev_map_options_tab
                 A `dcc.Tabs` with tabs representing the map options for
                 user.
-            - rev_map_state_options_div
+            - rev_chart_state_options_div
                 A `html.Div` that holds the `dcc.Dropdown` that includes
                 all state options.
-            - rev_map_state_options
+            - rev_chart_state_options
                 A `dcc.Dropdown` to include all state options.
-            - rev_map_region_options_div
+            - rev_chart_region_options_div
                 A `html.Div` that holds the `dcc.Dropdown` that includes
                 all region options.
-            - rev_map_region_options
+            - rev_chart_region_options
                 A `dcc.Dropdown` to include all region options.
-            - rev_map_basemap_options_div
+            - rev_chart_basemap_options_div
                 A `html.Div` that holds the `dcc.Dropdown` that includes
                 all basemap options.
-            - rev_map_basemap_options
+            - rev_chart_basemap_options
                 A `dcc.Dropdown` to include all basemap options.
-            - rev_map_color_options_div
+            - rev_chart_color_options_div
                 A `html.Div` that holds the `dcc.Dropdown` that includes
                 all color options.
-            - rev_map_color_options
+            - rev_chart_color_options
                 A `dcc.Dropdown` to include all color options.
     class_name : str, optional
         The classname of the "above map" options div.
@@ -57,91 +54,76 @@ def above_map_options_div(id_prefix, class_name=None):
 
     Returns
     -------
-    dash.html.Div
+    dash.html.Div.Div
         A div containing the "below map" options that the user can
         interact with.
     """
     return html.Div(
         [
+            # Chart options
             dcc.Tabs(
-                id=f"{id_prefix}_map_options_tab",
-                value="state",
+                id=f"{id_prefix}_chart_options_tab",
+                value="chart",
                 style=TAB_STYLE,
-                children=[
-                    dcc.Tab(
-                        value="state",
-                        label="State",
-                        style=TABLET_STYLE,
-                        selected_style=TABLET_STYLE,
-                    ),
-                    dcc.Tab(
-                        value="region",
-                        label="Region",
-                        style=TABLET_STYLE,
-                        selected_style=TABLET_STYLE,
-                    ),
-                    dcc.Tab(
-                        value="basemap",
-                        label="Basemap",
-                        style=TABLET_STYLE,
-                        selected_style=TABLET_STYLE,
-                    ),
-                    dcc.Tab(
-                        value="color",
-                        label="Color Ramp",
-                        style=TABLET_STYLE,
-                        selected_style=TABLET_STYLE,
-                    ),
-                ],
             ),
-            # State options
+            # Type of chart
             html.Div(
-                id=f"{id_prefix}_map_state_options_div",
+                id=f"{id_prefix}_chart_options_div",
                 children=[
                     dcc.Dropdown(
-                        id=f"{id_prefix}_map_state_options",
-                        clearable=True,
-                        options=STATE_OPTIONS,
-                        multi=True,
-                        value=None,
+                        id=f"{id_prefix}_chart_options",
+                        clearable=False,
+                        options=CHART_OPTIONS,
+                        multi=False,
+                        value="cumsum",
                     )
                 ],
             ),
+            # X-axis Variable
             html.Div(
-                id=f"{id_prefix}_map_region_options_div",
+                id=f"{id_prefix}_chart_x_variable_options_div",
                 children=[
                     dcc.Dropdown(
-                        id=f"{id_prefix}_map_region_options",
-                        clearable=True,
+                        id=f"{id_prefix}_chart_x_var_options",
+                        clearable=False,
+                        options=[
+                            {
+                                "label": "None",
+                                "value": "None",
+                            }
+                        ],
+                        multi=False,
+                        value="capacity",
+                    )
+                ],
+            ),
+            # Region grouping
+            html.Div(
+                id=f"{id_prefix}_chart_region_div",
+                children=[
+                    dcc.Dropdown(
+                        id=f"{id_prefix}_chart_region",
+                        clearable=False,
                         options=REGION_OPTIONS,
+                        multi=False,
+                        value="national",
+                    )
+                ],
+            ),
+            # Scenario grouping
+            html.Div(
+                id=f"{id_prefix}_additional_scenarios_div",
+                children=[
+                    dcc.Dropdown(
+                        id=f"{id_prefix}_additional_scenarios",
+                        clearable=False,
+                        options=[
+                            {
+                                "label": "None",
+                                "value": "None",
+                            }
+                        ],
                         multi=True,
-                        value=None,
-                    )
-                ],
-            ),
-            # Basemap options
-            html.Div(
-                id=f"{id_prefix}_map_basemap_options_div",
-                children=[
-                    dcc.Dropdown(
-                        id=f"{id_prefix}_map_basemap_options",
-                        clearable=False,
-                        options=BASEMAP_OPTIONS,
-                        multi=False,
-                        value="light",
-                    )
-                ],
-            ),
-            # Color scale options
-            html.Div(
-                id=f"{id_prefix}_map_color_options_div",
-                children=[
-                    dcc.Dropdown(
-                        id=f"{id_prefix}_map_color_options",
-                        clearable=False,
-                        options=COLOR_OPTIONS,
-                        multi=False,
-                        value="Viridis",
                     )
                 ],
             ),
@@ -151,8 +133,8 @@ def above_map_options_div(id_prefix, class_name=None):
 
 
 # pylint: disable=redefined-builtin,invalid-name
-def map_div(id_prefix, class_name=None):
-    """Standard reView map div.
+def chart_div(id_prefix, class_name=None):
+    """Standard reView chart div.
 
     Parameters
     ----------
@@ -164,28 +146,26 @@ def map_div(id_prefix, class_name=None):
 
     Returns
     -------
-    dash.html.Div
+    dash.html.Div.Div
         A div containing the `dcc.Graph` component used to show the map.
     """
     return html.Div(
         children=[
-            # Above Map Options
-            above_map_options_div(id_prefix=id_prefix),
+            above_chart_options_div(id_prefix=id_prefix),
             dcc.Loading(
-                id="rev_map_loading",
+                id="rev_chart_loading",
                 style={"margin-right": "500px"},
             ),
             dcc.Graph(
-                id=f"{id_prefix}_map",
+                id=f"{id_prefix}_chart",
                 style={"height": 750},
                 config={
                     "showSendToCloud": True,
-                    "plotlyServerURL": "https://chart-studio.plotly.com",
                     "toImageButtonOptions": {
                         "width": 1250,
                         "height": 750,
-                        "filename": "custom_review_map",
                     },
+                    "plotlyServerURL": "https://chart-studio.plotly.com",
                 },
                 mathjax=True,
                 figure=go.Figure(
@@ -207,7 +187,7 @@ def map_div(id_prefix, class_name=None):
             # Button to reveal below options
             dbc.Button(
                 "Options",
-                id=f"{id_prefix}_map_below_options_button",
+                id=f"{id_prefix}_chart_below_options_button",
                 className="mb-1",
                 color="white",
                 n_clicks=0,
@@ -218,8 +198,7 @@ def map_div(id_prefix, class_name=None):
                     "height": "50%",
                 },
             ),
-            # Below Map Options
-            below_map_options_div(id_prefix=id_prefix, class_name="row"),
+            below_chart_options_div(id_prefix, class_name="row"),
         ],
         className=class_name,
         style={
@@ -229,8 +208,8 @@ def map_div(id_prefix, class_name=None):
     )
 
 
-def below_map_options_div(id_prefix, class_name=None):
-    """Standard "below map" options div.
+def below_chart_options_div(id_prefix, class_name=None):
+    """Standard "below chart" options div.
 
     Parameters
     ----------
@@ -262,12 +241,11 @@ def below_map_options_div(id_prefix, class_name=None):
         dbc.CardBody(
             children=[
                 html.Div(
-                    style={"justifyContent": "center"},
                     className="two columns",
                     children=[
                         html.P("POINT SIZE", style=OPTION_TITLE_STYLE),
                         dcc.Input(
-                            id=f"{id_prefix}_map_point_size",
+                            id=f"{id_prefix}_chart_point_size",
                             value=DEFAULT_POINT_SIZE,
                             type="number",
                             debounce=False,
@@ -276,14 +254,15 @@ def below_map_options_div(id_prefix, class_name=None):
                     ],
                 ),
                 html.Div(
+                    id=f"{id_prefix}_chart_x_bin_div",
                     className="two columns",
                     children=[
-                        html.P("COLOR MIN", style=OPTION_TITLE_STYLE),
+                        html.P("Bins", style=OPTION_TITLE_STYLE),
                         dcc.Input(
-                            id=f"{id_prefix}_map_color_min",
-                            placeholder="",
+                            id=f"{id_prefix}_chart_x_bin",
+                            debounce=False,
+                            value=10,
                             type="number",
-                            debounce=True,
                             style=OPTION_STYLE,
                         ),
                     ],
@@ -291,34 +270,19 @@ def below_map_options_div(id_prefix, class_name=None):
                 html.Div(
                     className="two columns",
                     children=[
-                        html.P("COLOR MAX", style=OPTION_TITLE_STYLE),
+                        html.P("Opacity:", style=OPTION_TITLE_STYLE),
                         dcc.Input(
-                            id=f"{id_prefix}_map_color_max",
-                            placeholder="",
+                            id=f"{id_prefix}_chart_alpha",
+                            value=1,
                             type="number",
-                            debounce=True,
+                            debounce=False,
                             style=OPTION_STYLE,
                         ),
                     ],
                 ),
-                dbc.Button(
-                    "REVERSE COLOR",
-                    id=f"{id_prefix}_map_rev_color",
-                    className="me-1",
-                    color="dark",
-                    outline=True,
-                    n_clicks=0,
-                    # size="sm",
-                    style={
-                        "float": "right",
-                        "margin-top": "-1px",
-                        "color": "gray",
-                        "border-color": "gray",
-                    },
-                ),
             ]
         ),
-        id=f"{id_prefix}_map_below_options",
+        id=f"{id_prefix}_chart_below_options",
         className=class_name,
         is_open=False,
         style={"margin-top": "5px", "margin-left": "150px"},

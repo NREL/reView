@@ -27,11 +27,67 @@ MAP_LAYOUT.update(
             ),
             "style": "satellite-streets",
             "center": {"lon": -97.5, "lat": 39.5},
-            "zoom": 3.25,
+            "zoom": 2.75,
         },
-        "uirevision": True,
     }
 )
+
+
+def build_title(df, var, project, map_selection=None, delimiter="  |  "):
+    """Create chart title."""
+    # Project configuration object
+    config = Config(project)
+    var_no_diff_suffix = DiffUnitOptions.remove_from_variable_name(var)
+    diff = DiffUnitOptions.from_variable_name(var) is not None
+    is_percentage_diff = (
+        DiffUnitOptions.from_variable_name(var) == DiffUnitOptions.PERCENTAGE
+    )
+    if diff and is_percentage_diff:
+        units = "percent"
+    else:
+        units = config.units.get(var_no_diff_suffix)
+
+    # Append variable title
+    title = config.titles.get(var_no_diff_suffix, convert_to_title(var))
+
+    # Difference title
+    if diff:
+        title = delimiter.join([title, "Difference"])
+
+    is_df = isinstance(df, pd.core.frame.DataFrame)
+    var_exists = var_no_diff_suffix and var_no_diff_suffix.lower() != "none"
+    not_category = units != "category"
+
+    # Map title (not chart)
+    if is_df and var_exists and not_category:
+        average = Q_(df[var].apply("mean"), units)
+        if average.dimensionless:
+            average = average.to_reduced_units()
+        if "dollar" not in f"{average}":
+            average = average.to_compact()
+
+        extra = f"Average: {average:~H.2f}"
+
+        # we can make this more general by
+        # allowing user input about this in config
+        if "capacity" in var_no_diff_suffix and units != "percent":
+            capacity = (df[var].apply("sum") * UNITS.MW).to_compact()
+            extra = delimiter.join([extra, f"Total: {capacity:~H.2f}"])
+
+        if "hydrogen_annual_kg" in df and not diff:
+            total_hydrogen = df["hydrogen_annual_kg"].sum() * UNITS.kilograms
+            extra = delimiter.join(
+                [extra, f"Total H2: {total_hydrogen.to_compact():~H.2f}"]
+            )
+
+        title = delimiter.join([title, extra])
+
+    if map_selection:
+        n_points_selected = len(map_selection["points"])
+        map_selection_print = f"Selected point count: {n_points_selected:,}"
+        title = delimiter.join([title, map_selection_print])
+
+    return title
 
 
 class Map:
@@ -262,7 +318,6 @@ class ColorRange:
         self, df, color_var, project=None, color_min=None, color_max=None
     ):
         """Initialize ColorRange object."""
-
         self.df = df
         self.color_var = color_var
         if project:
@@ -290,60 +345,3 @@ class ColorRange:
             return self.df[self.color_var].max()
 
         return self._color_max
-
-
-def build_title(df, var, project, map_selection=None, delimiter="  |  "):
-    """Create chart title."""
-    # Project configuration object
-    config = Config(project)
-    var_no_diff_suffix = DiffUnitOptions.remove_from_variable_name(var)
-    diff = DiffUnitOptions.from_variable_name(var) is not None
-    is_percentage_diff = (
-        DiffUnitOptions.from_variable_name(var) == DiffUnitOptions.PERCENTAGE
-    )
-    if diff and is_percentage_diff:
-        units = "percent"
-    else:
-        units = config.units.get(var_no_diff_suffix)
-
-    # Append variable title
-    title = config.titles.get(var_no_diff_suffix, convert_to_title(var))
-
-    # Difference title
-    if diff:
-        title = delimiter.join([title, "Difference"])
-
-    is_df = isinstance(df, pd.core.frame.DataFrame)
-    var_exists = var_no_diff_suffix and var_no_diff_suffix.lower() != "none"
-    not_category = units != "category"
-
-    # Map title (not chart)
-    if is_df and var_exists and not_category:
-        average = Q_(df[var].apply("mean"), units)
-        if average.dimensionless:
-            average = average.to_reduced_units()
-        if "dollar" not in f"{average}":
-            average = average.to_compact()
-
-        extra = f"Average: {average:~H.2f}"
-
-        # we can make this more general by
-        # allowing user input about this in config
-        if "capacity" in var_no_diff_suffix and units != "percent":
-            capacity = (df[var].apply("sum") * UNITS.MW).to_compact()
-            extra = delimiter.join([extra, f"Total: {capacity:~H.2f}"])
-
-        if "hydrogen_annual_kg" in df and not diff:
-            total_hydrogen = df["hydrogen_annual_kg"].sum() * UNITS.kilograms
-            extra = delimiter.join(
-                [extra, f"Total H2: {total_hydrogen.to_compact():~H.2f}"]
-            )
-
-        title = delimiter.join([title, extra])
-
-    if map_selection:
-        n_points_selected = len(map_selection["points"])
-        map_selection_print = f"Selected point count: {n_points_selected:,}"
-        title = delimiter.join([title, map_selection_print])
-
-    return title
