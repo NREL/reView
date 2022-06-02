@@ -3,22 +3,8 @@
     "directory": "~/review_datasets/coe",
     "units": {
         "bathymetry": "m",
-        "boem_wind_leases_06082021": "N/A",
-        "boem_wind_planning_areas_03292021": "N/A",
-        "capital_cost_scalar": "N/A",
-        "dist_km": "km",
         "dist_to_coast": "m",
-        "mean_array": "N/A",
-        "mean_capital_cost": "N/A",
-        "mean_export": "N/A",
-        "mean_fixed_charge_rate": "N/A",
-        "mean_fixed_operating_cost": "N/A",
-        "mean_system_capacity": "N/A",
-        "mean_turb_generic_loss": "N/A",
-        "mean_variable_operating_cost": "N/A",
-        "offshore": "N/A",
-        "raw_lcoe": " $/MWh",
-        "trans_cap_cost_per_mw": "$/MW"
+        "raw_lcoe": " USD/MWh"
     },
     "scales": {
         "bathymetry": {

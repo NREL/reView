@@ -1,17 +1,6 @@
 {
     "project_name": "RPM",
     "directory": "~/review_datasets/rpm",
-    "units": {
-        "capital_cost_scalar": "N/A",
-        "mean_capital_cost": "N/A",
-        "mean_fixed_charge_rate": "N/A",
-        "mean_fixed_operating_cost": "N/A",
-        "mean_system_capacity": "N/A",
-        "mean_variable_operating_cost": "N/A",
-        "offshore": "N/A",
-        "provinces": "N/A",
-        "raw_lcoe": "N/A"
-    },
     "scales": {
         "capital_cost_scalar": {
             "min": 0.97028032,
