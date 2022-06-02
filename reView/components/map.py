@@ -304,7 +304,7 @@ def build_title(df, var, project, map_selection=None, delimiter="  |  "):
     if diff and is_percentage_diff:
         units = "percent"
     else:
-        units = config.units.get(var_no_diff_suffix, "")
+        units = config.units.get(var_no_diff_suffix)
 
     # Append variable title
     title = config.titles.get(var_no_diff_suffix, convert_to_title(var))
@@ -319,9 +319,10 @@ def build_title(df, var, project, map_selection=None, delimiter="  |  "):
 
     # Map title (not chart)
     if is_df and var_exists and not_category:
-
         average = Q_(df[var].apply("mean"), units)
-        if units != "percent":
+        if average.dimensionless:
+            average = average.to_reduced_units()
+        if "dollar" not in f"{average}":
             average = average.to_compact()
 
         extra = f"Average: {average:~H.2f}"
