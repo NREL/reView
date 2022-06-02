@@ -323,6 +323,7 @@ ignored-classes=optparse.Values,thread._local,_thread._local
 # supports qualified module names, as well as Unix pattern matching.
 ignored-modules=addfips,
                 dash,
+                dash_bootstrap_components,
                 flask,
                 numpy,
                 pandas,
