@@ -345,34 +345,34 @@ def build_title(
     # Map title (not chart)
     if is_df and y_exists and not_category:
 
-        ag = Q_(df[y].apply("mean"), units)
+        average = Q_(df[y].apply("mean"), units)
         if units != "percent":
-            ag = ag.to_compact()
+            average = average.to_compact()
 
-        ag_print = f"Average: {ag:~H.2f}"
+        extra = f"Average: {average:~H.2f}"
 
         # we can make this more general by
         # allowing user input about this in config
         if "capacity" in y_no_diff_suffix and units != "percent":
-            ag = (df[y].apply("sum") * UNITS.MW).to_compact()
-            ag_print = delimiter.join([ag_print, f"Total: {ag:~H.2f}"])
+            capacity = (df[y].apply("sum") * UNITS.MW).to_compact()
+            extra = delimiter.join([extra, f"Total: {capacity:~H.2f}"])
 
-        title = delimiter.join([title, ag_print])
-        if "hydrogen_annual_kg" in df:
-            ag = df["hydrogen_annual_kg"].sum() * UNITS.kilograms
-            ag_print = [f"Total H2: {ag.to_compact():~H.2f}"]
-            title = delimiter.join([title, ag_print])
+        if "hydrogen_annual_kg" in df and not diff:
+            total_hydrogen = df["hydrogen_annual_kg"].sum() * UNITS.kilograms
+            extra = delimiter.join(
+                [extra, f"Total H2: {total_hydrogen.to_compact():~H.2f}"]
+            )
+
+        title = delimiter.join([title, extra])
 
     if map_selection:
-        map_selection_print = "Selected point count: {:,}".format(
-            len(map_selection["points"])
-        )
+        n_points_selected = len(map_selection["points"])
+        map_selection_print = f"Selected point count: {n_points_selected:,}"
         title = delimiter.join([title, map_selection_print])
 
     if chart_selection:
-        chart_selection_print = "Selected point count: {:,}".format(
-            len(chart_selection["points"])
-        )
+        n_points_selected = len(chart_selection["points"])
+        chart_selection_print = f"Selected point count: {n_points_selected:,}"
         title = delimiter.join([title, chart_selection_print])
 
     return title
