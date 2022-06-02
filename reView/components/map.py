@@ -29,6 +29,7 @@ MAP_LAYOUT.update(
             "center": {"lon": -97.5, "lat": 39.5},
             "zoom": 2.75,
         },
+        "uirevision": True,
     }
 )
 
