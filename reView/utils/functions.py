@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 import dash
 
-from reView import REVIEW_CONFIG_DIR, REVIEW_DATA_DIR
+from reView import REVIEW_CONFIG_DIR, REVIEW_DATA_DIR, UNITS
 
 logger = logging.getLogger(__name__)
 
@@ -308,8 +308,10 @@ def common_numeric_columns(*dfs):
         DataFrames.
     """
     cols = set.intersection(
-        *[set(df.select_dtypes(include=np.number).columns.values)
-          for df in dfs]
+        *[
+            set(df.select_dtypes(include=np.number).columns.values)
+            for df in dfs
+        ]
     )
     return sorted(cols)
 
@@ -410,9 +412,7 @@ def callback_trigger():
 
 
 def format_capacity_title(
-    map_capacity,
-    map_selection=None,
-    capacity_col_name="print_capacity"
+    map_capacity, map_selection=None, capacity_col_name="print_capacity"
 ):
     """Calculate total remaining capacity after all filters are applied.
 
@@ -446,16 +446,11 @@ def format_capacity_title(
 
     if map_selection:
         gids = [
-            p.get("customdata", [None])[0]
-            for p in map_selection["points"]
+            p.get("customdata", [None])[0] for p in map_selection["points"]
         ]
         df = df[df["sc_point_gid"].isin(gids)]
 
-    total_capacity = df[capacity_col_name].sum()
-    if total_capacity >= 1_000_000:
-        capacity = f"{total_capacity / 1_000_000:.4f} TW"
-    else:
-        capacity = f"{total_capacity / 1_000:.4f} GW"
-
+    total_capacity = df[capacity_col_name].sum() * UNITS.MW
+    capacity = f"{total_capacity.to_compact():~H.4f}"
     num_sites = f"{df.shape[0]:,}"
     return capacity, num_sites

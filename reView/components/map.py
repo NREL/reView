@@ -9,9 +9,10 @@ import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
 
+from reView import UNITS, Q_
 from reView.utils.classes import DiffUnitOptions
 from reView.utils.config import Config
-from reView.utils.constants import AGGREGATIONS, COLORS
+from reView.utils.constants import COLORS
 from reView.utils.functions import convert_to_title
 
 
@@ -309,10 +310,14 @@ class ColorRange:
         return self._color_max
 
 
-def build_title(df, signal_dict, map_selection=None, chart_selection=None):
+def build_title(
+    df,
+    signal_dict,
+    map_selection=None,
+    chart_selection=None,
+    delimiter="  |  ",
+):
     """Create chart title."""
-    # Unpack signal
-
     # Project configuration object
     config = Config(signal_dict["project"])
 
@@ -323,30 +328,16 @@ def build_title(df, signal_dict, map_selection=None, chart_selection=None):
         DiffUnitOptions.from_variable_name(y) == DiffUnitOptions.PERCENTAGE
     )
     if diff and is_percentage_diff:
-        units = "%"
+        units = "percent"
     else:
         units = config.units.get(y_no_diff_suffix, "")
 
     # Append variable title
     title = config.titles.get(y_no_diff_suffix, convert_to_title(y))
 
-    # Add variable aggregation value
-    if y_no_diff_suffix in AGGREGATIONS:
-        ag_fun = AGGREGATIONS[y_no_diff_suffix]
-        if ag_fun == "mean":
-            conditioner = "Average"
-        else:
-            conditioner = "Total"
-    else:
-        ag_fun = "mean"
-        conditioner = "Average"
-        # ag_fun = "sum"
-        # conditioner = "Sum"
-
     # Difference title
     if diff:
-        conditioner = f"{units} Difference | Average"
-        punits = ""
+        title = delimiter.join([title, "Difference"])
 
     is_df = isinstance(df, pd.core.frame.DataFrame)
     y_exists = y_no_diff_suffix and y_no_diff_suffix.lower() != "none"
@@ -354,34 +345,35 @@ def build_title(df, signal_dict, map_selection=None, chart_selection=None):
 
     # Map title (not chart)
     if is_df and y_exists and not_category:
-        if y_no_diff_suffix == "capacity" and units != "%":
-            ag = round(df[y].apply(ag_fun) / 1_000_000, 4)
-            punits = ["TW"]
-            conditioner = conditioner.replace("Average", "Total")
-        else:
-            ag = round(df[y].apply(ag_fun), 2)
 
-            if diff:
-                punits = []
-            else:
-                punits = [config.units.get(y_no_diff_suffix, "")]
-        ag_print = ["  |  {}: {:,}".format(conditioner, ag)]
-        title = " ".join([title] + ag_print + punits)
+        ag = Q_(df[y].apply("mean"), units)
+        if units != "percent":
+            ag = ag.to_compact()
+
+        ag_print = f"Average: {ag:~H.2f}"
+
+        # we can make this more general by
+        # allowing user input about this in config
+        if "capacity" in y_no_diff_suffix and units != "percent":
+            ag = (df[y].apply("sum") * UNITS.MW).to_compact()
+            ag_print = delimiter.join([ag_print, f"Total: {ag:~H.2f}"])
+
+        title = delimiter.join([title, ag_print])
         if "hydrogen_annual_kg" in df:
-            ag = round(df["hydrogen_annual_kg"].sum(), 2)
-            ag_print = ["  |  {}: {:,}".format("Total H2", ag)]
-            title = " ".join([title] + ag_print)
+            ag = df["hydrogen_annual_kg"].sum() * UNITS.kilograms
+            ag_print = [f"Total H2: {ag.to_compact():~H.2f}"]
+            title = delimiter.join([title, ag_print])
 
     if map_selection:
         map_selection_print = "Selected point count: {:,}".format(
             len(map_selection["points"])
         )
-        title = "  |  ".join([title, map_selection_print])
+        title = delimiter.join([title, map_selection_print])
 
     if chart_selection:
         chart_selection_print = "Selected point count: {:,}".format(
             len(chart_selection["points"])
         )
-        title = "<br>".join([title, chart_selection_print])
+        title = delimiter.join([title, chart_selection_print])
 
     return title

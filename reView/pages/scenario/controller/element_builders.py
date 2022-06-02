@@ -17,7 +17,7 @@ import plotly.express as px
 
 from reView.utils.classes import DiffUnitOptions
 from reView.utils.config import Config
-from reView.utils.constants import  AGGREGATIONS, DEFAULT_POINT_SIZE
+from reView.utils.constants import  DEFAULT_POINT_SIZE
 from reView.utils.functions import convert_to_title
 
 
@@ -54,8 +54,6 @@ class Plots:
         self.alpha = alpha
         self.config = Config(project)
 
-        # self.aggregations = AGGREGATIONS
-        # self.category_check()`
 
     def __repr__(self):
         """Print representation string."""
@@ -203,10 +201,7 @@ class Plots:
 
         # The simpler line plot part
         main_df = main_df.sort_values([x, self.GROUP])
-        agg = AGGREGATIONS.get(
-            DiffUnitOptions.remove_from_variable_name(y), "mean"
-        )
-        yagg = main_df.groupby(["xbin", self.GROUP])[y].transform(agg)
+        yagg = main_df.groupby(["xbin", self.GROUP])[y].transform("mean")
         main_df["yagg"] = yagg
         line_df = main_df.copy()
         line_df = line_df[["xbin", "yagg", self.GROUP]].drop_duplicates()

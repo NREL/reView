@@ -7,30 +7,6 @@ SCENARIO_PAGE_LOCATION = "/scenario_page"
 CONFIG_PAGE_LOCATION = "/config_page"
 REEDS_PAGE_LOCATION = "/reeds_page"
 
-AGGREGATIONS = {
-    "area_sq_km": "sum",
-    "capacity": "sum",
-    "elevation": "mean",
-    "dist_mi": "mean",
-    "lcot": "mean",
-    "mean_cf": "mean",
-    "mean_lcoe": "mean",
-    "mean_res": "mean",
-    "total_lcoe": "mean",
-    "trans_capacity": "sum",
-    "trans_cap_cost": "mean",
-    "trans_multiplier": "mean",
-    "transmission_multiplier": "mean",
-    "Hub Height": "mean",
-    "capex": "mean",
-    # Below is a quick hack that needs fixing
-    "shadow_flicker_120m": "sum",
-    "shadow_flicker_120m_percent": "mean",
-    "shadow_flicker_135m": "sum",
-    "shadow_flicker_135m_percent": "mean",
-    "trans_voltage": "mean",
-    "trans_ac_cap": "mean",
-}
 COLORS = {
     **pcs.PLOTLY_SCALES,
     "RdWhBu": [
