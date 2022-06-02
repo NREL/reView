@@ -12,43 +12,25 @@ import plotly.express as px
 from reView import UNITS, Q_
 from reView.utils.classes import DiffUnitOptions
 from reView.utils.config import Config
-from reView.utils.constants import COLORS
+from reView.utils.constants import COLORS, DEFAULT_LAYOUT
 from reView.utils.functions import convert_to_title
 
-
-MAP_LAYOUT = dict(
-    dragmode="select",
-    hovermode="closest",
-    font_family="Time New Roman",
-    title_font_family="Times New Roman",
-    font_size=15,
-    font_color="white",
-    margin=dict(l=20, r=115, t=115, b=20),
-    paper_bgcolor="#1663B5",
-    plot_bgcolor="#083C04",
-    titlefont=dict(color="white", size=18, family="Time New Roman"),
-    title=dict(
-        yref="container",
-        x=0.05,
-        y=0.95,
-        yanchor="top",
-        pad=dict(b=10),
-    ),
-    mapbox=dict(
-        accesstoken=(
-            "pk.eyJ1IjoidHJhdmlzc2l1cyIsImEiOiJjamZiaHh4b28waXNkMnpt"
-            "aWlwcHZvdzdoIn0.9pxpgXxyyhM6qEF_dcyjIQ"
-        ),
-        style="satellite-streets",
-        center=dict(lon=-97.5, lat=39.5),
-        zoom=3.25,
-    ),
-    legend=dict(
-        title_font_family="Times New Roman",
-        bgcolor="#E4ECF6",
-        font=dict(family="Times New Roman", size=15, color="black"),
-    ),
-    uirevision=True,
+MAP_LAYOUT = copy.deepcopy(DEFAULT_LAYOUT)
+MAP_LAYOUT.update(
+    {
+        "margin": {"l": 20, "r": 115, "t": 70, "b": 20},
+        "plot_bgcolor": "#083C04",
+        "mapbox": {
+            "accesstoken": (
+                "pk.eyJ1IjoidHJhdmlzc2l1cyIsImEiOiJjamZiaHh4b28waXNkMnpt"
+                "aWlwcHZvdzdoIn0.9pxpgXxyyhM6qEF_dcyjIQ"
+            ),
+            "style": "satellite-streets",
+            "center": {"lon": -97.5, "lat": 39.5},
+            "zoom": 3.25,
+        },
+        "uirevision": True,
+    }
 )
 
 

@@ -8,6 +8,7 @@ Created on Fri May 20 12:07:29 2022
 
 @author: twillia2
 """
+import copy
 import json
 from collections import Counter
 
@@ -17,8 +18,12 @@ import plotly.express as px
 
 from reView.utils.classes import DiffUnitOptions
 from reView.utils.config import Config
-from reView.utils.constants import  DEFAULT_POINT_SIZE
+from reView.utils.constants import DEFAULT_POINT_SIZE, DEFAULT_LAYOUT
 from reView.utils.functions import convert_to_title
+
+
+CHART_LAYOUT = copy.deepcopy(DEFAULT_LAYOUT)
+CHART_LAYOUT.update({"legend_title_font_color": "black"})
 
 
 def is_integer(x):
@@ -53,7 +58,6 @@ class Plots:
         self.user_scale = user_scale
         self.alpha = alpha
         self.config = Config(project)
-
 
     def __repr__(self):
         """Print representation string."""
@@ -135,8 +139,8 @@ class Plots:
         if is_difference:
             # this is a limitation (bug?) of dash...
             # can only have "$" at start and end of string
-            title = [t.replace('$', 'dollars') for t in title]
-            title = ['$', r'\Delta', r'\text{'] + title + ['}$']
+            title = [t.replace("$", "dollars") for t in title]
+            title = ["$", r"\Delta", r"\text{"] + title + ["}$"]
 
         return " ".join(title)
 
@@ -495,32 +499,10 @@ class Plots:
 
     def _update_fig_layout(self, fig, y=None):
         """Update the figure layout with title, etc."""
-        fig.update_layout(
-            font_family="Time New Roman",
-            title_font_family="Times New Roman",
-            legend_title_font_color="black",
-            font_color="white",
-            font_size=15,
-            margin=dict(l=70, r=20, t=115, b=20),
-            hovermode="closest",
-            paper_bgcolor="#1663B5",
-            legend_title_text=self.GROUP,
-            dragmode="select",
-            titlefont=dict(color="white", size=18, family="Time New Roman"),
-            title=dict(
-                text=self.plot_title,
-                yref="container",
-                x=0.05,
-                y=0.94,
-                yanchor="bottom",
-                pad=dict(b=10),
-            ),
-            legend=dict(
-                title_font_family="Times New Roman",
-                bgcolor="#E4ECF6",
-                font=dict(family="Times New Roman", size=15, color="black"),
-            ),
-        )
+        layout = copy.deepcopy(CHART_LAYOUT)
+        layout["title"]["text"] = self.plot_title
+        layout["legend_title_text"] = self.GROUP
+        fig.update_layout(**layout)
         if y:
             fig.update_layout(yaxis={"range": self._plot_range(y)})
         return fig

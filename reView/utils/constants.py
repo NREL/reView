@@ -96,11 +96,28 @@ COLORS = {
 }
 COLORS_Q = {k: v for k, v in pcs.qualitative.__dict__.items() if "_" not in k}
 COLORS_Q = {k: v for k, v in COLORS_Q.items() if k != "swatches"}
-DEFAULT_MAPVIEW = {
-    "mapbox.center": {"lon": -96.50, "lat": 38.0},
-    "mapbox.zoom": 3.50,
-    "mapbox.bearing": 0,
-    "mapbox.pitch": 0,
+DEFAULT_LAYOUT = {
+    "dragmode": "select",
+    "hovermode": "closest",
+    "font_family": "Times New Roman",
+    "title_font_family": "Times New Roman",
+    "font_size": 15,
+    "font_color": "white",
+    "margin": {"l": 70, "r": 20, "t": 70, "b": 20},
+    "paper_bgcolor": "#1663B5",
+    "titlefont": {"color": "white", "size": 18, "family": "Times New Roman"},
+    "title": {
+        "yref": "container",
+        "x": 0.05,
+        "y": 0.96,
+        "yanchor": "top",
+        "pad": {"b": 10},
+    },
+    "legend": {
+        "title_font_family": "Times New Roman",
+        "bgcolor": "#E4ECF6",
+        "font": {"family": "Times New Roman", "size": 15, "color": "black"},
+    },
 }
 DEFAULT_POINT_SIZE = 5
 ORIGINAL_FIELDS = [
