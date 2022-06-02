@@ -30,3 +30,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           LINTER_RULES_PATH: /
           PYTHON_PYLINT_CONFIG_FILE: .pylintrc
+          LOG_LEVEL: DEBUG
