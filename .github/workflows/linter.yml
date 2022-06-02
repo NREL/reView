@@ -4,6 +4,8 @@ on:
   push:
     branches-ignore:
       - 'gh-pages'
+  pull_request:
+    branches: [master, main]
 
 jobs:
   build:
@@ -30,4 +32,3 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           LINTER_RULES_PATH: /
           PYTHON_PYLINT_CONFIG_FILE: .pylintrc
-          LOG_LEVEL: DEBUG
