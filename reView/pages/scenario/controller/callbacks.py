@@ -688,7 +688,7 @@ def figure_chart(
         project,
         dfs,
         plot_title=build_title(
-            dfs, signal_dict, chart_selection=chart_selection
+            dfs, y, project, chart_selection=chart_selection
         ),
         point_size=point_size,
         user_scale=(user_ymin, user_ymax),
@@ -768,7 +768,7 @@ def figure_map(
     else:
         color_var = signal_dict["y"]
 
-    title = build_title(df, signal_dict, map_selection=map_selection)
+    title = build_title(df, color_var, project, map_selection=map_selection)
 
     # Build figure
     map_builder = Map(

@@ -312,16 +312,15 @@ class ColorRange:
 
 def build_title(
     df,
-    signal_dict,
+    y,
+    project,
     map_selection=None,
     chart_selection=None,
     delimiter="  |  ",
 ):
     """Create chart title."""
     # Project configuration object
-    config = Config(signal_dict["project"])
-
-    y = signal_dict["y"]
+    config = Config(project)
     y_no_diff_suffix = DiffUnitOptions.remove_from_variable_name(y)
     diff = DiffUnitOptions.from_variable_name(y) is not None
     is_percentage_diff = (
