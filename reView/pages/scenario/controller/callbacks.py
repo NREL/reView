@@ -510,6 +510,7 @@ def dropdown_variables(
 def dropdown_x_variables(
     scenario_a_options, scenario_b_options, b_div, chart_type, project
 ):
+    """Return dropdown options for x variable. """
     logger.debug("Setting X variable options")
     if chart_type == "char_histogram":
         config = Config(project)

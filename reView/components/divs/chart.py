@@ -3,7 +3,7 @@
 
 Functions for generating a chart divs with a given element type and class.
 """
-import dash_bootstrap_components as  dbc
+import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
 
 from dash import dcc, html
@@ -66,7 +66,6 @@ def above_chart_options_div(id_prefix, class_name=None):
                 value="chart",
                 style=TAB_STYLE,
             ),
-            
             # Type of chart
             html.Div(
                 id=f"{id_prefix}_chart_options_div",
@@ -80,7 +79,6 @@ def above_chart_options_div(id_prefix, class_name=None):
                     )
                 ],
             ),
-            
             # X-axis Variable
             html.Div(
                 id=f"{id_prefix}_chart_x_variable_options_div",
@@ -99,7 +97,6 @@ def above_chart_options_div(id_prefix, class_name=None):
                     )
                 ],
             ),
-            
             # Region grouping
             html.Div(
                 id=f"{id_prefix}_chart_region_div",
@@ -113,7 +110,6 @@ def above_chart_options_div(id_prefix, class_name=None):
                     )
                 ],
             ),
-            
             # Scenario grouping
             html.Div(
                 id=f"{id_prefix}_additional_scenarios_div",
@@ -155,9 +151,7 @@ def chart_div(id_prefix, class_name=None):
     """
     return html.Div(
         children=[
-            above_chart_options_div(
-                id_prefix=id_prefix
-            ),
+            above_chart_options_div(id_prefix=id_prefix),
             dcc.Loading(
                 id="rev_chart_loading",
                 style={"margin-right": "500px"},
@@ -190,7 +184,6 @@ def chart_div(id_prefix, class_name=None):
                     }
                 ),
             ),
-
             # Button to reveal below options
             dbc.Button(
                 "Options",
@@ -202,17 +195,16 @@ def chart_div(id_prefix, class_name=None):
                 style={
                     "float": "left",
                     "margin-left": "15px",
-                    "height": "50%"
-                }
+                    "height": "50%",
+                },
             ),
-
-            below_chart_options_div(id_prefix)
+            below_chart_options_div(id_prefix, class_name="row"),
         ],
         className=class_name,
         style={
             "box-shadow": "0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)",
-            "border-radius": "5px"
-        }
+            "border-radius": "5px",
+        },
     )
 
 
@@ -251,56 +243,47 @@ def below_chart_options_div(id_prefix, class_name=None):
                 html.Div(
                     className="two columns",
                     children=[
-                        html.P(
-                            "POINT SIZE",
-                            style=OPTION_TITLE_STYLE
-                        ),
+                        html.P("POINT SIZE", style=OPTION_TITLE_STYLE),
                         dcc.Input(
                             id=f"{id_prefix}_chart_point_size",
                             value=DEFAULT_POINT_SIZE,
                             type="number",
                             debounce=False,
                             style=OPTION_STYLE,
-                        )
-                    ]
+                        ),
+                    ],
                 ),
                 html.Div(
                     id=f"{id_prefix}_chart_x_bin_div",
                     className="two columns",
                     children=[
-                        html.P(
-                            "Bins",
-                            style=OPTION_TITLE_STYLE
-                        ),
+                        html.P("Bins", style=OPTION_TITLE_STYLE),
                         dcc.Input(
                             id=f"{id_prefix}_chart_x_bin",
                             debounce=False,
                             value=10,
                             type="number",
                             style=OPTION_STYLE,
-                        )
-                    ]
+                        ),
+                    ],
                 ),
                 html.Div(
                     className="two columns",
                     children=[
-                        html.P(
-                            "Opacity:",
-                            style=OPTION_TITLE_STYLE
-                        ),
+                        html.P("Opacity:", style=OPTION_TITLE_STYLE),
                         dcc.Input(
                             id=f"{id_prefix}_chart_alpha",
                             value=1,
                             type="number",
                             debounce=False,
-                            style=OPTION_STYLE
-                        )
-                    ]
-                )
-           ]
+                            style=OPTION_STYLE,
+                        ),
+                    ],
+                ),
+            ]
         ),
         id=f"{id_prefix}_chart_below_options",
-        className="row",
+        className=class_name,
         is_open=False,
-        style={"margin-top": "5px", "margin-left": "150px"}
+        style={"margin-top": "5px", "margin-left": "150px"},
     )

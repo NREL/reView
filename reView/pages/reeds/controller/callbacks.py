@@ -109,7 +109,8 @@ def figure_map_reeds(
 )
 @calls.log
 def toggle_reeds_map_below_options(n, is_open):
-    print("REEDS OPTIONS BUTTON TRIGGERED...")
+    """Toggle the blow options for reeds."""
+    logger.debug("REEDS OPTIONS BUTTON TRIGGERED...")
     if n:
         return not is_open
     return is_open

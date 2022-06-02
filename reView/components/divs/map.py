@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """A common map div."""
-import dash_bootstrap_components as  dbc
+import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
 
 from dash import dcc, html
@@ -57,7 +57,7 @@ def above_map_options_div(id_prefix, class_name=None):
 
     Returns
     -------
-    dash.html.Div.Div
+    dash.html.Div
         A div containing the "below map" options that the user can
         interact with.
     """
@@ -164,16 +164,13 @@ def map_div(id_prefix, class_name=None):
 
     Returns
     -------
-    dash.html.Div.Div
+    dash.html.Div
         A div containing the `dcc.Graph` component used to show the map.
     """
     return html.Div(
         children=[
             # Above Map Options
-            above_map_options_div(
-                id_prefix=id_prefix
-            ),
-
+            above_map_options_div(id_prefix=id_prefix),
             dcc.Loading(
                 id="rev_map_loading",
                 style={"margin-right": "500px"},
@@ -207,7 +204,6 @@ def map_div(id_prefix, class_name=None):
                     }
                 ),
             ),
-
             # Button to reveal below options
             dbc.Button(
                 "Options",
@@ -219,21 +215,17 @@ def map_div(id_prefix, class_name=None):
                 style={
                     "float": "left",
                     "margin-left": "15px",
-                    "height": "50%"
-                }
+                    "height": "50%",
+                },
             ),
-
             # Below Map Options
-            below_map_options_div(
-                id_prefix=id_prefix,
-                class_name="twelve columns"
-            ),
+            below_map_options_div(id_prefix=id_prefix, class_name="row"),
         ],
         className=class_name,
         style={
             "box-shadow": "0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)",
-            "border-radius": "5px"
-        }
+            "border-radius": "5px",
+        },
     )
 
 
@@ -273,26 +265,20 @@ def below_map_options_div(id_prefix, class_name=None):
                     style={"justifyContent": "center"},
                     className="two columns",
                     children=[
-                        html.P(
-                            "POINT SIZE",
-                            style=OPTION_TITLE_STYLE
-                        ),
+                        html.P("POINT SIZE", style=OPTION_TITLE_STYLE),
                         dcc.Input(
                             id=f"{id_prefix}_map_point_size",
                             value=DEFAULT_POINT_SIZE,
                             type="number",
                             debounce=False,
                             style=OPTION_STYLE,
-                        )
-                    ]
+                        ),
+                    ],
                 ),
                 html.Div(
                     className="two columns",
                     children=[
-                        html.P(
-                            "COLOR MIN",
-                            style=OPTION_TITLE_STYLE
-                        ),
+                        html.P("COLOR MIN", style=OPTION_TITLE_STYLE),
                         dcc.Input(
                             id=f"{id_prefix}_map_color_min",
                             placeholder="",
@@ -300,24 +286,21 @@ def below_map_options_div(id_prefix, class_name=None):
                             debounce=True,
                             style=OPTION_STYLE,
                         ),
-                    ]
+                    ],
                 ),
-               html.Div(
-                   className="two columns",
-                   children=[
-                       html.P(
-                           "COLOR MAX",
-                           style=OPTION_TITLE_STYLE
-                       ),
-                       dcc.Input(
-                           id=f"{id_prefix}_map_color_max",
-                           placeholder="",
-                           type="number",
-                           debounce=True,
-                           style=OPTION_STYLE,
-                       ),
-                   ]
-               ),
+                html.Div(
+                    className="two columns",
+                    children=[
+                        html.P("COLOR MAX", style=OPTION_TITLE_STYLE),
+                        dcc.Input(
+                            id=f"{id_prefix}_map_color_max",
+                            placeholder="",
+                            type="number",
+                            debounce=True,
+                            style=OPTION_STYLE,
+                        ),
+                    ],
+                ),
                 dbc.Button(
                     "REVERSE COLOR",
                     id=f"{id_prefix}_map_rev_color",
@@ -331,13 +314,12 @@ def below_map_options_div(id_prefix, class_name=None):
                         "margin-top": "-1px",
                         "color": "gray",
                         "border-color": "gray",
-                     }
-                )
-
-           ]
+                    },
+                ),
+            ]
         ),
         id=f"{id_prefix}_map_below_options",
-        className="row",
+        className=class_name,
         is_open=False,
-        style={"margin-top": "5px", "margin-left": "150px"}
+        style={"margin-top": "5px", "margin-left": "150px"},
     )

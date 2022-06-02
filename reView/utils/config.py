@@ -153,7 +153,7 @@ class Config:
             for file in self.options.file:
                 yield Path(file).expanduser().resolve()
         else:
-            yield from self.directory.glob("*.csv")
+            yield from self.directory.rglob("*.csv")
 
     def _check_required_keys_exist(self):
         """Ensure all required keys are present in config file."""

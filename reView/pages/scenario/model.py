@@ -279,7 +279,8 @@ def cache_map_data(signal_dict):
 
         # If the difference option is specified difference
         if DiffUnitOptions.from_variable_name(signal_dict["y"]) is not None:
-            # Save for later  <------------------------------------------------ How should we handle this? Optional save button...perhaps a clear saved datasets button?
+            # How should we handle this?
+            # Optional save button...perhaps a clear saved datasets button?
             target_dir = config.directory.joinpath(".review")
             target_dir.mkdir(parents=True, exist_ok=True)
 

@@ -57,7 +57,7 @@ REV_TOPTIONS_DIV = html.Div(
                     ],
                     style={"display": "none"},
                 ),
-        
+
                 # Data Options
                 html.Div(
                     [
@@ -76,7 +76,7 @@ REV_TOPTIONS_DIV = html.Div(
                                     className="four columns",
                                     style={"margin-left": "25px"},
                                 ),
-        
+
                                 # Second Scenario
                                 html.Div(
                                     id="scenario_b_div",
@@ -175,8 +175,8 @@ REV_TOPTIONS_DIV = html.Div(
                             ],
                             className="four columns",
                         ),
-        
-                        # Add in a map function option (demand meetiing)
+
+                        # Add in a map function option (demand meeting)
                         html.Div(
                             id="map_function_div",
                             className="two columns",
@@ -199,7 +199,7 @@ REV_TOPTIONS_DIV = html.Div(
                                 ),
                             ],
                         ),
-        
+
                         # LCOE Recalc
                         html.Div(
                             [
@@ -253,7 +253,7 @@ REV_TOPTIONS_DIV = html.Div(
                                                 ),
                                             ],
                                         ),
-        
+
                                         # Long table of scenario A recalc parameters
                                         html.Div(
                                             id="recalc_a_options",
@@ -409,7 +409,7 @@ REV_TOPTIONS_DIV = html.Div(
                             id="recalculate_with_new_costs",
                             className="four columns",
                         ),
-        
+
                         # Filters
                         html.Div(
                             children=[
@@ -623,7 +623,7 @@ REV_TOPTIONS_DIV = html.Div(
                         "height": "50%"
                     }
                 ),
-        
+
                 # Submit Button to avoid repeated callbacks
                 dbc.Button(
                     id="submit",
