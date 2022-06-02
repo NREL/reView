@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=unused-import
+# pylint: skip-file
 """Transition reView project index file."""
-import reView.pages.scenario.controller.callbacks
 import reView.pages.reeds.controller.callbacks
+import reView.pages.scenario.controller.callbacks
 
 from reView.app import app, server
 from reView.environment.settings import (
@@ -13,6 +13,7 @@ from reView.environment.settings import (
 )
 from reView.routes import render_page_content
 from reView.utils.log import init_logger, log_versions
+from reView.utils import calls
 
 
 def main():

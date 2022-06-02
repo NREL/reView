@@ -25,7 +25,7 @@ from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 
 from reView.app import app
-from reView.layout.styles import BUTTON_STYLES, TABLET_STYLE
+from reView.layout.styles import TABLET_STYLE
 from reView.layout.options import (
     CHART_OPTIONS,
     COLOR_OPTIONS,
@@ -33,7 +33,6 @@ from reView.layout.options import (
 )
 from reView.components.callbacks import (
     capacity_print,
-    toggle_reverse_color_button_style,
     display_selected_tab_above_map,
 )
 from reView.components.logic import tab_styles
@@ -61,7 +60,6 @@ from reView.utils import calls
 logger = logging.getLogger(__name__)
 COMMON_CALLBACKS = [
     capacity_print(id_prefix="rev"),
-    toggle_reverse_color_button_style(id_prefix="rev"),
     display_selected_tab_above_map(id_prefix="rev"),
 ]
 
@@ -151,7 +149,7 @@ def options_chart_type(project):
 def scenario_dropdowns(groups, class_names=None):
     """Return list of dropdown options for a project's file selection."""
     dropdowns = []
-    class_names = class_names or ["six columns"]
+    class_names = class_names or ["five columns"]
     colors = ["#b4c9e0", "#e3effc"]
 
     for ind, (group, options) in enumerate(groups.items()):
@@ -160,7 +158,9 @@ def scenario_dropdowns(groups, class_names=None):
         dropdown = html.Div(
             [
                 html.Div(
-                    [html.P(group)],
+                    [
+                        html.P(group)
+                    ],
                     className=class_names[0],
                 ),
                 html.Div(
@@ -168,21 +168,21 @@ def scenario_dropdowns(groups, class_names=None):
                         dcc.Dropdown(
                             options=options,
                             value=options[0]["value"],
-                            optionHeight=75,
+                            optionHeight=75
                         )
                     ],
                     className=class_names[-1],
+                    style={"margin-left": "15px"}
                 ),
             ],
+            style={"background-color": color, "border-radius": "5px"},
             className="row",
-            style={"background-color": color},
         )
 
         dropdowns.append(dropdown)
 
     drop_div = html.Div(
         children=dropdowns,
-        style={"border": "4px solid #1663b5", "padding": "2px"},
     )
 
     return drop_div
@@ -210,7 +210,7 @@ def disable_mapping_function_dev(project, __):
 
 
 @app.callback(
-    Output("chart_options", "options"),
+    Output("rev_chart_options", "options"),
     Input("project", "value"),
 )
 @calls.log
@@ -335,7 +335,7 @@ def dropdown_minimizing_targets(scenario_options, project):
     path = choose_scenario(scenario_options, config)
     target_options = []
     if path and os.path.exists(path):
-        data = pd.read_csv(path)
+        data = pd.read_csv(path, nrows=1)
         columns = [c for c in data.columns if c.lower() not in SKIP_VARS]
         titles = {col: convert_to_title(col) for col in columns}
         titles.update(config.titles)
@@ -380,7 +380,7 @@ def dropdown_minimizing_plot_options(scenario_options, project):
     path = choose_scenario(scenario_options, config)
     plot_options = [{"label": "Variable", "value": "Variable"}]
     if path and os.path.exists(path):
-        data = pd.read_csv(path)
+        data = pd.read_csv(path, nrows=1)
         columns = [c for c in data.columns if c.lower() not in SKIP_VARS]
         titles = {col: convert_to_title(col) for col in columns}
         titles.update(config.titles)
@@ -499,17 +499,18 @@ def dropdown_variables(
 
 
 @app.callback(
-    Output("chart_x_var_options", "options"),
-    Output("chart_x_var_options", "value"),
+    Output("rev_chart_x_var_options", "options"),
+    Output("rev_chart_x_var_options", "value"),
     Input("scenario_a_options", "children"),
     Input("scenario_b_options", "children"),
     Input("scenario_b_div", "style"),
-    Input("chart_options", "value"),
+    Input("rev_chart_options", "value"),
     State("project", "value"),
 )
 def dropdown_x_variables(
     scenario_a_options, scenario_b_options, b_div, chart_type, project
 ):
+    """Return dropdown options for x variable. """
     logger.debug("Setting X variable options")
     if chart_type == "char_histogram":
         config = Config(project)
@@ -532,7 +533,7 @@ def dropdown_x_variables(
 
 
 @app.callback(
-    Output("additional_scenarios", "options"),
+    Output("rev_additional_scenarios", "options"),
     Input("url", "pathname"),
     Input("project", "value"),
     State("submit", "n_clicks"),
@@ -581,21 +582,21 @@ def dropdowns_additional_scenarios(
 
 
 @app.callback(
-    Output("chart", "figure"),
-    Output("chart_loading", "style"),
+    Output("rev_chart", "figure"),
+    Output("rev_chart_loading", "style"),
     Input("map_signal", "children"),
-    Input("chart_options", "value"),
+    Input("rev_chart_options", "value"),
     Input("rev_map", "selectedData"),
-    Input("chart_point_size", "value"),
+    Input("rev_chart_point_size", "value"),
     Input("chosen_map_options", "children"),
-    Input("chart_region", "value"),
+    Input("rev_chart_region", "value"),
     Input("rev_map_color_min", "value"),
     Input("rev_map_color_max", "value"),
-    Input("chart_x_bin", "value"),
-    Input("chart_alpha", "value"),
-    State("chart", "selectedData"),
+    Input("rev_chart_x_bin", "value"),
+    Input("rev_chart_alpha", "value"),
+    State("rev_chart", "selectedData"),
     State("project", "value"),
-    State("chart", "relayoutData"),
+    State("rev_chart", "relayoutData"),
     State("map_function", "value"),
 )
 @calls.log
@@ -608,7 +609,7 @@ def figure_chart(
     region,
     user_ymin,
     user_ymax,
-    bin_size,
+    bins,
     alpha,
     chart_selection,
     project,
@@ -678,26 +679,26 @@ def figure_chart(
     elif chart == "scatter":
         fig = plotter.scatter(x, y)
     elif chart == "binned":
-        fig = plotter.binned(x, y, bin_size=bin_size)
+        fig = plotter.binned(x, y, bins=bins)
     elif chart == "histogram":
-        fig = plotter.histogram(y)
+        fig = plotter.histogram(y, bins=bins)
     elif chart == "char_histogram":
         fig = plotter.char_hist(x)
     elif chart == "box":
         fig = plotter.box(y)
 
-    return fig, {"float": "right"}
+    return fig, {"margin-right": "500px"}
 
 
 @app.callback(
     Output("rev_map", "figure"),
     Output("rev_mapcap", "children"),
     Output("rev_map", "clickData"),
-    Output("map_loading", "style"),
+    Output("rev_map_loading", "style"),
     Input("map_signal", "children"),
     Input("rev_map_basemap_options", "value"),
     Input("rev_map_color_options", "value"),
-    Input("chart", "selectedData"),
+    Input("rev_chart", "selectedData"),
     Input("rev_map_point_size", "value"),
     Input("rev_map_rev_color", "n_clicks"),
     Input("rev_map_color_min", "value"),
@@ -766,7 +767,7 @@ def figure_map(
     )
     mapcap = df[["sc_point_gid", "print_capacity"]].to_dict()
 
-    return figure, json.dumps(mapcap), None, {"float": "left"}
+    return figure, json.dumps(mapcap), None, {"margin-right": "500px"}
 
 
 # @app.callback(
@@ -986,9 +987,9 @@ def figure_map(
 
 
 @app.callback(
-    Output("chart_data_signal", "children"),
+    Output("rev_chart_data_signal", "children"),
     Input("variable", "value"),
-    Input("chart_x_var_options", "value"),
+    Input("rev_chart_x_var_options", "value"),
     Input("rev_map_state_options", "value"),
 )
 @calls.log
@@ -1032,9 +1033,9 @@ def retrieve_filters(submit, var1, var2, var3, var4, q1, q2, q3, q4):
     Input("submit", "n_clicks"),
     Input("rev_map_state_options", "value"),
     Input("rev_map_region_options", "value"),
-    Input("chart_options", "value"),
-    Input("chart_x_var_options", "value"),
-    Input("additional_scenarios", "value"),
+    Input("rev_chart_options", "value"),
+    Input("rev_chart_x_var_options", "value"),
+    Input("rev_additional_scenarios", "value"),
     Input("filter_store", "children"),
     Input("pca_plot_1", "clickData"),
     Input("pca_plot_2", "clickData"),
@@ -1281,13 +1282,13 @@ def set_minimizing_variable_options(project, minimizing_scenarios_style):
 
 
 @app.callback(
-    Output("chart_options_tab", "children"),
-    Output("chart_options_div", "style"),
-    Output("chart_x_variable_options_div", "style"),
-    Output("chart_region_div", "style"),
-    Output("additional_scenarios_div", "style"),
-    Input("chart_options_tab", "value"),
-    Input("chart_options", "value"),
+    Output("rev_chart_options_tab", "children"),
+    Output("rev_chart_options_div", "style"),
+    Output("rev_chart_x_variable_options_div", "style"),
+    Output("rev_chart_region_div", "style"),
+    Output("rev_additional_scenarios_div", "style"),
+    Input("rev_chart_options_tab", "value"),
+    Input("rev_chart_options", "value"),
 )
 def tabs_chart(tab_choice, chart_choice):
     """Choose which chart tabs to display."""
@@ -1299,16 +1300,40 @@ def tabs_chart(tab_choice, chart_choice):
 
 
 @app.callback(
-    Output("chart_x_bin_div", "style"), Input("chart_options", "value")
+    Output("rev_chart_x_bin_div", "style"),
+    Input("rev_chart_options", "value")
 )
 @calls.log
 def toggle_bins(chart_type):
     """Show the bin size option under the chart."""
-
     style = {"display": "none"}
-    if chart_type == "binned":
-        style = {"margin-left": "10px"}
+    if chart_type == "binned" or chart_type == "histogram":
+        style = {}
     return style
+
+
+@app.callback(
+    Output("rev_chart_below_options", "is_open"),
+    Input("rev_chart_below_options_button", "n_clicks"),
+    State("rev_chart_below_options", "is_open"),
+)
+@calls.log
+def toggle_rev_chart_below_options(n, is_open):
+    if n:
+        return not is_open
+    return is_open
+
+
+@app.callback(
+    Output("rev_map_below_options", "is_open"),
+    Input("rev_map_below_options_button", "n_clicks"),
+    State("rev_map_below_options", "is_open"),
+)
+@calls.log
+def toggle_rev_map_below_options(n, is_open):
+    if n:
+        return not is_open
+    return is_open
 
 
 @app.callback(
@@ -1317,31 +1342,34 @@ def toggle_bins(chart_type):
     Output("pca_scenarios", "style"),
     Output("scenario_selection_tabs", "style"),
     Output("toggle_options", "children"),
-    Output("toggle_options", "style"),
+    Output("options_label", "style"),
+    Output("options_div", "is_open"),
     Input("toggle_options", "n_clicks"),
     Input("scenario_selection_tabs", "value"),
+    State("options", "is_open")
 )
 @calls.log
-def toggle_options(click, selection_ind):
+def toggle_options(click, selection_ind, is_open):
     """Toggle options on/off."""
-
+    options_label = {
+        "float": "left",
+        "margin-left": "20px",
+        "margin-bottom": "-25px"
+    }
     scenario_styles = [{"display": "none"} for _ in range(3)]
     tabs_style = {"display": "none"}
-    button_children = "Options: Off"
-    button_style = BUTTON_STYLES["off"]
-
+    button_children = "Show"
+    scenario_styles[int(selection_ind)] = {"margin-bottom": "1px"}
+    tabs_style = {
+        "height": "5vh"
+    }
     click = click or 0
     if click % 2 == 1:
-        scenario_styles[int(selection_ind)] = {"margin-bottom": "50px"}
-        tabs_style = {
-            "width": "92%",
-            "margin-left": "53px",
-            "margin-right": "10px",
-        }
-        button_children = "Options: On"
-        button_style = BUTTON_STYLES["on"]
+        options_label = {"display": "none"}
+        button_children = "Hide"
+        is_open = not is_open
 
-    return *scenario_styles, tabs_style, button_children, button_style
+    return *scenario_styles, tabs_style, button_children, options_label, is_open
 
 
 @app.callback(

@@ -35,7 +35,6 @@ class Plots:
     """Class for handling grouped plots."""
 
     GROUP = "Scenarios"
-    DEFAULT_N_BINS = 20
 
     def __init__(
         self,
@@ -181,7 +180,7 @@ class Plots:
 
         return self._update_fig_layout(fig, y)
 
-    def binned(self, x, y, bin_size):
+    def binned(self, x, y, bins=100):
         """Return a line plot."""
         # The clustered scatter plot part
         main_df = None
@@ -196,10 +195,22 @@ class Plots:
                 df = df.sort_values(x)
                 main_df = pd.concat([main_df, df])
 
-        main_df["xbin"] = self.assign_bins(main_df[x], bin_size=bin_size)
+        # Assign bins as max bin value
+        main_df = main_df.dropna(subset=x)
+        main_df = main_df.sort_values(x)
+        minx, maxx = main_df[x].min(), main_df[x].max()
+        xrange = maxx - minx
+        bin_size = np.ceil(xrange / bins)
+        bins = np.arange(minx, maxx + bin_size, bin_size)
+
+        main_df["xbin"] = bins[-1]
+        for bn in bins[::-1]:
+            print(bn)
+            main_df["xbin"][main_df[x] <= bn] = bn
+
         main_df["ybin"] = main_df.groupby(["xbin", self.GROUP])[y].transform(
-            "mean"
-        )
+                                "mean"
+                          )
 
         # The simpler line plot part
         main_df = main_df.sort_values([x, self.GROUP])
@@ -281,7 +292,7 @@ class Plots:
 
         return self._update_fig_layout(fig, y)
 
-    def histogram(self, y):
+    def histogram(self, y, bins=100):
         """Return a histogram."""
         main_df = None
         for key, df in self.datasets.items():
@@ -296,19 +307,15 @@ class Plots:
         y_title = self._axis_title(y)
         main_df = main_df.sort_values(self.GROUP)
 
-        # Use preset scales for the x axis and max count for y axis
-        # limx = list(self.scales[y].values())
-
         fig = px.histogram(
             main_df,
             x=y,
-            # range_x=limx,
-            range_y=[0, 4000],
             labels={y: y_title},
             color=self.GROUP,
             opacity=self.alpha,
             color_discrete_sequence=px.colors.qualitative.Safe,
             barmode="overlay",
+            nbins=bins
         )
 
         fig.update_traces(
@@ -404,87 +411,6 @@ class Plots:
         )
 
         return self._update_fig_layout(fig, y)
-
-    def bin_boundaries(self, values, bin_size=None):
-        """Calculate the bin edges given input values and a bin size.
-
-        Parameters
-        ----------
-        values : `array_like`
-            Input values that will be split into bins. Used to calculate
-            the min and max value for bin edges.
-        bin_size : float, optional
-            Desired width of bins. Can be `None`, which uses the
-            `DEFAULT_N_BINS` values set at the class level. If negative,
-            will be converted to a positive value.  By default, `None`.
-
-        Returns
-        -------
-        np.array
-            1D array of bin edges. The values start at
-            `min(values) - bin_size` and go up to
-            `max(values) + bin_size` (inclusive).
-
-        Examples
-        --------
-        >>> plotter = Plot(...)
-        >>> plotter.bin_boundaries(range(60), bin_size=10)
-        array([-10,  0,  10,  20,  30,  40,  50,  60,  70])
-
-        >>> assert plotter.DEFAULT_N_BINS == 20
-        >>> plotter.bin_boundaries(range(61), bin_size=None)
-        array([-3.,  0.,  3.,  6.,  9., 12., ..., 57., 60., 63.])
-        """
-        min_value, max_value = min(values), max(values)
-        max_range = max_value - min_value
-        if bin_size is None or abs(bin_size) > max_range:
-            bin_size = max_range / self.DEFAULT_N_BINS
-        else:
-            bin_size = abs(bin_size)
-        return np.arange(
-            min_value - bin_size, max_value + 2 * bin_size, bin_size
-        )
-
-    def assign_bins(self, values, bin_size=None, right=False):
-        """Assign bins to inputs.
-
-        This function assigns a `bin` value to each input. The bin value
-        represents the left edge of the bin if `right=False`, otherwise
-        it represents the right edge of the bin. The edges of the bins
-        are determined using the min and max values of the input as
-        well as the `bin_size`.
-
-        Parameters
-        ----------
-        values : `array_like`
-            Input values that will be split into bins. Used to calculate
-            the min and max value for bin edges. The output assigns a
-            bin to each of these values.
-        bin_size : float, optional
-            Desired width of bins. Can be `None`, which uses the
-            `DEFAULT_N_BINS` values set at the class level. If negative,
-            will be converted to a positive value.  By default, `None`.
-        right : bool, optional
-            Option to use the right edges of the bin as the label.
-            By default, `False`.
-
-        Returns
-        -------
-        `array_like`
-            An array of bin labels for the input.
-
-        Examples
-        --------
-        >>> plotter = Plot(...)
-        >>> plotter.assign_bins(range(6), bin_size=1, right=False)
-        array([1, 2, 3, 4, 5, 6])
-
-        >>> plotter.assign_bins(range(6), bin_size=1, right=True)
-        array([0, 1, 2, 3, 4, 5])
-        """
-        bin_boundaries = self.bin_boundaries(values, bin_size)
-        bin_indices = np.digitize(values, bins=bin_boundaries, right=right)
-        return bin_boundaries[bin_indices]
 
     def _fix_doubles(self, df):
         """Check and or fix columns names when they match."""

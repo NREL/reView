@@ -27,6 +27,9 @@ MAP_LAYOUT = dict(
     paper_bgcolor="#1663B5",
     plot_bgcolor="#083C04",
     titlefont=dict(color="white", size=18, family="Time New Roman"),
+    # paper_bgcolor="white",
+    # plot_bgcolor="white",
+    # titlefont=dict(color="black", size=18, family="Time New Roman"),
     title=dict(
         yref="container",
         x=0.05,
@@ -41,9 +44,146 @@ MAP_LAYOUT = dict(
         ),
         style="satellite-streets",
         center=dict(lon=-97.5, lat=39.5),
-        zoom=3.25,
+        zoom=2.75,
     ),
 )
+
+
+def build_title(df, signal_dict, map_selection=None, chart_selection=None):
+    """Create chart title."""
+    # Unpack signal
+    path = signal_dict["path"]
+    path2 = signal_dict["path2"]
+
+    # Project configuration object
+    config = Config(signal_dict["project"])
+
+    recalc = signal_dict["recalc"]
+    y = signal_dict["y"]
+    y_no_diff_suffix = DiffUnitOptions.remove_from_variable_name(y)
+    diff = DiffUnitOptions.from_variable_name(y) is not None
+    is_percentage_diff = (
+        DiffUnitOptions.from_variable_name(y) == DiffUnitOptions.PERCENTAGE
+    )
+    if diff and is_percentage_diff:
+        units = "%"
+    else:
+        units = config.units.get(y_no_diff_suffix, "")
+
+    if recalc == "off":
+        recalc_table = None
+    else:
+        recalc_table = signal_dict["recalc_table"]
+
+    # Infer scenario name from path
+    s1 = build_name(path)
+
+    # User specified FCR?
+    if recalc_table and "least" not in s1.lower():
+        msgs = []
+        for k, v in recalc_table["scenario_a"].items():
+            if v:
+                msgs.append(f"{k}: {v}")
+        if msgs:
+            reprint = ", ".join(msgs)
+            s1 += f" ({reprint})"
+
+    # Least Cost
+    if "least" in s1.lower():
+        s1 = infer_recalc(s1)
+
+    # Append variable title
+    title = "<br>".join(
+        [s1, config.titles.get(y_no_diff_suffix, convert_to_title(y))]
+    )
+
+    # Add variable aggregation value
+    if y_no_diff_suffix in AGGREGATIONS:
+        ag_fun = AGGREGATIONS[y_no_diff_suffix]
+        if ag_fun == "mean":
+            conditioner = "Average"
+        else:
+            conditioner = "Total"
+    else:
+        ag_fun = "mean"
+        conditioner = "Average"
+        # ag_fun = "sum"
+        # conditioner = "Sum"
+
+    # Difference title
+    if diff:
+        s2 = os.path.basename(path2).replace("_sc.csv", "")
+        s2 = " ".join([s.capitalize() for s in s2.split("_")])
+        if recalc_table:
+            msgs = []
+            for k, v in recalc_table["scenario_b"].items():
+                if v:
+                    msgs.append(f"{k}: {v}")
+            if msgs:
+                reprint = ", ".join(msgs)
+                s2 += f" ({reprint})"
+
+        title = "{} vs. <br>{}<br>".format(s1, s2) + config.titles.get(
+            y_no_diff_suffix, convert_to_title(y)
+        )
+        conditioner = f"{units} Difference | Average"
+        punits = ""
+
+    is_df = isinstance(df, pd.core.frame.DataFrame)
+    y_exists = y_no_diff_suffix and y_no_diff_suffix.lower() != "none"
+    not_category = units != "category"
+
+    # Map title (not chart)
+    if is_df and y_exists and not_category:
+        if y_no_diff_suffix == "capacity" and units != "%":
+            ag = round(df[y].apply(ag_fun) / 1_000_000, 4)
+            punits = ["TW"]
+            conditioner = conditioner.replace("Average", "Total")
+        else:
+            ag = round(df[y].apply(ag_fun), 2)
+
+            if diff:
+                punits = []
+            else:
+                punits = [config.units.get(y_no_diff_suffix, "")]
+        ag_print = ["  |  {}: {:,}".format(conditioner, ag)]
+        title = " ".join([title] + ag_print + punits)
+        if "hydrogen_annual_kg" in df:
+            ag = round(df["hydrogen_annual_kg"].sum(), 2)
+            ag_print = ["  |  {}: {:,}".format("Total H2", ag)]
+            title = " ".join([title] + ag_print)
+
+    if map_selection:
+        map_selection_print = "Selected point count: {:,}".format(
+            len(map_selection["points"])
+        )
+        title = "  |  ".join([title, map_selection_print])
+
+    if chart_selection:
+        chart_selection_print = "Selected point count: {:,}".format(
+            len(chart_selection["points"])
+        )
+        title = "<br>".join([title, chart_selection_print])
+
+    return title
+
+
+def infer_recalc(title):
+    """Quick title fix for recalc least cost paths."""
+    variables = ["fcr", "capex", "opex", "losses"]
+    if "least" in title.lower():
+        title = " ".join(title.split(" ")[:-1])
+        if any([v in title for v in variables]):
+            title = title.replace("-", ".")
+            first_part = title.split("  ")[0]
+            recalc_part = title.split("  ")[1]
+            new_part = []
+            for part in recalc_part.split():
+                letters = "".join([c for c in part if c.isalpha()])
+                numbers = part.replace(letters, "")
+                new_part.append(letters + ": " + numbers)
+            title = first_part + " (" + ", ".join(new_part) + ")"
+    return title
 
 
 class Map:
@@ -276,11 +416,9 @@ class Map:
 class ColorRange:
     """Helper class to represent the color range."""
 
-    def __init__(
-        self, df, color_var, project=None, color_min=None, color_max=None
-    ):
+    def __init__(self, df, color_var, project=None, color_min=None,
+                 color_max=None):
         """Initialize ColorRange object."""
-
         self.df = df
         self.color_var = color_var
         if project:
@@ -308,141 +446,3 @@ class ColorRange:
             return self.df[self.color_var].max()
 
         return self._color_max
-
-
-def build_title(df, signal_dict, map_selection=None, chart_selection=None):
-    """Create chart title."""
-    # Unpack signal
-    path = signal_dict["path"]
-    path2 = signal_dict["path2"]
-
-    # Project configuration object
-    config = Config(signal_dict["project"])
-
-    recalc = signal_dict["recalc"]
-    y = signal_dict["y"]
-    y_no_diff_suffix = DiffUnitOptions.remove_from_variable_name(y)
-    diff = DiffUnitOptions.from_variable_name(y) is not None
-    is_percentage_diff = (
-        DiffUnitOptions.from_variable_name(y) == DiffUnitOptions.PERCENTAGE
-    )
-    if diff and is_percentage_diff:
-        units = "%"
-    else:
-        units = config.units.get(y_no_diff_suffix, "")
-
-    if recalc == "off":
-        recalc_table = None
-    else:
-        recalc_table = signal_dict["recalc_table"]
-
-    # Infer scenario name from path
-    s1 = build_name(path)
-
-    # User specified FCR?
-    if recalc_table and "least" not in s1.lower():
-        msgs = []
-        for k, v in recalc_table["scenario_a"].items():
-            if v:
-                msgs.append(f"{k}: {v}")
-        if msgs:
-            reprint = ", ".join(msgs)
-            s1 += f" ({reprint})"
-
-    # Least Cost
-    if "least" in s1.lower():
-        s1 = infer_recalc(s1)
-
-    # Append variable title
-    title = "<br>".join(
-        [s1, config.titles.get(y_no_diff_suffix, convert_to_title(y))]
-    )
-
-    # Add variable aggregation value
-    if y_no_diff_suffix in AGGREGATIONS:
-        ag_fun = AGGREGATIONS[y_no_diff_suffix]
-        if ag_fun == "mean":
-            conditioner = "Average"
-        else:
-            conditioner = "Total"
-    else:
-        ag_fun = "mean"
-        conditioner = "Average"
-        # ag_fun = "sum"
-        # conditioner = "Sum"
-
-    # Difference title
-    if diff:
-        s2 = os.path.basename(path2).replace("_sc.csv", "")
-        s2 = " ".join([s.capitalize() for s in s2.split("_")])
-        if recalc_table:
-            msgs = []
-            for k, v in recalc_table["scenario_b"].items():
-                if v:
-                    msgs.append(f"{k}: {v}")
-            if msgs:
-                reprint = ", ".join(msgs)
-                s2 += f" ({reprint})"
-
-        title = "{} vs. <br>{}<br>".format(s1, s2) + config.titles.get(
-            y_no_diff_suffix, convert_to_title(y)
-        )
-        conditioner = f"{units} Difference | Average"
-        punits = ""
-
-    is_df = isinstance(df, pd.core.frame.DataFrame)
-    y_exists = y_no_diff_suffix and y_no_diff_suffix.lower() != "none"
-    not_category = units != "category"
-
-    # Map title (not chart)
-    if is_df and y_exists and not_category:
-        if y_no_diff_suffix == "capacity" and units != "%":
-            ag = round(df[y].apply(ag_fun) / 1_000_000, 4)
-            punits = ["TW"]
-            conditioner = conditioner.replace("Average", "Total")
-        else:
-            ag = round(df[y].apply(ag_fun), 2)
-
-            if diff:
-                punits = []
-            else:
-                punits = [config.units.get(y_no_diff_suffix, "")]
-        ag_print = ["  |  {}: {:,}".format(conditioner, ag)]
-        title = " ".join([title] + ag_print + punits)
-        if "hydrogen_annual_kg" in df:
-            ag = round(df["hydrogen_annual_kg"].sum(), 2)
-            ag_print = ["  |  {}: {:,}".format("Total H2", ag)]
-            title = " ".join([title] + ag_print)
-
-    if map_selection:
-        map_selection_print = "Selected point count: {:,}".format(
-            len(map_selection["points"])
-        )
-        title = "  |  ".join([title, map_selection_print])
-
-    if chart_selection:
-        chart_selection_print = "Selected point count: {:,}".format(
-            len(chart_selection["points"])
-        )
-        title = "<br>".join([title, chart_selection_print])
-
-    return title
-
-
-# should do something more rigorous than this
-def infer_recalc(title):
-    """Quick title fix for recalc least cost paths."""
-    variables = ["fcr", "capex", "opex", "losses"]
-    if "least" in title.lower():
-        title = " ".join(title.split(" ")[:-1])
-        if any([v in title for v in variables]):
-            title = title.replace("-", ".")
-            first_part = title.split("  ")[0]
-            recalc_part = title.split("  ")[1]
-            new_part = []
-            for part in recalc_part.split():
-                letters = "".join([c for c in part if c.isalpha()])
-                numbers = part.replace(letters, "")
-                new_part.append(letters + ": " + numbers)
-            title = first_part + " (" + ", ".join(new_part) + ")"
-    return title
