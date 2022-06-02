@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=unused-import
+# pylint: skip-file
 """Transition reView project index file."""
-import reView.pages.scenario.controller.callbacks
 import reView.pages.reeds.controller.callbacks
+import reView.pages.scenario.controller.callbacks
 
 from reView.app import app, server
 from reView.environment.settings import (
@@ -20,7 +20,7 @@ def main():
     """Run reView."""
     init_logger(level=LOG_LEVEL)
     log_versions()
-    app.run_server(host=APP_HOST, port=APP_PORT, debug=False)
+    app.run_server(host=APP_HOST, port=APP_PORT, debug=True)
 
 
 if __name__ == "__main__":

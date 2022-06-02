@@ -16,7 +16,6 @@ from reView.app import app
 
 from reView.components.callbacks import (
     capacity_print,
-    toggle_reverse_color_button_style,
     display_selected_tab_above_map,
 )
 from reView.components.map import Map
@@ -26,7 +25,6 @@ from reView.utils import calls
 logger = logging.getLogger(__name__)
 COMMON_CALLBACKS = [
     capacity_print(id_prefix="reeds"),
-    # toggle_reverse_color_button_style(id_prefix="reeds"),
     display_selected_tab_above_map(id_prefix="reeds"),
 ]
 

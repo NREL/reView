@@ -307,13 +307,9 @@ class Plots:
         y_title = self._axis_title(y)
         main_df = main_df.sort_values(self.GROUP)
 
-        # Use preset scales for the x axis and max count for y axis
-        # limx = list(self.scales[y].values())
-
         fig = px.histogram(
             main_df,
             x=y,
-            range_y=[0, 40000],
             labels={y: y_title},
             color=self.GROUP,
             opacity=self.alpha,

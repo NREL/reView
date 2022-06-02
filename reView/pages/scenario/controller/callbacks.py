@@ -25,7 +25,7 @@ from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 
 from reView.app import app
-from reView.layout.styles import BUTTON_STYLES, TABLET_STYLE
+from reView.layout.styles import TABLET_STYLE
 from reView.layout.options import (
     CHART_OPTIONS,
     COLOR_OPTIONS,
@@ -37,7 +37,6 @@ from reView.components.callbacks import (
 )
 from reView.components.logic import tab_styles
 from reView.components.map import Map, build_title
-from reView.layout.styles import OPTION_TITLE_STYLE
 from reView.pages.scenario.controller.element_builders import Plots
 from reView.pages.scenario.controller.selection import (
     all_files_from_selection,
@@ -150,7 +149,7 @@ def options_chart_type(project):
 def scenario_dropdowns(groups, class_names=None):
     """Return list of dropdown options for a project's file selection."""
     dropdowns = []
-    class_names = class_names or ["six columns"]
+    class_names = class_names or ["five columns"]
     colors = ["#b4c9e0", "#e3effc"]
 
     for ind, (group, options) in enumerate(groups.items()):
@@ -159,7 +158,9 @@ def scenario_dropdowns(groups, class_names=None):
         dropdown = html.Div(
             [
                 html.Div(
-                    [html.P(group)],
+                    [
+                        html.P(group)
+                    ],
                     className=class_names[0],
                 ),
                 html.Div(
@@ -167,21 +168,21 @@ def scenario_dropdowns(groups, class_names=None):
                         dcc.Dropdown(
                             options=options,
                             value=options[0]["value"],
-                            optionHeight=75,
+                            optionHeight=75
                         )
                     ],
                     className=class_names[-1],
+                    style={"margin-left": "15px"}
                 ),
             ],
+            style={"background-color": color, "border-radius": "5px"},
             className="row",
-            style={"background-color": color},
         )
 
         dropdowns.append(dropdown)
 
     drop_div = html.Div(
         children=dropdowns,
-        style={"border": "4px solid #1663b5", "padding": "2px"},
     )
 
     return drop_div
@@ -685,7 +686,7 @@ def figure_chart(
     elif chart == "box":
         fig = plotter.box(y)
 
-    return fig, {"float": "right"}
+    return fig, {"margin-right": "500px"}
 
 
 @app.callback(
@@ -765,7 +766,7 @@ def figure_map(
     )
     mapcap = df[["sc_point_gid", "print_capacity"]].to_dict()
 
-    return figure, json.dumps(mapcap), None, {"float": "left"}
+    return figure, json.dumps(mapcap), None, {"margin-right": "500px"}
 
 
 # @app.callback(
@@ -1340,7 +1341,6 @@ def toggle_rev_map_below_options(n, is_open):
     Output("pca_scenarios", "style"),
     Output("scenario_selection_tabs", "style"),
     Output("toggle_options", "children"),
-    Output("toggle_options", "style"),
     Input("toggle_options", "n_clicks"),
     Input("scenario_selection_tabs", "value"),
 )
@@ -1350,21 +1350,17 @@ def toggle_options(click, selection_ind):
 
     scenario_styles = [{"display": "none"} for _ in range(3)]
     tabs_style = {"display": "none"}
-    button_children = "Options: Off"
-    button_style = BUTTON_STYLES["off"]
+    button_children = "Show Options"
 
     click = click or 0
     if click % 2 == 1:
-        scenario_styles[int(selection_ind)] = {"margin-bottom": "-1px"}
+        scenario_styles[int(selection_ind)] = {"margin-bottom": "1px"}
         tabs_style = {
-            "width": "92%",
-            "margin-left": "53px",
-            "margin-right": "10px",
+            "height": "5vh"
         }
-        button_children = "Options: On"
-        button_style = BUTTON_STYLES["on"]
+        button_children = "Hide Options"
 
-    return *scenario_styles, tabs_style, button_children, button_style
+    return *scenario_styles, tabs_style, button_children
 
 
 @app.callback(

@@ -174,6 +174,10 @@ def map_div(id_prefix, class_name=None):
                 id_prefix=id_prefix
             ),
 
+            dcc.Loading(
+                id="rev_map_loading",
+                style={"margin-right": "500px"},
+            ),
             dcc.Graph(
                 id=f"{id_prefix}_map",
                 style={"height": 750},
@@ -224,7 +228,6 @@ def map_div(id_prefix, class_name=None):
                 id_prefix=id_prefix,
                 class_name="twelve columns"
             ),
-
         ],
         className=class_name,
         style={

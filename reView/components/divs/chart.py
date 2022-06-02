@@ -158,6 +158,10 @@ def chart_div(id_prefix, class_name=None):
             above_chart_options_div(
                 id_prefix=id_prefix
             ),
+            dcc.Loading(
+                id="rev_chart_loading",
+                style={"margin-right": "500px"},
+            ),
             dcc.Graph(
                 id=f"{id_prefix}_chart",
                 style={"height": 750},

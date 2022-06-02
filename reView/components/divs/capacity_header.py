@@ -30,36 +30,36 @@ def capacity_header(id_prefix, style={}, class_name=None):
         sites.
     """
     # Print total capacity after all the filters are applied
-    return html.Div(
-               [
-                    html.Div(
-                        [
-                            html.H5("Remaining Generation Capacity: "),
-                            dcc.Loading(
-                                children=[
-                                    html.H1(id=f"{id_prefix}_capacity_print",
-                                            children=""),
-                                ],
-                                type="circle",
-                            ),
-                        ],
-                        className=class_name,
-                    ),
-            
-                    # Print total capacity after all the filters are applied
-                    html.Div(
-                        [
-                            html.H5("Number of Sites: "),
-                            dcc.Loading(
-                                children=[
-                                    html.H1(id=f"{id_prefix}_site_print",
-                                            children=""),
-                                ],
-                                type="circle",
-                            ),
-                        ],
-                        className=class_name,
-                    )
-                ],
-                style=style
-            )
+    return html.Div(        
+           children=[
+                html.Div(
+                    [
+                        html.H5("Remaining Generation Capacity: "),
+                        dcc.Loading(
+                            children=[
+                                html.H1(id=f"{id_prefix}_capacity_print",
+                                        children=""),
+                            ],
+                            type="circle",
+                        ),
+                    ],
+                    className=class_name,
+                ),
+        
+                # Print total capacity after all the filters are applied
+                html.Div(
+                    [
+                        html.H5("Number of Sites: "),
+                        dcc.Loading(
+                            children=[
+                                html.H1(id=f"{id_prefix}_site_print",
+                                        children=""),
+                            ],
+                            type="circle",
+                        ),
+                    ],
+                    className=class_name,
+                )
+            ],
+            style=style
+        )
