@@ -6,7 +6,6 @@ import logging
 from pathlib import Path
 
 import numpy as np
-import pandas as pd
 import dash
 
 from reView import REVIEW_CONFIG_DIR, REVIEW_DATA_DIR, UNITS
@@ -409,48 +408,3 @@ def callback_trigger():
         trigger = "Unknown"
 
     return trigger
-
-
-def format_capacity_title(
-    map_capacity, map_selection=None, capacity_col_name="print_capacity"
-):
-    """Calculate total remaining capacity after all filters are applied.
-
-    Parameters
-    ----------
-    map_capacity : str
-        Serialized dictionary containing data. This input will be loaded
-        as a pandas DataFrame and used to calculate capacity.
-    map_selection : dict, optional
-        Dictionary with a "points" key containing a list of the selected
-        points, which have a `customdata` with gid values attached. By
-        default, `None`.
-    capacity_col_name : str, optional
-        Name of column containing capacity values. By default,
-        "print_capacity".
-
-    Returns
-    -------
-    str
-        Total capacity, formatted as a string.
-    str
-        Number of selected sites, formatted as a string.
-    """
-
-    if not map_capacity:
-        return "--", "--"
-
-    df = pd.DataFrame(json.loads(map_capacity))
-    if df.empty:
-        return "--", "--"
-
-    if map_selection:
-        gids = [
-            p.get("customdata", [None])[0] for p in map_selection["points"]
-        ]
-        df = df[df["sc_point_gid"].isin(gids)]
-
-    total_capacity = df[capacity_col_name].sum() * UNITS.MW
-    capacity = f"{total_capacity.to_compact():~H.4f}"
-    num_sites = f"{df.shape[0]:,}"
-    return capacity, num_sites
