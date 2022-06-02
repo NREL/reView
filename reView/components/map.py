@@ -294,7 +294,7 @@ class ColorRange:
 
 def build_title(
     df,
-    y,
+    var,
     project,
     map_selection=None,
     delimiter="  |  ",
@@ -302,31 +302,31 @@ def build_title(
     """Create chart title."""
     # Project configuration object
     config = Config(project)
-    y_no_diff_suffix = DiffUnitOptions.remove_from_variable_name(y)
-    diff = DiffUnitOptions.from_variable_name(y) is not None
+    var_no_diff_suffix = DiffUnitOptions.remove_from_variable_name(var)
+    diff = DiffUnitOptions.from_variable_name(var) is not None
     is_percentage_diff = (
-        DiffUnitOptions.from_variable_name(y) == DiffUnitOptions.PERCENTAGE
+        DiffUnitOptions.from_variable_name(var) == DiffUnitOptions.PERCENTAGE
     )
     if diff and is_percentage_diff:
         units = "percent"
     else:
-        units = config.units.get(y_no_diff_suffix, "")
+        units = config.units.get(var_no_diff_suffix, "")
 
     # Append variable title
-    title = config.titles.get(y_no_diff_suffix, convert_to_title(y))
+    title = config.titles.get(var_no_diff_suffix, convert_to_title(var))
 
     # Difference title
     if diff:
         title = delimiter.join([title, "Difference"])
 
     is_df = isinstance(df, pd.core.frame.DataFrame)
-    y_exists = y_no_diff_suffix and y_no_diff_suffix.lower() != "none"
+    var_exists = var_no_diff_suffix and var_no_diff_suffix.lower() != "none"
     not_category = units != "category"
 
     # Map title (not chart)
-    if is_df and y_exists and not_category:
+    if is_df and var_exists and not_category:
 
-        average = Q_(df[y].apply("mean"), units)
+        average = Q_(df[var].apply("mean"), units)
         if units != "percent":
             average = average.to_compact()
 
@@ -334,8 +334,8 @@ def build_title(
 
         # we can make this more general by
         # allowing user input about this in config
-        if "capacity" in y_no_diff_suffix and units != "percent":
-            capacity = (df[y].apply("sum") * UNITS.MW).to_compact()
+        if "capacity" in var_no_diff_suffix and units != "percent":
+            capacity = (df[var].apply("sum") * UNITS.MW).to_compact()
             extra = delimiter.join([extra, f"Total: {capacity:~H.2f}"])
 
         if "hydrogen_annual_kg" in df and not diff:
