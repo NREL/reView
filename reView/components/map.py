@@ -292,13 +292,7 @@ class ColorRange:
         return self._color_max
 
 
-def build_title(
-    df,
-    var,
-    project,
-    map_selection=None,
-    delimiter="  |  ",
-):
+def build_title(df, var, project, map_selection=None, delimiter="  |  "):
     """Create chart title."""
     # Project configuration object
     config = Config(project)
