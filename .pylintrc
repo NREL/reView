@@ -154,7 +154,8 @@ function-naming-style=snake_case
 # Good variable names which should always be accepted, separated by a comma
 good-names=_,
            __,
-           df
+           df,
+           reView
 
 # Include a hint for the correct naming format with invalid-name
 include-naming-hint=yes
@@ -320,10 +321,15 @@ ignored-classes=optparse.Values,thread._local,_thread._local
 # (useful for modules/projects where namespaces are manipulated during runtime
 # and thus existing member attributes cannot be deduced by static analysis. It
 # supports qualified module names, as well as Unix pattern matching.
-ignored-modules=dash,
+ignored-modules=addfips,
+                dash,
                 flask,
                 numpy,
                 pandas,
+                pint,
+                plotly.colors,
+                plotly.express,
+                plotly.graph_objects,
                 sklearn.neighbors,
                 sklearn.metrics,
                 tqdm,

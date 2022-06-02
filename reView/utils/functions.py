@@ -8,7 +8,7 @@ from pathlib import Path
 import numpy as np
 import dash
 
-from reView import REVIEW_CONFIG_DIR, REVIEW_DATA_DIR, UNITS
+from reView import REVIEW_CONFIG_DIR, REVIEW_DATA_DIR
 
 logger = logging.getLogger(__name__)
 
