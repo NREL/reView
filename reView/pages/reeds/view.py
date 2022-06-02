@@ -5,16 +5,12 @@ Created on Tue Jul  6 15:23:09 2021
 
 @author: twillia2
 """
-import dash_bootstrap_components as dbc
-
 from dash import dcc, html
 
 from reView.utils.functions import data_paths
 from reView.components import (
     capacity_header,
-    above_map_options_div,
-    map_div,
-    below_map_options_div,
+    map_div
 )
 
 
@@ -81,11 +77,8 @@ layout = html.Div(
                 )
             ],
             className="nine columns",
-            style={"text-align": "center", "margin-bottom": "55px"},
+            style={"text-align": "center", "margin-bottom": "50px"},
         ),
-
-        # Above Map Options
-        above_map_options_div(id_prefix="reeds", class_name="nine columns"),
 
         # The map
         map_div(id_prefix="reeds", class_name="nine columns"),

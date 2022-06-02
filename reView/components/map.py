@@ -27,6 +27,9 @@ MAP_LAYOUT = dict(
     paper_bgcolor="#1663B5",
     plot_bgcolor="#083C04",
     titlefont=dict(color="white", size=18, family="Time New Roman"),
+    # paper_bgcolor="white",
+    # plot_bgcolor="white",
+    # titlefont=dict(color="black", size=18, family="Time New Roman"),
     title=dict(
         yref="container",
         x=0.05,

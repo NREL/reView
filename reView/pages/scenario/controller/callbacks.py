@@ -33,11 +33,11 @@ from reView.layout.options import (
 )
 from reView.components.callbacks import (
     capacity_print,
-    toggle_reverse_color_button_style,
     display_selected_tab_above_map,
 )
 from reView.components.logic import tab_styles
 from reView.components.map import Map, build_title
+from reView.layout.styles import OPTION_TITLE_STYLE
 from reView.pages.scenario.controller.element_builders import Plots
 from reView.pages.scenario.controller.selection import (
     all_files_from_selection,
@@ -61,7 +61,6 @@ from reView.utils import calls
 logger = logging.getLogger(__name__)
 COMMON_CALLBACKS = [
     capacity_print(id_prefix="rev"),
-    toggle_reverse_color_button_style(id_prefix="rev"),
     display_selected_tab_above_map(id_prefix="rev"),
 ]
 
@@ -210,7 +209,7 @@ def disable_mapping_function_dev(project, __):
 
 
 @app.callback(
-    Output("chart_options", "options"),
+    Output("rev_chart_options", "options"),
     Input("project", "value"),
 )
 @calls.log
@@ -499,12 +498,12 @@ def dropdown_variables(
 
 
 @app.callback(
-    Output("chart_x_var_options", "options"),
-    Output("chart_x_var_options", "value"),
+    Output("rev_chart_x_var_options", "options"),
+    Output("rev_chart_x_var_options", "value"),
     Input("scenario_a_options", "children"),
     Input("scenario_b_options", "children"),
     Input("scenario_b_div", "style"),
-    Input("chart_options", "value"),
+    Input("rev_chart_options", "value"),
     State("project", "value"),
 )
 def dropdown_x_variables(
@@ -532,7 +531,7 @@ def dropdown_x_variables(
 
 
 @app.callback(
-    Output("additional_scenarios", "options"),
+    Output("rev_additional_scenarios", "options"),
     Input("url", "pathname"),
     Input("project", "value"),
     State("submit", "n_clicks"),
@@ -581,21 +580,21 @@ def dropdowns_additional_scenarios(
 
 
 @app.callback(
-    Output("chart", "figure"),
-    Output("chart_loading", "style"),
+    Output("rev_chart", "figure"),
+    Output("rev_chart_loading", "style"),
     Input("map_signal", "children"),
-    Input("chart_options", "value"),
+    Input("rev_chart_options", "value"),
     Input("rev_map", "selectedData"),
-    Input("chart_point_size", "value"),
+    Input("rev_chart_point_size", "value"),
     Input("chosen_map_options", "children"),
-    Input("chart_region", "value"),
+    Input("rev_chart_region", "value"),
     Input("rev_map_color_min", "value"),
     Input("rev_map_color_max", "value"),
-    Input("chart_x_bin", "value"),
-    Input("chart_alpha", "value"),
-    State("chart", "selectedData"),
+    Input("rev_chart_x_bin", "value"),
+    Input("rev_chart_alpha", "value"),
+    State("rev_chart", "selectedData"),
     State("project", "value"),
-    State("chart", "relayoutData"),
+    State("rev_chart", "relayoutData"),
     State("map_function", "value"),
 )
 @calls.log
@@ -608,7 +607,7 @@ def figure_chart(
     region,
     user_ymin,
     user_ymax,
-    bin_size,
+    bins,
     alpha,
     chart_selection,
     project,
@@ -678,9 +677,9 @@ def figure_chart(
     elif chart == "scatter":
         fig = plotter.scatter(x, y)
     elif chart == "binned":
-        fig = plotter.binned(x, y, bin_size=bin_size)
+        fig = plotter.binned(x, y, bins=bins)
     elif chart == "histogram":
-        fig = plotter.histogram(y)
+        fig = plotter.histogram(y, bins=bins)
     elif chart == "char_histogram":
         fig = plotter.char_hist(x)
     elif chart == "box":
@@ -693,11 +692,11 @@ def figure_chart(
     Output("rev_map", "figure"),
     Output("rev_mapcap", "children"),
     Output("rev_map", "clickData"),
-    Output("map_loading", "style"),
+    Output("rev_map_loading", "style"),
     Input("map_signal", "children"),
     Input("rev_map_basemap_options", "value"),
     Input("rev_map_color_options", "value"),
-    Input("chart", "selectedData"),
+    Input("rev_chart", "selectedData"),
     Input("rev_map_point_size", "value"),
     Input("rev_map_rev_color", "n_clicks"),
     Input("rev_map_color_min", "value"),
@@ -986,9 +985,9 @@ def figure_map(
 
 
 @app.callback(
-    Output("chart_data_signal", "children"),
+    Output("rev_chart_data_signal", "children"),
     Input("variable", "value"),
-    Input("chart_x_var_options", "value"),
+    Input("rev_chart_x_var_options", "value"),
     Input("rev_map_state_options", "value"),
 )
 @calls.log
@@ -1032,9 +1031,9 @@ def retrieve_filters(submit, var1, var2, var3, var4, q1, q2, q3, q4):
     Input("submit", "n_clicks"),
     Input("rev_map_state_options", "value"),
     Input("rev_map_region_options", "value"),
-    Input("chart_options", "value"),
-    Input("chart_x_var_options", "value"),
-    Input("additional_scenarios", "value"),
+    Input("rev_chart_options", "value"),
+    Input("rev_chart_x_var_options", "value"),
+    Input("rev_additional_scenarios", "value"),
     Input("filter_store", "children"),
     Input("pca_plot_1", "clickData"),
     Input("pca_plot_2", "clickData"),
@@ -1281,13 +1280,13 @@ def set_minimizing_variable_options(project, minimizing_scenarios_style):
 
 
 @app.callback(
-    Output("chart_options_tab", "children"),
-    Output("chart_options_div", "style"),
-    Output("chart_x_variable_options_div", "style"),
-    Output("chart_region_div", "style"),
-    Output("additional_scenarios_div", "style"),
-    Input("chart_options_tab", "value"),
-    Input("chart_options", "value"),
+    Output("rev_chart_options_tab", "children"),
+    Output("rev_chart_options_div", "style"),
+    Output("rev_chart_x_variable_options_div", "style"),
+    Output("rev_chart_region_div", "style"),
+    Output("rev_additional_scenarios_div", "style"),
+    Input("rev_chart_options_tab", "value"),
+    Input("rev_chart_options", "value"),
 )
 def tabs_chart(tab_choice, chart_choice):
     """Choose which chart tabs to display."""
@@ -1299,17 +1298,28 @@ def tabs_chart(tab_choice, chart_choice):
 
 
 @app.callback(
-    Output("chart_x_bin_div", "style"),
-    Output("bin_size", "style"),
-    Input("chart_options", "value")
+    Output("rev_chart_x_bin_div", "style"),
+    Input("rev_chart_options", "value")
 )
 @calls.log
 def toggle_bins(chart_type):
     """Show the bin size option under the chart."""
     style = {"display": "none"}
     if chart_type == "binned" or chart_type == "histogram":
-        style = {"display": "table-cell"}
-    return style, style
+        style = {}
+    return style
+
+
+@app.callback(
+    Output("rev_chart_below_options", "is_open"),
+    Input("rev_chart_below_options_button", "n_clicks"),
+    State("rev_chart_below_options", "is_open"),
+)
+@calls.log
+def toggle_rev_chart_below_options(n, is_open):
+    if n:
+        return not is_open
+    return is_open
 
 
 @app.callback(

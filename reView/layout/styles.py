@@ -69,7 +69,7 @@ RC_STYLES["off"]["float"] = RC_STYLES["on"]["float"] = "right"
 
 OPTION_TITLE_STYLE = {
     "float": "left",
-    "font-size": "10px",
+    "font-size": "12px",
     "font-family": "Helvetica",
     "width": "100%",
     "margin-bottom": "-1px"
@@ -77,9 +77,9 @@ OPTION_TITLE_STYLE = {
 OPTION_STYLE = {
     "height": "30px",
     "width": "100%",
-    "float": "left",
+    "text-align": "center",
     "display": "inline-block",
-    "font-size": "10px",
+    "font-size": "12px",
     "margin-top": "-1px"
 }
 

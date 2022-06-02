@@ -10,27 +10,20 @@ import json
 from dash import dcc
 from dash import html
 
-import dash_bootstrap_components as dbc
-import plotly.graph_objects as go
-
 from reView.layout.styles import (
-    BOTTOM_DIV_STYLE,
     BUTTON_STYLES,
     TAB_STYLE,
     TAB_BOTTOM_SELECTED_STYLE,
     TABLET_STYLE,
     TABLET_STYLE_CLOSED,
 )
-from reView.layout.options import CHART_OPTIONS, REGION_OPTIONS
-from reView.utils.constants import DEFAULT_POINT_SIZE
 from reView.utils.classes import DiffUnitOptions
 from reView.environment.settings import IS_DEV_ENV
 from reView.utils.config import Config
 from reView.components import (
     capacity_header,
-    above_map_options_div,
     map_div,
-    below_map_options_div,
+    chart_div,
 )
 
 
@@ -904,246 +897,58 @@ layout = html.Div(
             className="row",
         ),
 
-        # The chart and map div
+        # Map and chart
+        html.Div(
+            children=[
+                # The map
+                map_div(
+                    id_prefix="rev",
+                    class_name="six columns"
+                ),
+        
+                # The chart
+                chart_div(
+                    id_prefix="rev",
+                    class_name="six columns"
+                    
+                ),            
+            ]
+        ),
+
+        # Loading State
         html.Div(
             [
-                # The map div
-                html.Div(
-                    style={
-                        "box-shadow": "0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)"
-                    },
-                    className="six columns",
-                    children=[
-                        # Above Map Options
-                        above_map_options_div(id_prefix="rev"),
+                dcc.Loading(id="rev_map_loading"),
+            ],
+            className="twelve_columns",
+            style={"margin-top": "70px"},
+        ),
 
-                        # The map
-                        map_div(id_prefix="rev"),
 
-                        # Button to reveal below options
-                        dbc.Button(
-                            "Options",
-                            id="rev_map_below_options_button",
-                            className="mb-1",
-                            color="white",
-                            n_clicks=0,
-                            size="s",
-                            style={
-                                "float": "left",
-                                "margin-left": "15px",
-                                "height": "50%"
-                            }
-                        ),
-
-                        # Below Map Options
-                        below_map_options_div(id_prefix="rev"),
-                    
-                        # Loading State
-                        html.Div(
-                            [
-                                dcc.Loading(id="map_loading"),
-                            ],
-                            className="twelve_columns",
-                            style={"margin-top": "70px"},
-                        ),
-                    ],
-                ),
-
-                # The chart div
-                html.Div(
-                    style={
-                        "box-shadow": " 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)"
-                    },
-                    className="six columns",
-                    children=[
-                        html.Div(
-                            [
-                                html.Div(
-                                    [
-                                        # Chart options
-                                        dcc.Tabs(
-                                            id="chart_options_tab",
-                                            value="chart",
-                                            style=TAB_STYLE,
-                                        ),
-
-                                        # Type of chart
-                                        html.Div(
-                                            id="chart_options_div",
-                                            children=[
-                                                dcc.Dropdown(
-                                                    id="chart_options",
-                                                    clearable=False,
-                                                    options=CHART_OPTIONS,
-                                                    multi=False,
-                                                    value="cumsum",
-                                                )
-                                            ],
-                                        ),
-
-                                        # X-axis Variable
-                                        html.Div(
-                                            id="chart_x_variable_options_div",
-                                            children=[
-                                                dcc.Dropdown(
-                                                    id="chart_x_var_options",
-                                                    clearable=False,
-                                                    options=[
-                                                        {
-                                                            "label": "None",
-                                                            "value": "None",
-                                                        }
-                                                    ],
-                                                    multi=False,
-                                                    value="capacity",
-                                                )
-                                            ],
-                                        ),
-
-                                        # Region grouping
-                                        html.Div(
-                                            id="chart_region_div",
-                                            children=[
-                                                dcc.Dropdown(
-                                                    id="chart_region",
-                                                    clearable=False,
-                                                    options=REGION_OPTIONS,
-                                                    multi=False,
-                                                    value="national",
-                                                )
-                                            ],
-                                        ),
-
-                                        # Scenario grouping
-                                        html.Div(
-                                            id="additional_scenarios_div",
-                                            children=[
-                                                dcc.Dropdown(
-                                                    id="additional_scenarios",
-                                                    clearable=False,
-                                                    options=[
-                                                        {
-                                                            "label": "None",
-                                                            "value": "None",
-                                                        }
-                                                    ],
-                                                    multi=True,
-                                                )
-                                            ],
-                                        ),
-                                    ]
-                                ),
-                            ],
-                        ),
-
-                        # The chart
-                        html.Div(
-                            children=dcc.Graph(
-                                id="chart",
-                                style={"height": 750},
-                                config={
-                                    "showSendToCloud": True,
-                                    "toImageButtonOptions": {
-                                        "width": 1250,
-                                        "height": 750,
-                                    },
-                                    "plotlyServerURL": "https://chart-studio.plotly.com",
-                                },
-                                mathjax=True,
-                                figure=go.Figure(
-                                    layout={
-                                        "xaxis": {"visible": False},
-                                        "yaxis": {"visible": False},
-                                        "annotations": [
-                                            {
-                                                "text": "No data loaded",
-                                                "xref": "paper",
-                                                "yref": "paper",
-                                                "showarrow": False,
-                                                "font": {"size": 28},
-                                            }
-                                        ],
-                                    }
-                                ),
-                            ),
-                        ),
-
-                        # Below Chart Options
-                        html.Div(
-                            id="chart_extra_div",
-                            children=[
-                                html.P(
-                                    "Point Size:",
-                                    style={"display": "table-cell"}
-                                ),
-                                dcc.Input(
-                                    id="chart_point_size",
-                                    value=DEFAULT_POINT_SIZE,
-                                    type="number",
-                                    debounce=False,
-                                    style={"width": "30%"}
-                                ),
-                                html.P(
-                                    "Bin Size:",
-                                    id="bin_size",
-                                    style={"display": "none"}
-                                ),
-                                html.Div(
-                                    id="chart_x_bin_div",
-                                    style={"display": "none"},
-                                    children=[
-                                        dcc.Input(
-                                            id="chart_x_bin",
-                                            debounce=False,
-                                            value=None,
-                                            type="number",
-                                            style={"width": "30%"}
-                                        ),
-                                    ],
-                                ),
-                                html.P(
-                                    "Opacity:",
-                                    style={"display": "table-cell"},
-                                ),
-                                html.Div(
-                                    style={"display": "table-cell"},
-                                    children=[
-                                        dcc.Input(
-                                            id="chart_alpha",
-                                            value=1,
-                                            type="number",
-                                            debounce=False,
-                                            style={"width": "30%"}                                        ),
-                                    ]
-                                ),
-                            ],
-                            className="twelve columns",
-                            style=BOTTOM_DIV_STYLE,
-                        ),
-
-                        # Loading State
-                        html.Div(
-                            [
-                                dcc.Loading(id="chart_loading"),
-                            ],
-                            className="row",
-                            style={"margin-top": "70px"},
-                        ),
-                    ],
-                ),
+        # Loading State
+        html.Div(
+            [
+                dcc.Loading(id="rev_chart_loading"),
             ],
             className="row",
+            style={"margin-top": "70px"},
         ),
+
         # To store option names for the map title
         html.Div(id="chosen_map_options", style={"display": "none"}),
+
         # To store option names for the chart title
         html.Div(id="chosen_chart_options", style={"display": "none"}),
+
         # For storing the data frame path and triggering updates
         html.Div(id="map_data_path", style={"display": "none"}),
+
         # For storing the signal need for the set of chart data frames
         html.Div(id="chart_data_signal", style={"display": "none"}),
+
         # Interim way to share data between map and chart
         html.Div(id="map_signal", style={"display": "none"}),
+
         # This table of recalc parameters
         html.Div(
             id="recalc_table",
@@ -1165,8 +970,10 @@ layout = html.Div(
             ),
             style={"display": "none"},
         ),
+
         # Capacity after make_map (avoiding duplicate calls)
         html.Div(id="rev_mapcap", style={"display": "none"}),
+
         # Filter list after being pieced together
         html.Div(id="filter_store", style={"display": "none"}),
     ]
