@@ -1,17 +1,12 @@
 # -*- coding: utf-8 -*-
 """A common map div."""
 import dash_bootstrap_components as  dbc
-import plotly.graph_objects as go
 
 from dash import dcc, html
 
 from reView.environment.settings import IS_DEV_ENV
 from reView.utils.classes import DiffUnitOptions
-from reView.utils.constants import DEFAULT_POINT_SIZE
 from reView.layout.styles import (
-    BUTTON_STYLES,
-    OPTION_STYLE,
-    OPTION_TITLE_STYLE,
     TAB_BOTTOM_SELECTED_STYLE,
     TAB_STYLE,
     TABLET_STYLE,
@@ -21,7 +16,6 @@ from reView.layout.styles import (
 
 REV_TOPTIONS_DIV = html.Div(
     className="twelve columns",
-    id="options_div",
     style={
         "box-shadow": "0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)",
         "border-radius": "5px",
@@ -32,8 +26,10 @@ REV_TOPTIONS_DIV = html.Div(
     children=[
 
         # Scen selection tabs - Tabs for selection options
-        html.Div(
+        dbc.Collapse(
             className="twelve columns",
+            id="options_div",
+            is_open=True,
             children=[
                 dcc.Tabs(
                     id="scenario_selection_tabs",
@@ -516,7 +512,6 @@ REV_TOPTIONS_DIV = html.Div(
                     ],
                     id="options",
                     className="row",
-                    style={"display": "none"},
                 ),
 
                 html.Div(
@@ -578,16 +573,48 @@ REV_TOPTIONS_DIV = html.Div(
             ]
         ),
 
+
         html.Div(
-            style={"margin-top": "20px"},
             children=[
+                html.H5(
+                    id="options_label",
+                    children="OPTIONS",
+                    style={"display": "none"}
+                ),
+                html.Div(
+                    className="eleven columns",
+                    children=[
+                        html.Hr(
+                            style={
+                                "color": "#1663B5",
+                                "width": "100%",
+                                "margin-left": "-50px",
+                                "height": "3px",
+                                "margin-bottom": "0px",
+                                "opacity": "1"
+                            },
+                        ),
+                        html.Hr(
+                            style={
+                                "color": "#FCCD34",
+                                "width": "99%",
+                                "margin-left": "-45px",
+                                "height": "2px",
+                                "margin-top": "0px",
+                                "margin-bottom": "1px",
+                                "opacity": "1"
+                            },
+                        ),
+                    ]
+                ),
+
                 # Hide/show options
                 dbc.Button(
                     id="toggle_options",
-                    children="Hide Options",
+                    children="Hide",
                     color="white",
                     n_clicks=1,
-                    type="button",
+                    size="lg",
                     title=("Click to display options"),
                     className="mb-1",
                     style={
@@ -600,9 +627,10 @@ REV_TOPTIONS_DIV = html.Div(
                 # Submit Button to avoid repeated callbacks
                 dbc.Button(
                     id="submit",
-                    children="Submit Options",
+                    children="Submit",
                     color="white",
                     n_clicks=0,
+                    size="lg",
                     title=("Click to submit options"),
                     className="mb-1",
                     style={

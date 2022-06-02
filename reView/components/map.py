@@ -44,7 +44,7 @@ MAP_LAYOUT = dict(
         ),
         style="satellite-streets",
         center=dict(lon=-97.5, lat=39.5),
-        zoom=3.25,
+        zoom=2.75,
     ),
 )
 

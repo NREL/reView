@@ -1341,26 +1341,34 @@ def toggle_rev_map_below_options(n, is_open):
     Output("pca_scenarios", "style"),
     Output("scenario_selection_tabs", "style"),
     Output("toggle_options", "children"),
+    Output("options_label", "style"),
+    Output("options_div", "is_open"),
     Input("toggle_options", "n_clicks"),
     Input("scenario_selection_tabs", "value"),
+    State("options", "is_open")
 )
 @calls.log
-def toggle_options(click, selection_ind):
+def toggle_options(click, selection_ind, is_open):
     """Toggle options on/off."""
-
+    options_label = {
+        "float": "left",
+        "margin-left": "20px",
+        "margin-bottom": "-25px"
+    }
     scenario_styles = [{"display": "none"} for _ in range(3)]
     tabs_style = {"display": "none"}
-    button_children = "Show Options"
-
+    button_children = "Show"
+    scenario_styles[int(selection_ind)] = {"margin-bottom": "1px"}
+    tabs_style = {
+        "height": "5vh"
+    }
     click = click or 0
     if click % 2 == 1:
-        scenario_styles[int(selection_ind)] = {"margin-bottom": "1px"}
-        tabs_style = {
-            "height": "5vh"
-        }
-        button_children = "Hide Options"
+        options_label = {"display": "none"}
+        button_children = "Hide"
+        is_open = not is_open
 
-    return *scenario_styles, tabs_style, button_children
+    return *scenario_styles, tabs_style, button_children, options_label, is_open
 
 
 @app.callback(
