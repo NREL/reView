@@ -32,7 +32,7 @@
 ```
 {
     "project_name": <"Your Project Name>",
-    "directory": <"Local path to folder containing reV supply-curve/supply-curve-aggregation module outputs">
+    "directory": <"Local path to folder containing reV supply curve tables">
 }
 ```
 <br>
