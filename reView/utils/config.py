@@ -125,7 +125,7 @@ class Config:
         """Return a titles dictionary with extra fields."""
         scales = self._config.get("scales", {})
         scales.update(SCALE_OVERRIDES)
-        deep_replace(scales, {'na': None})
+        deep_replace(scales, {"na": None})
         return scales
 
     @property
