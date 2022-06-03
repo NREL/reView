@@ -4,6 +4,8 @@ import json
 
 import pandas as pd
 
+from reView import Q_
+
 
 def tab_styles(tab_choice, options):
     """Set correct tab styles for the chosen option.
@@ -66,11 +68,7 @@ def format_capacity_title(
         ]
         df = df[df["sc_point_gid"].isin(gids)]
 
-    total_capacity = df[capacity_col_name].sum()
-    if total_capacity >= 1_000_000:
-        capacity = f"{total_capacity / 1_000_000:.4f} TW"
-    else:
-        capacity = f"{total_capacity / 1_000:.4f} GW"
-
+    total_capacity = Q_(df[capacity_col_name].sum(), "MW")
+    total_capacity = f"{total_capacity.to_compact():~H.4f}"
     num_sites = f"{df.shape[0]:,}"
-    return capacity, num_sites
+    return total_capacity, num_sites
