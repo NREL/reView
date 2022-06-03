@@ -12,6 +12,7 @@ from flask_caching import Cache
 
 from reView.layout.layout import layout
 
+
 app = dash.Dash(
     __name__,
     suppress_callback_exceptions=True,
