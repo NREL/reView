@@ -13,6 +13,7 @@ import hashlib
 import json
 import logging
 import os
+import tempfile
 
 from pathlib import Path
 
@@ -206,6 +207,27 @@ def disable_recalculate_with_new_costs(project, __):
 def disable_mapping_function_dev(project, __):
     """Disable mapping option based on config."""
     return Config(project).demand_data is None, "None"
+
+
+@app.callback(
+    Output("download", "data"),
+    Input("download_info", "children"),
+    prevent_initial_call=True,
+)
+@calls.log
+def download(info):
+    """Download csv file."""
+    info = json.loads(info)
+    if info["tmp_path"] is not None:
+        print("gotit")
+        src = info["tmp_path"]
+        dst = info["path"]
+        df = pd.read_csv(src)
+        for c in df.columns:
+            if "Unnamed: " in c:
+                del df[c]
+        os.remove(src)
+        return dcc.send_data_frame(df.to_csv, dst, index=False)
 
 
 @app.callback(
@@ -695,6 +717,7 @@ def figure_chart(
     Output("rev_mapcap", "children"),
     Output("rev_map", "clickData"),
     Output("rev_map_loading", "style"),
+    Output("download_info", "children"),
     Input("map_signal", "children"),
     Input("rev_map_basemap_options", "value"),
     Input("rev_map_color_options", "value"),
@@ -705,6 +728,7 @@ def figure_chart(
     Input("rev_map_color_max", "value"),
     Input("rev_map", "selectedData"),
     Input("rev_map", "clickData"),
+    Input("rev_map_download_button", "n_clicks"),
     State("project", "value"),
     State("map_function", "value"),
 )
@@ -720,11 +744,11 @@ def figure_map(
     color_ymax,
     map_selection,
     click_selection,
+    download,
     project,
     map_function,
 ):
     """Make the scatter plot map."""
-
     signal_dict = json.loads(signal)
     df = cache_map_data(signal_dict)
 
@@ -740,6 +764,12 @@ def figure_map(
     if "clickData" in callback_trigger() and "turbine_y_coords" in df:
         unpacker = BespokeUnpacker(df, click_selection)
         df = unpacker.unpack_turbines()
+
+    tmp_path = None
+    if "rev_map_download_button" in callback_trigger():
+        tmp_path = tempfile.NamedTemporaryFile().name
+        print(f"TMP: {tmp_path}")
+        df.to_csv(tmp_path, index=False)
 
     # Use demand counts if available
     if "demand_connect_count" in df:
@@ -767,7 +797,16 @@ def figure_map(
     )
     mapcap = df[["sc_point_gid", "print_capacity"]].to_dict()
 
-    return figure, json.dumps(mapcap), None, {"margin-right": "500px"}
+    # Package returns
+    mapcap = json.dumps(mapcap)
+    loading_style = {"margin-right": "500px"}
+    click_dump = None
+    download_info = json.dumps(
+        {"path": "review_map_data.csv", "tmp_path": tmp_path}
+    )
+    print(download_info)
+
+    return figure, mapcap, click_dump, loading_style, download_info
 
 
 # @app.callback(

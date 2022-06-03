@@ -302,6 +302,21 @@ def below_map_options_div(id_prefix, class_name=None):
                     ],
                 ),
                 dbc.Button(
+                    "DOWNLOAD",
+                    id=f"{id_prefix}_map_download_button",
+                    className="me-1",
+                    color="dark",
+                    outline=True,
+                    n_clicks=0,
+                    # size="sm",
+                    style={
+                        "float": "right",
+                        "margin-top": "-1px",
+                        "color": "gray",
+                        "border-color": "gray",
+                    },
+                ),
+                dbc.Button(
                     "REVERSE COLOR",
                     id=f"{id_prefix}_map_rev_color",
                     className="me-1",

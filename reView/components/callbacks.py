@@ -8,6 +8,34 @@ from reView.components.logic import tab_styles, format_capacity_title
 from reView.utils import calls
 
 
+# def download(id_prefix, figure_type):
+#     """Download dataset from given figure.
+
+#     Parameters
+#     ----------
+#     id_prefix : str
+#         A string representing the prefix of the button. It is expected
+#         that the id of the target button follows the format
+#         "<id_prefix>_rev_color". "rev" and "reeds" currently available.
+#     figure_type : str
+#         A string representing the type of figure to download from. This can
+#         be either "map" or "chart".
+
+#     Returns
+#     -------
+#     callable
+#         A callable function used by dash. Users should NOT invoke this
+#         function themselves.
+#     """
+#     @app.callback(
+#         Output(f"download", "data"),
+#         Input(f"{id_prefix}_{figure_type}_download_button", "n_clicks")
+#     )
+#     @calls.log
+#     def _download_data(n_clicks):
+#         """Download data as CSV."""
+    
+
 def toggle_reverse_color_button_style(id_prefix):
     """Change the style of the "reverse color" button when clicked.
 
