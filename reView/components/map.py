@@ -5,11 +5,10 @@ Used in (at least) the scenario and reeds pages.
 """
 import copy
 
-import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
 
-from reView import UNITS, Q_
+from reView import Q_
 from reView.utils.classes import DiffUnitOptions
 from reView.utils.config import Config
 from reView.utils.constants import COLORS, DEFAULT_LAYOUT
@@ -34,16 +33,17 @@ MAP_LAYOUT.update(
 )
 
 
+# The title functions below will probably go into a single class at some point
 def build_title(df, var, project, map_selection=None, delimiter="  |  "):
     """Create chart title."""
     # Project configuration object
     config = Config(project)
     var_no_diff_suffix = DiffUnitOptions.remove_from_variable_name(var)
-    diff = DiffUnitOptions.from_variable_name(var) is not None
+    is_diff = DiffUnitOptions.from_variable_name(var) is not None
     is_percentage_diff = (
         DiffUnitOptions.from_variable_name(var) == DiffUnitOptions.PERCENTAGE
     )
-    if diff and is_percentage_diff:
+    if is_diff and is_percentage_diff:
         units = "percent"
     else:
         units = config.units.get(var_no_diff_suffix)
@@ -52,43 +52,70 @@ def build_title(df, var, project, map_selection=None, delimiter="  |  "):
     title = config.titles.get(var_no_diff_suffix, convert_to_title(var))
 
     # Difference title
-    if diff:
+    if is_diff:
         title = delimiter.join([title, "Difference"])
 
-    is_df = isinstance(df, pd.core.frame.DataFrame)
     var_exists = var_no_diff_suffix and var_no_diff_suffix.lower() != "none"
     not_category = units != "category"
 
-    # Map title (not chart)
-    if is_df and var_exists and not_category:
-        average = Q_(df[var].apply("mean"), units)
-        if average.dimensionless:
-            average = average.to_reduced_units()
-        if "dollar" not in f"{average}":
-            average = average.to_compact()
+    if var_exists and not_category:
+        title = _add_extras_to_title(
+            title, df, var, units, map_selection, delimiter
+        )
 
-        extra = f"Average: {average:~H.2f}"
+    return title
 
-        # we can make this more general by
-        # allowing user input about this in config
-        if "capacity" in var_no_diff_suffix and units != "percent":
-            capacity = (df[var].apply("sum") * UNITS.MW).to_compact()
-            extra = delimiter.join([extra, f"Total: {capacity:~H.2f}"])
 
-        if "hydrogen_annual_kg" in df and not diff:
-            total_hydrogen = df["hydrogen_annual_kg"].sum() * UNITS.kilograms
-            extra = delimiter.join(
-                [extra, f"Total H2: {total_hydrogen.to_compact():~H.2f}"]
-            )
+def _add_extras_to_title(title, df, var, units, map_selection, delimiter):
+    """Add extra info to map title."""
+    average = _apply_aggregation(df, var, units, "mean")
+    extra = f"Average: {average:~H.2f}"
 
-        title = delimiter.join([title, extra])
+    # we can make this more general by
+    # allowing user input about this in config
+    var_no_diff_suffix = DiffUnitOptions.remove_from_variable_name(var)
+    if "capacity" in var_no_diff_suffix and units != "percent":
+        extra = _add_total_info(var, "MW", extra, df, delimiter)
 
+    is_not_diff = DiffUnitOptions.from_variable_name(var) is not None
+    if "hydrogen_annual_kg" in df and is_not_diff:
+        extra = _add_total_info(
+            "hydrogen_annual_kg", "kg", extra, df, delimiter, "H2"
+        )
+
+    title = delimiter.join([title, extra])
+    title = _add_map_selection_to_title(title, map_selection, delimiter)
+    return title
+
+
+def _add_map_selection_to_title(title, map_selection, delimiter="  |  "):
+    """Add the number of points selected in map to title."""
     if map_selection:
         n_points_selected = len(map_selection["points"])
         map_selection_print = f"Selected point count: {n_points_selected:,}"
         title = delimiter.join([title, map_selection_print])
 
     return title
+
+
+def _add_total_info(col_name, units, title, df, delimiter, description=None):
+    """Add info about total of variable to title."""
+    total = _apply_aggregation(df, col_name, units, "sum")
+    desc = f" {description}:" if description else ":"
+    return delimiter.join([title, f"Total{desc} {total.to_compact():~H.2f}"])
+
+
+def _apply_aggregation(df, var, units, agg_type):
+    """Return the result of aggregation of the variable."""
+    aggregation = Q_(df[var].apply(agg_type), units)
+
+    if aggregation.dimensionless:
+        aggregation = aggregation.to_reduced_units()
+
+    if not any(t in f"{aggregation}" for t in ["dollar", "%"]):
+        aggregation = aggregation.to_compact()
+
+    return aggregation
 
 
 class Map:
