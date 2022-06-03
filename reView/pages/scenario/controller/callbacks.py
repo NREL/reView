@@ -618,10 +618,11 @@ def figure_chart(
     x_var = signal_dict["x"]
     y_var = signal_dict["y"]
     project = signal_dict["project"]
+    config = Config(project)
 
     if (
         chart == "char_histogram"
-        and x_var not in Config(project).characterizations_cols
+        and x_var not in config.characterizations_cols
     ):
         raise PreventUpdate  # @IgnoreException
 
@@ -658,11 +659,10 @@ def figure_chart(
             for k, df in dfs.items()
         }
 
+    title = f"{config.titles.get(y_var, convert_to_title(y_var))}"
     if chart_selection:
         n_points_selected = len(chart_selection["points"])
-        title = f"Selected point count: {n_points_selected:,}"
-    else:
-        title = None
+        title = f"{title}  |  Selected point count: {n_points_selected:,}"
 
     plotter = Plots(
         project,
