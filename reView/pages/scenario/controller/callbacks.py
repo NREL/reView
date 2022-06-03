@@ -1,3 +1,4 @@
+# pylint: disable=too-many-lines
 """View reV results using a configuration file.
 
 Things to do:
@@ -71,7 +72,7 @@ def build_specs(scenario, project):
     dct = specs[scenario]
     table = """| Variable | Value |\n|----------|------------|\n"""
     for variable, value in dct.items():
-        row = "| {} | {} |\n".format(variable, value)
+        row = f"| {variable} | {value} |\n"
         table = table + row
     return table
 
@@ -87,7 +88,7 @@ def build_spec_split(path, project):
     pdf = pdf.sort_values("p", ascending=False)
     table = """| Scenario | Percentage |\n|----------|------------|\n"""
     for _, row in pdf.iterrows():
-        row = "| {} | {}% |\n".format(row["s"], row["p"])
+        row = f"| {row['s']} | {row['p']}% |\n"
         table = table + row
     return table
 
@@ -158,9 +159,7 @@ def scenario_dropdowns(groups, class_names=None):
         dropdown = html.Div(
             [
                 html.Div(
-                    [
-                        html.P(group)
-                    ],
+                    [html.P(group)],
                     className=class_names[0],
                 ),
                 html.Div(
@@ -168,11 +167,11 @@ def scenario_dropdowns(groups, class_names=None):
                         dcc.Dropdown(
                             options=options,
                             value=options[0]["value"],
-                            optionHeight=75
+                            optionHeight=75,
                         )
                     ],
                     className=class_names[-1],
-                    style={"margin-left": "15px"}
+                    style={"margin-left": "15px"},
                 ),
             ],
             style={"background-color": color, "border-radius": "5px"},
@@ -229,7 +228,7 @@ def dropdown_chart_types(project):
     State("rev_map_color_options", "value"),
 )
 @calls.log
-def dropdown_colors(submit, variable, project, signal, old_value):
+def dropdown_colors(__, variable, project, signal, ___):
     """Provide qualitative color options for categorical data."""
 
     # To figure out if we need to update we need these
@@ -237,8 +236,8 @@ def dropdown_colors(submit, variable, project, signal, old_value):
         raise PreventUpdate  # @IgnoreException
     old_variable = json.loads(signal)["y"]
     config = Config(project)
-    units = config.units.get(variable, "")
-    old_units = config.units.get(old_variable, "")
+    units = config.units.get(variable)
+    old_units = config.units.get(old_variable)
 
     # There is only one condition where we have to do this
     if old_variable == variable:
@@ -259,7 +258,7 @@ def dropdown_colors(submit, variable, project, signal, old_value):
     return options, value
 
 
-# pylint: disable=no-member
+# pylint: disable=no-member,too-many-locals
 @app.callback(
     Output("minimizing_scenario_options", "children"),
     Input("url", "pathname"),
@@ -268,7 +267,7 @@ def dropdown_colors(submit, variable, project, signal, old_value):
     State("submit", "n_clicks"),
 )
 @calls.log
-def dropdown_minimizing_scenarios(url, project, minimizing_variable, n_clicks):
+def dropdown_minimizing_scenarios(url, project, minimizing_variable, __):
     """Update the options given a project."""
 
     logger.debug("URL: %s", url)
@@ -285,13 +284,12 @@ def dropdown_minimizing_scenarios(url, project, minimizing_variable, n_clicks):
             # pylint: disable=unsubscriptable-object
             options = config.options[col].unique()
             dropdown_options = []
-            for op in options:
+            for option in options:
                 try:
-                    label = "{:,}".format(op)
+                    label = f"{option:,}"
                 except ValueError:
-                    label = str(op)
-                ops = {"label": label, "value": op}
-                dropdown_options.append(ops)
+                    label = str(option)
+                dropdown_options.append({"label": label, "value": option})
             groups[col] = dropdown_options
 
         return scenario_dropdowns(groups)
@@ -340,8 +338,8 @@ def dropdown_minimizing_targets(scenario_options, project):
         titles = {col: convert_to_title(col) for col in columns}
         titles.update(config.titles)
         if titles:
-            for k, v in titles.items():
-                target_options.append({"label": v, "value": k})
+            for key, val in titles.items():
+                target_options.append({"label": val, "value": key})
 
     if not target_options:
         target_options = [{"label": "None", "value": "None"}]
@@ -356,7 +354,7 @@ def dropdown_minimizing_targets(scenario_options, project):
     State("submit", "n_clicks"),
 )
 @calls.log
-def dropdown_projects(pathname, n_clicks):
+def dropdown_projects(__, ___):
     """Update project options."""
 
     # Open config json
@@ -385,12 +383,13 @@ def dropdown_minimizing_plot_options(scenario_options, project):
         titles = {col: convert_to_title(col) for col in columns}
         titles.update(config.titles)
         if titles:
-            for k, v in titles.items():
-                plot_options.append({"label": v, "value": k})
+            for key, val in titles.items():
+                plot_options.append({"label": val, "value": key})
 
     return plot_options
 
 
+# pylint: disable=too-many-locals
 @app.callback(
     Output("scenario_a_options", "children"),
     Output("scenario_b_options", "children"),
@@ -399,7 +398,7 @@ def dropdown_minimizing_plot_options(scenario_options, project):
     State("submit", "n_clicks"),
 )
 @calls.log
-def dropdown_scenarios(url, project, n_clicks):
+def dropdown_scenarios(url, project, __):
     """Update the options given a project."""
     logger.debug("URL: %s", url)
 
@@ -415,13 +414,12 @@ def dropdown_scenarios(url, project, n_clicks):
             # pylint: disable=unsubscriptable-object
             options = config.options[col].unique()
             dropdown_options = []
-            for op in options:
+            for option in options:
                 try:
-                    label = "{:,}".format(op)
+                    label = "{option:,}"
                 except ValueError:
-                    label = str(op)
-                ops = {"label": label, "value": op}
-                dropdown_options.append(ops)
+                    label = str(option)
+                dropdown_options.append({"label": label, "value": option})
             groups[col] = dropdown_options
 
         return (
@@ -476,7 +474,7 @@ def dropdown_scenarios(url, project, n_clicks):
 )
 @calls.log
 def dropdown_variables(
-    url, scenario_a_options, scenario_b_options, b_div, project
+    __, scenario_a_options, scenario_b_options, b_div, project
 ):
     """Update variable dropdown options."""
 
@@ -510,7 +508,7 @@ def dropdown_variables(
 def dropdown_x_variables(
     scenario_a_options, scenario_b_options, b_div, chart_type, project
 ):
-    """Return dropdown options for x variable. """
+    """Return dropdown options for x variable."""
     logger.debug("Setting X variable options")
     if chart_type == "char_histogram":
         config = Config(project)
@@ -539,11 +537,7 @@ def dropdown_x_variables(
     State("submit", "n_clicks"),
 )
 @calls.log
-def dropdowns_additional_scenarios(
-    url,
-    project,
-    n_clicks,
-):
+def dropdowns_additional_scenarios(url, project, __):
     """Update the additional scenarios options given a project."""
     logger.debug("URL: %s", url)
 
@@ -581,6 +575,7 @@ def dropdowns_additional_scenarios(
     return scenario_options
 
 
+# pylint: disable=too-many-arguments
 @app.callback(
     Output("rev_chart", "figure"),
     Output("rev_chart_loading", "style"),
@@ -605,7 +600,7 @@ def figure_chart(
     chart,
     map_selection,
     point_size,
-    op_values,
+    __,
     region,
     user_ymin,
     user_ymax,
@@ -613,20 +608,20 @@ def figure_chart(
     alpha,
     chart_selection,
     project,
-    chart_view,
+    ___,
     map_func,
 ):
     """Make one of a variety of charts."""
 
     # Unpack the signal
     signal_dict = json.loads(signal)
-    x = signal_dict["x"]
-    y = signal_dict["y"]
+    x_var = signal_dict["x"]
+    y_var = signal_dict["y"]
     project = signal_dict["project"]
 
     if (
         chart == "char_histogram"
-        and x not in Config(project).characterizations_cols
+        and x_var not in Config(project).characterizations_cols
     ):
         raise PreventUpdate  # @IgnoreException
 
@@ -663,33 +658,38 @@ def figure_chart(
             for k, df in dfs.items()
         }
 
+    if chart_selection:
+        n_points_selected = len(chart_selection["points"])
+        title = f"Selected point count: {n_points_selected:,}"
+    else:
+        title = None
+
     plotter = Plots(
         project,
         dfs,
-        plot_title=build_title(
-            dfs, signal_dict, chart_selection=chart_selection
-        ),
+        plot_title=title,
         point_size=point_size,
         user_scale=(user_ymin, user_ymax),
         alpha=alpha,
     )
 
     if chart == "cumsum":
-        fig = plotter.cumulative_sum(x, y)
+        fig = plotter.cumulative_sum(x_var, y_var)
     elif chart == "scatter":
-        fig = plotter.scatter(x, y)
+        fig = plotter.scatter(x_var, y_var)
     elif chart == "binned":
-        fig = plotter.binned(x, y, bins=bins)
+        fig = plotter.binned(x_var, y_var, bins=bins)
     elif chart == "histogram":
-        fig = plotter.histogram(y, bins=bins)
+        fig = plotter.histogram(y_var, bins=bins)
     elif chart == "char_histogram":
-        fig = plotter.char_hist(x)
+        fig = plotter.char_hist(x_var)
     elif chart == "box":
-        fig = plotter.box(y)
+        fig = plotter.box(y_var)
 
     return fig, {"margin-right": "500px"}
 
 
+# pylint: disable=too-many-arguments,too-many-locals
 @app.callback(
     Output("rev_map", "figure"),
     Output("rev_mapcap", "children"),
@@ -747,7 +747,7 @@ def figure_map(
     else:
         color_var = signal_dict["y"]
 
-    title = build_title(df, signal_dict, map_selection=map_selection)
+    title = build_title(df, color_var, project, map_selection=map_selection)
 
     # Build figure
     map_builder = Map(
@@ -993,12 +993,13 @@ def figure_map(
     Input("rev_map_state_options", "value"),
 )
 @calls.log
-def retrieve_chart_tables(y, x, state):
+def retrieve_chart_tables(y_var, x_var, state):
     """Store the signal used to get the set of tables needed for the chart."""
-    signal = json.dumps([y, x, state])
+    signal = json.dumps([y_var, x_var, state])
     return signal
 
 
+# pylint: disable=invalid-name
 @app.callback(
     Output("filter_store", "children"),
     Input("submit", "n_clicks"),
@@ -1012,7 +1013,7 @@ def retrieve_chart_tables(y, x, state):
     State("filter_4", "value"),
 )
 @calls.log
-def retrieve_filters(submit, var1, var2, var3, var4, q1, q2, q3, q4):
+def retrieve_filters(__, var1, var2, var3, var4, q1, q2, q3, q4):
     """Retrieve filter variable names and queries."""
 
     variables = [var1, var2, var3, var4]
@@ -1026,6 +1027,8 @@ def retrieve_filters(submit, var1, var2, var3, var4, q1, q2, q3, q4):
     return json.dumps(filters)
 
 
+# pylint: disable=too-many-arguments,too-many-locals,too-many-branches
+# pylint: disable=too-many-statements
 @app.callback(
     Output("map_signal", "children"),
     Output("pca_plot_1", "clickData"),
@@ -1058,10 +1061,10 @@ def retrieve_filters(submit, var1, var2, var3, var4, q1, q2, q3, q4):
 )
 @calls.log
 def retrieve_signal(
-    submit,
+    __,
     states,
     regions,
-    chart,
+    ___,
     x,
     scenarios,
     filter_store,
@@ -1215,7 +1218,7 @@ def retrieve_signal(
     Input("project", "value"),
 )
 def retrieve_recalc_parameters(
-    fcr1, capex1, opex1, losses1, fcr2, capex2, opex2, losses2, project
+    fcr1, capex1, opex1, losses1, fcr2, capex2, opex2, losses2, __
 ):
     """Retrieve all given recalc values and store them."""
     trig = callback_trigger()
@@ -1300,16 +1303,15 @@ def tabs_chart(tab_choice, chart_choice):
 
 
 @app.callback(
-    Output("rev_chart_x_bin_div", "style"),
-    Input("rev_chart_options", "value")
+    Output("rev_chart_x_bin_div", "style"), Input("rev_chart_options", "value")
 )
 @calls.log
 def toggle_bins(chart_type):
     """Show the bin size option under the chart."""
-    style = {"display": "none"}
-    if chart_type == "binned" or chart_type == "histogram":
-        style = {}
-    return style
+
+    if chart_type in {"binned", "histogram"}:
+        return {}
+    return {"display": "none"}
 
 
 @app.callback(
@@ -1318,8 +1320,9 @@ def toggle_bins(chart_type):
     State("rev_chart_below_options", "is_open"),
 )
 @calls.log
-def toggle_rev_chart_below_options(n, is_open):
-    if n:
+def toggle_rev_chart_below_options(n_clicks, is_open):
+    """Open or close chart below options."""
+    if n_clicks:
         return not is_open
     return is_open
 
@@ -1330,8 +1333,9 @@ def toggle_rev_chart_below_options(n, is_open):
     State("rev_map_below_options", "is_open"),
 )
 @calls.log
-def toggle_rev_map_below_options(n, is_open):
-    if n:
+def toggle_rev_map_below_options(n_clicks, is_open):
+    """Open or close map below options."""
+    if n_clicks:
         return not is_open
     return is_open
 
@@ -1346,7 +1350,7 @@ def toggle_rev_map_below_options(n, is_open):
     Output("options_div", "is_open"),
     Input("toggle_options", "n_clicks"),
     Input("scenario_selection_tabs", "value"),
-    State("options", "is_open")
+    State("options", "is_open"),
 )
 @calls.log
 def toggle_options(click, selection_ind, is_open):
@@ -1354,22 +1358,26 @@ def toggle_options(click, selection_ind, is_open):
     options_label = {
         "float": "left",
         "margin-left": "20px",
-        "margin-bottom": "-25px"
+        "margin-bottom": "-25px",
     }
     scenario_styles = [{"display": "none"} for _ in range(3)]
     tabs_style = {"display": "none"}
     button_children = "Show"
     scenario_styles[int(selection_ind)] = {"margin-bottom": "1px"}
-    tabs_style = {
-        "height": "5vh"
-    }
+    tabs_style = {"height": "5vh"}
     click = click or 0
     if click % 2 == 1:
         options_label = {"display": "none"}
         button_children = "Hide"
         is_open = not is_open
 
-    return *scenario_styles, tabs_style, button_children, options_label, is_open
+    return (
+        *scenario_styles,
+        tabs_style,
+        button_children,
+        options_label,
+        is_open,
+    )
 
 
 @app.callback(

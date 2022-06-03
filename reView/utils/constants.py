@@ -7,30 +7,6 @@ SCENARIO_PAGE_LOCATION = "/scenario_page"
 CONFIG_PAGE_LOCATION = "/config_page"
 REEDS_PAGE_LOCATION = "/reeds_page"
 
-AGGREGATIONS = {
-    "area_sq_km": "sum",
-    "capacity": "sum",
-    "elevation": "mean",
-    "dist_mi": "mean",
-    "lcot": "mean",
-    "mean_cf": "mean",
-    "mean_lcoe": "mean",
-    "mean_res": "mean",
-    "total_lcoe": "mean",
-    "trans_capacity": "sum",
-    "trans_cap_cost": "mean",
-    "trans_multiplier": "mean",
-    "transmission_multiplier": "mean",
-    "Hub Height": "mean",
-    "capex": "mean",
-    # Below is a quick hack that needs fixing
-    "shadow_flicker_120m": "sum",
-    "shadow_flicker_120m_percent": "mean",
-    "shadow_flicker_135m": "sum",
-    "shadow_flicker_135m_percent": "mean",
-    "trans_voltage": "mean",
-    "trans_ac_cap": "mean",
-}
 COLORS = {
     **pcs.PLOTLY_SCALES,
     "RdWhBu": [
@@ -120,11 +96,28 @@ COLORS = {
 }
 COLORS_Q = {k: v for k, v in pcs.qualitative.__dict__.items() if "_" not in k}
 COLORS_Q = {k: v for k, v in COLORS_Q.items() if k != "swatches"}
-DEFAULT_MAPVIEW = {
-    "mapbox.center": {"lon": -96.50, "lat": 38.0},
-    "mapbox.zoom": 3.50,
-    "mapbox.bearing": 0,
-    "mapbox.pitch": 0,
+DEFAULT_LAYOUT = {
+    "dragmode": "select",
+    "hovermode": "closest",
+    "font_family": "Times New Roman",
+    "title_font_family": "Times New Roman",
+    "font_size": 15,
+    "font_color": "white",
+    "margin": {"l": 70, "r": 20, "t": 70, "b": 20},
+    "paper_bgcolor": "#1663B5",
+    "titlefont": {"color": "white", "size": 18, "family": "Times New Roman"},
+    "title": {
+        "yref": "container",
+        "x": 0.05,
+        "y": 0.96,
+        "yanchor": "top",
+        "pad": {"b": 10},
+    },
+    "legend": {
+        "title_font_family": "Times New Roman",
+        "bgcolor": "#E4ECF6",
+        "font": {"family": "Times New Roman", "size": 15, "color": "black"},
+    },
 }
 DEFAULT_POINT_SIZE = 5
 ORIGINAL_FIELDS = [
@@ -274,20 +267,25 @@ TITLES = {
     "trans_type": "Transmission Feature Type",
     "windspeed_class": "Windspeed Class",
 }
-UNITS = {
+COMMON_REV_COLUMN_UNITS = {
     "area_sq_km": "square km",
     "elevation": "m",  # Double check this
     "capacity": "MW",
     "dist_mi": "miles",
-    "lcot": "$/MWh",
+    "dist_km": "km",
+    "lcot": "USD/MWh",
     "mean_cf": "ratio",
-    "mean_lcoe": "$/MWh",
-    "mean_res": "m/s",  # This will change based on resource
+    "mean_lcoe": "USD/MWh",
+    "mean_capital_cost": "USD",
+    "mean_fixed_operating_cost": "USD",
+    "mean_system_capacity": "kW",
+    "mean_variable_operating_cost": "USD",
     "scenario": "category",
-    "total_lcoe": "$/MWh",
+    "total_lcoe": "USD/MWh",
     "trans_capacity": "MW",
-    "trans_cap_cost": "$/MW",
-    "transmission_multiplier": "",
+    "trans_cap_cost": "USD/MW",
+    "transmission_multiplier": "multiplier",
+    "trans_cap_cost_per_mw": "USD/MW",
     "trans_type": "category",
     "windspeed_class": "category",
 }

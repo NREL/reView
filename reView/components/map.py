@@ -3,187 +3,119 @@
 
 Used in (at least) the scenario and reeds pages.
 """
-import os
 import copy
 
-import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
 
-from reView.pages.scenario.model import build_name
+from reView import Q_
 from reView.utils.classes import DiffUnitOptions
 from reView.utils.config import Config
-from reView.utils.constants import AGGREGATIONS, COLORS
+from reView.utils.constants import COLORS, DEFAULT_LAYOUT
 from reView.utils.functions import convert_to_title
 
-
-MAP_LAYOUT = dict(
-    dragmode="select",
-    font_family="Time New Roman",
-    font_size=15,
-    hovermode="closest",
-    legend=dict(size=20),
-    margin=dict(l=20, r=115, t=115, b=20),
-    paper_bgcolor="#1663B5",
-    plot_bgcolor="#083C04",
-    titlefont=dict(color="white", size=18, family="Time New Roman"),
-    # paper_bgcolor="white",
-    # plot_bgcolor="white",
-    # titlefont=dict(color="black", size=18, family="Time New Roman"),
-    title=dict(
-        yref="container",
-        x=0.05,
-        y=0.95,
-        yanchor="top",
-        pad=dict(b=10),
-    ),
-    mapbox=dict(
-        accesstoken=(
-            "pk.eyJ1IjoidHJhdmlzc2l1cyIsImEiOiJjamZiaHh4b28waXNkMnpt"
-            "aWlwcHZvdzdoIn0.9pxpgXxyyhM6qEF_dcyjIQ"
-        ),
-        style="satellite-streets",
-        center=dict(lon=-97.5, lat=39.5),
-        zoom=2.75,
-    ),
+MAP_LAYOUT = copy.deepcopy(DEFAULT_LAYOUT)
+MAP_LAYOUT.update(
+    {
+        "margin": {"l": 20, "r": 115, "t": 70, "b": 20},
+        "plot_bgcolor": "#083C04",
+        "mapbox": {
+            "accesstoken": (
+                "pk.eyJ1IjoidHJhdmlzc2l1cyIsImEiOiJjamZiaHh4b28waXNkMnpt"
+                "aWlwcHZvdzdoIn0.9pxpgXxyyhM6qEF_dcyjIQ"
+            ),
+            "style": "satellite-streets",
+            "center": {"lon": -97.5, "lat": 39.5},
+            "zoom": 2.75,
+        },
+        "uirevision": True,
+    }
 )
 
 
-def build_title(df, signal_dict, map_selection=None, chart_selection=None):
+# The title functions below will probably go into a single class at some point
+def build_title(df, var, project, map_selection=None, delimiter="  |  "):
     """Create chart title."""
-    # Unpack signal
-    path = signal_dict["path"]
-    path2 = signal_dict["path2"]
-
     # Project configuration object
-    config = Config(signal_dict["project"])
-
-    recalc = signal_dict["recalc"]
-    y = signal_dict["y"]
-    y_no_diff_suffix = DiffUnitOptions.remove_from_variable_name(y)
-    diff = DiffUnitOptions.from_variable_name(y) is not None
+    config = Config(project)
+    var_no_diff_suffix = DiffUnitOptions.remove_from_variable_name(var)
+    is_diff = DiffUnitOptions.from_variable_name(var) is not None
     is_percentage_diff = (
-        DiffUnitOptions.from_variable_name(y) == DiffUnitOptions.PERCENTAGE
+        DiffUnitOptions.from_variable_name(var) == DiffUnitOptions.PERCENTAGE
     )
-    if diff and is_percentage_diff:
-        units = "%"
+    if is_diff and is_percentage_diff:
+        units = "percent"
     else:
-        units = config.units.get(y_no_diff_suffix, "")
-
-    if recalc == "off":
-        recalc_table = None
-    else:
-        recalc_table = signal_dict["recalc_table"]
-
-    # Infer scenario name from path
-    s1 = build_name(path)
-
-    # User specified FCR?
-    if recalc_table and "least" not in s1.lower():
-        msgs = []
-        for k, v in recalc_table["scenario_a"].items():
-            if v:
-                msgs.append(f"{k}: {v}")
-        if msgs:
-            reprint = ", ".join(msgs)
-            s1 += f" ({reprint})"
-
-    # Least Cost
-    if "least" in s1.lower():
-        s1 = infer_recalc(s1)
+        units = config.units.get(var_no_diff_suffix)
 
     # Append variable title
-    title = "<br>".join(
-        [s1, config.titles.get(y_no_diff_suffix, convert_to_title(y))]
-    )
-
-    # Add variable aggregation value
-    if y_no_diff_suffix in AGGREGATIONS:
-        ag_fun = AGGREGATIONS[y_no_diff_suffix]
-        if ag_fun == "mean":
-            conditioner = "Average"
-        else:
-            conditioner = "Total"
-    else:
-        ag_fun = "mean"
-        conditioner = "Average"
-        # ag_fun = "sum"
-        # conditioner = "Sum"
+    title = config.titles.get(var_no_diff_suffix, convert_to_title(var))
 
     # Difference title
-    if diff:
-        s2 = os.path.basename(path2).replace("_sc.csv", "")
-        s2 = " ".join([s.capitalize() for s in s2.split("_")])
-        if recalc_table:
-            msgs = []
-            for k, v in recalc_table["scenario_b"].items():
-                if v:
-                    msgs.append(f"{k}: {v}")
-            if msgs:
-                reprint = ", ".join(msgs)
-                s2 += f" ({reprint})"
+    if is_diff:
+        title = delimiter.join([title, "Difference"])
 
-        title = "{} vs. <br>{}<br>".format(s1, s2) + config.titles.get(
-            y_no_diff_suffix, convert_to_title(y)
-        )
-        conditioner = f"{units} Difference | Average"
-        punits = ""
-
-    is_df = isinstance(df, pd.core.frame.DataFrame)
-    y_exists = y_no_diff_suffix and y_no_diff_suffix.lower() != "none"
+    var_exists = var_no_diff_suffix and var_no_diff_suffix.lower() != "none"
     not_category = units != "category"
 
-    # Map title (not chart)
-    if is_df and y_exists and not_category:
-        if y_no_diff_suffix == "capacity" and units != "%":
-            ag = round(df[y].apply(ag_fun) / 1_000_000, 4)
-            punits = ["TW"]
-            conditioner = conditioner.replace("Average", "Total")
-        else:
-            ag = round(df[y].apply(ag_fun), 2)
+    if var_exists and not_category:
+        title = _add_extras_to_title(
+            title, df, var, units, map_selection, delimiter
+        )
 
-            if diff:
-                punits = []
-            else:
-                punits = [config.units.get(y_no_diff_suffix, "")]
-        ag_print = ["  |  {}: {:,}".format(conditioner, ag)]
-        title = " ".join([title] + ag_print + punits)
-        if "hydrogen_annual_kg" in df:
-            ag = round(df["hydrogen_annual_kg"].sum(), 2)
-            ag_print = ["  |  {}: {:,}".format("Total H2", ag)]
-            title = " ".join([title] + ag_print)
+    return title
 
+
+def _add_extras_to_title(title, df, var, units, map_selection, delimiter):
+    """Add extra info to map title."""
+    average = _apply_aggregation(df, var, units, "mean")
+    extra = f"Average: {average:~H.2f}"
+
+    # we can make this more general by
+    # allowing user input about this in config
+    var_no_diff_suffix = DiffUnitOptions.remove_from_variable_name(var)
+    if "capacity" in var_no_diff_suffix and units != "percent":
+        extra = _add_total_info(var, "MW", extra, df, delimiter)
+
+    is_not_diff = DiffUnitOptions.from_variable_name(var) is not None
+    if "hydrogen_annual_kg" in df and is_not_diff:
+        extra = _add_total_info(
+            "hydrogen_annual_kg", "kg", extra, df, delimiter, "H2"
+        )
+
+    title = delimiter.join([title, extra])
+    title = _add_map_selection_to_title(title, map_selection, delimiter)
+    return title
+
+
+def _add_map_selection_to_title(title, map_selection, delimiter="  |  "):
+    """Add the number of points selected in map to title."""
     if map_selection:
-        map_selection_print = "Selected point count: {:,}".format(
-            len(map_selection["points"])
-        )
-        title = "  |  ".join([title, map_selection_print])
-
-    if chart_selection:
-        chart_selection_print = "Selected point count: {:,}".format(
-            len(chart_selection["points"])
-        )
-        title = "<br>".join([title, chart_selection_print])
+        n_points_selected = len(map_selection["points"])
+        map_selection_print = f"Selected point count: {n_points_selected:,}"
+        title = delimiter.join([title, map_selection_print])
 
     return title
 
 
-def infer_recalc(title):
-    """Quick title fix for recalc least cost paths."""
-    variables = ["fcr", "capex", "opex", "losses"]
-    if "least" in title.lower():
-        title = " ".join(title.split(" ")[:-1])
-        if any([v in title for v in variables]):
-            title = title.replace("-", ".")
-            first_part = title.split("  ")[0]
-            recalc_part = title.split("  ")[1]
-            new_part = []
-            for part in recalc_part.split():
-                letters = "".join([c for c in part if c.isalpha()])
-                numbers = part.replace(letters, "")
-                new_part.append(letters + ": " + numbers)
-            title = first_part + " (" + ", ".join(new_part) + ")"
-    return title
+def _add_total_info(col_name, units, title, df, delimiter, description=None):
+    """Add info about total of variable to title."""
+    total = _apply_aggregation(df, col_name, units, "sum")
+    desc = f" {description}:" if description else ":"
+    return delimiter.join([title, f"Total{desc} {total.to_compact():~H.2f}"])
+
+
+def _apply_aggregation(df, var, units, agg_type):
+    """Return the result of aggregation of the variable."""
+    aggregation = Q_(df[var].apply(agg_type), units)
+
+    if aggregation.dimensionless:
+        aggregation = aggregation.to_reduced_units()
+
+    if not any(t in f"{aggregation}" for t in ["dollar", "%"]):
+        aggregation = aggregation.to_compact()
+
+    return aggregation
 
 
 class Map:
@@ -368,13 +300,7 @@ class Map:
         layout["mapbox"]["style"] = self.basemap
         layout["showlegend"] = self.show_legend
         layout["title"]["text"] = self.plot_title
-        layout["uirevision"] = True
         layout["yaxis"] = dict(range=[self.cmin, self.cmax])
-        layout["legend"] = dict(
-            title_font_family="Times New Roman",
-            bgcolor="#E4ECF6",
-            font=dict(family="Times New Roman", size=15, color="black"),
-        )
         return layout
 
     def marker(self, point_size, reverse_color=False):
@@ -416,8 +342,9 @@ class Map:
 class ColorRange:
     """Helper class to represent the color range."""
 
-    def __init__(self, df, color_var, project=None, color_min=None,
-                 color_max=None):
+    def __init__(
+        self, df, color_var, project=None, color_min=None, color_max=None
+    ):
         """Initialize ColorRange object."""
         self.df = df
         self.color_var = color_var

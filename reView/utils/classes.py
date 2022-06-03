@@ -22,27 +22,11 @@ class StrEnum(str, Enum):
         return self.value
 
 
-
-class Units(StrEnum):
-    """Known units and their str representation."""
-
-    CATEGORY = 'category'
-    KILOMETERS = 'km'
-    LCOE = '$/MWh'
-    MEGAWATTS = 'MW'
-    METERS = 'm'
-    METERS_PER_SECOND = "m/s"
-    MILES = 'miles'
-    NONE = ''
-    PERCENT = '%'
-    SQUARE_METERS = 'square km'
-
-
 class DiffUnitOptions(StrEnum):
     """Unit options when difference is selected."""
 
-    ORIGINAL = '.reView.diff.original'
-    PERCENTAGE = '.reView.diff.percent'
+    ORIGINAL = ".reView.diff.original"
+    PERCENTAGE = ".reView.diff.percent"
 
     @classmethod
     def from_variable_name(cls, name):
@@ -188,7 +172,7 @@ class FunctionCalls:
             self.args[name] = {
                 **dict(zip(keys, args)),
                 **kwargs,
-                'trigger': trigger
+                "trigger": trigger,
             }
 
             logger.info("Running %s... (Trigger: %s)", name, trigger)
@@ -198,11 +182,13 @@ class FunctionCalls:
 
         return _callback_func
 
+
 class CountyCode:
     """Utility class to calculate county-level codes."""
+
     _ADD_FIPS = addfips.AddFIPS()
     _COUNTY_EPSG = pd.read_csv(
-        os.path.join(REVIEW_DATA_DIR, 'county_fp.csv'), dtype=str
+        os.path.join(REVIEW_DATA_DIR, "county_fp.csv"), dtype=str
     )
 
     @classmethod
@@ -243,4 +229,4 @@ class CountyCode:
         """
         fips = cls.fips(county, state)
         mask = cls._COUNTY_EPSG.county_fp == fips
-        return cls._COUNTY_EPSG.loc[mask, 'epsg'].values[0]
+        return cls._COUNTY_EPSG.loc[mask, "epsg"].values[0]

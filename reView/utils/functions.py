@@ -307,8 +307,10 @@ def common_numeric_columns(*dfs):
         DataFrames.
     """
     cols = set.intersection(
-        *[set(df.select_dtypes(include=np.number).columns.values)
-          for df in dfs]
+        *[
+            set(df.select_dtypes(include=np.number).columns.values)
+            for df in dfs
+        ]
     )
     return sorted(cols)
 
