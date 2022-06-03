@@ -12,6 +12,7 @@ from pathlib import Path
 
 import pandas as pd
 
+from reView import REVIEW_DATA_DIR
 from reView.utils.constants import COMMON_REV_COLUMN_UNITS, SCALE_OVERRIDES
 from reView.utils.functions import (
     deep_replace,
@@ -178,6 +179,7 @@ class Config:
         """Extract the file path from the config dictionary."""
         file_path = self._config.get(fp_key)
         if file_path is not None:
+            file_path = file_path.replace("REVIEW_DATA_DIR", REVIEW_DATA_DIR)
             file_path = Path(file_path).expanduser().resolve()
         return file_path
 
