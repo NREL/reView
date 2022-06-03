@@ -176,26 +176,10 @@
         "windspeed_class": "Windspeed Class"
     },
     "units": {
-        "adjusted_mean_lcoe": "$/MWh",
-        "adjusted_om": "$/MW",
-        "blm_capacity_fee": "$/MW",
-        "blm_density": "ac/MW",
-        "blm_lease_option": "N/A",
-        "blm_rent": "$/ac",
-        "blm_total_charge": "$/ac",
-        "cnty_fips": "N/A",
-        "dist_km": "km",
-        "lbnl_convex_hull_existing_farms_2018": "N/A",
-        "lbnl_convex_hull_existing_farms_2021": "N/A",
-        "lbnl_upv_1km_buffer": "N/A",
-        "mean_fixed_operating_cost": "N/A",
-        "mean_system_capacity": "N/A",
-        "nrel_region": "N/A",
-        "rate_usd_ac": "$/ac",
-        "rate_usd_mw": "$/MW",
-        "technology": "N/A",
-        "trans_cap_cost_per_mw": "$/MW",
-        "transmission_multiplier": "N/A",
-        "usa_mrlc_nlcd2011": "N/A"
+        "adjusted_mean_lcoe": "USD/MWh",
+        "adjusted_om": "USD/MW",
+        "blm_capacity_fee": "USD/MW",
+        "rate_usd_ac": "USD/MW",
+        "rate_usd_mw": "USD/MW"
     }
 }

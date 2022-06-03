@@ -4,7 +4,7 @@
     "units": {
         "Rating": "category",
         "Hub Height": "m",
-        "Rotor diameter": "caategory",
+        "Rotor diameter": "category",
         "Erection": "category",
         "Tower Type": "category",
         "Wake steering benefit": "category",

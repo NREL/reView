@@ -35,28 +35,28 @@ def reset_configs():
 def test_invalid_project_input():
     """Test invalid project name input (None)"""
 
-    with pytest.raises(ValueError) as excinfo:
+    with pytest.raises(ValueError) as exc_info:
         Config(None)
 
-    assert "Project input cannot be None!" in str(excinfo.value)
+    assert "Project input cannot be None!" in str(exc_info.value)
 
 
 def test_dne_project_name():
     """Test project name that does not exist."""
 
-    with pytest.raises(ValueError) as excinfo:
+    with pytest.raises(ValueError) as exc_info:
         Config("Project Name DNE")
 
-    assert "No project with name 'Project Name DNE'" in str(excinfo.value)
+    assert "No project with name 'Project Name DNE'" in str(exc_info.value)
 
 
 def test_project_no_directory():
     """Test that error si thrown for project with no directory key."""
 
-    with pytest.raises(ValueError) as excinfo:
+    with pytest.raises(ValueError) as exc_info:
         Config("Test No Dir")
 
-    assert "missing the following keys" in str(excinfo.value)
+    assert "missing the following keys" in str(exc_info.value)
 
 
 def test_config_path_resolves_correctly():
@@ -75,7 +75,7 @@ def test_config_no_var():
 
     files_1 = list(config._all_files)
     files_2 = list(config._all_files)
-    assert files_1 == files_2  # check that generator is re-initalized
+    assert files_1 == files_2  # check that generator is re-initialized
 
     assert "empty_data_1" in config.files
     assert config.files["empty_data_1"] in files_1
@@ -109,10 +109,10 @@ def test_properties_of_minimal_config():
     assert config.titles == {}
     assert len(config.scales) >= 0
     assert len(config.units) >= 0
-    assert len(config.scenarios) >= 2
-    assert len(config.scenarios) >= 2
+    assert len(config.scenarios) >= 3
     assert "empty_data_1" in config.scenarios
     assert "empty_data_2" in config.scenarios
+    assert "empty_data_3" in config.scenarios
 
     assert repr(config) == "Config('Hydrogen Minimal')"
     assert "Config" in str(config)
