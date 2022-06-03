@@ -71,7 +71,7 @@ def build_specs(scenario, project):
     dct = specs[scenario]
     table = """| Variable | Value |\n|----------|------------|\n"""
     for variable, value in dct.items():
-        row = "| {} | {} |\n".format(variable, value)
+        row = f"| {variable} | {value} |\n"
         table = table + row
     return table
 
@@ -87,7 +87,7 @@ def build_spec_split(path, project):
     pdf = pdf.sort_values("p", ascending=False)
     table = """| Scenario | Percentage |\n|----------|------------|\n"""
     for _, row in pdf.iterrows():
-        row = "| {} | {}% |\n".format(row["s"], row["p"])
+        row = f"| {row['s']} | {row['p']}% |\n"
         table = table + row
     return table
 
@@ -158,9 +158,7 @@ def scenario_dropdowns(groups, class_names=None):
         dropdown = html.Div(
             [
                 html.Div(
-                    [
-                        html.P(group)
-                    ],
+                    [html.P(group)],
                     className=class_names[0],
                 ),
                 html.Div(
@@ -168,11 +166,11 @@ def scenario_dropdowns(groups, class_names=None):
                         dcc.Dropdown(
                             options=options,
                             value=options[0]["value"],
-                            optionHeight=75
+                            optionHeight=75,
                         )
                     ],
                     className=class_names[-1],
-                    style={"margin-left": "15px"}
+                    style={"margin-left": "15px"},
                 ),
             ],
             style={"background-color": color, "border-radius": "5px"},
@@ -229,7 +227,7 @@ def dropdown_chart_types(project):
     State("rev_map_color_options", "value"),
 )
 @calls.log
-def dropdown_colors(submit, variable, project, signal, old_value):
+def dropdown_colors(__, variable, project, signal, ___):
     """Provide qualitative color options for categorical data."""
 
     # To figure out if we need to update we need these
@@ -268,7 +266,7 @@ def dropdown_colors(submit, variable, project, signal, old_value):
     State("submit", "n_clicks"),
 )
 @calls.log
-def dropdown_minimizing_scenarios(url, project, minimizing_variable, n_clicks):
+def dropdown_minimizing_scenarios(url, project, minimizing_variable, __):
     """Update the options given a project."""
 
     logger.debug("URL: %s", url)
@@ -287,7 +285,7 @@ def dropdown_minimizing_scenarios(url, project, minimizing_variable, n_clicks):
             dropdown_options = []
             for op in options:
                 try:
-                    label = "{:,}".format(op)
+                    label = f"{op:,}"
                 except ValueError:
                     label = str(op)
                 ops = {"label": label, "value": op}
@@ -356,7 +354,7 @@ def dropdown_minimizing_targets(scenario_options, project):
     State("submit", "n_clicks"),
 )
 @calls.log
-def dropdown_projects(pathname, n_clicks):
+def dropdown_projects(__, ___):
     """Update project options."""
 
     # Open config json
@@ -399,7 +397,7 @@ def dropdown_minimizing_plot_options(scenario_options, project):
     State("submit", "n_clicks"),
 )
 @calls.log
-def dropdown_scenarios(url, project, n_clicks):
+def dropdown_scenarios(url, project, __):
     """Update the options given a project."""
     logger.debug("URL: %s", url)
 
@@ -417,7 +415,7 @@ def dropdown_scenarios(url, project, n_clicks):
             dropdown_options = []
             for op in options:
                 try:
-                    label = "{:,}".format(op)
+                    label = "{op:,}"
                 except ValueError:
                     label = str(op)
                 ops = {"label": label, "value": op}
@@ -476,7 +474,7 @@ def dropdown_scenarios(url, project, n_clicks):
 )
 @calls.log
 def dropdown_variables(
-    url, scenario_a_options, scenario_b_options, b_div, project
+    __, scenario_a_options, scenario_b_options, b_div, project
 ):
     """Update variable dropdown options."""
 
@@ -510,7 +508,7 @@ def dropdown_variables(
 def dropdown_x_variables(
     scenario_a_options, scenario_b_options, b_div, chart_type, project
 ):
-    """Return dropdown options for x variable. """
+    """Return dropdown options for x variable."""
     logger.debug("Setting X variable options")
     if chart_type == "char_histogram":
         config = Config(project)
@@ -539,11 +537,7 @@ def dropdown_x_variables(
     State("submit", "n_clicks"),
 )
 @calls.log
-def dropdowns_additional_scenarios(
-    url,
-    project,
-    n_clicks,
-):
+def dropdowns_additional_scenarios(url, project, __):
     """Update the additional scenarios options given a project."""
     logger.debug("URL: %s", url)
 
@@ -605,7 +599,7 @@ def figure_chart(
     chart,
     map_selection,
     point_size,
-    op_values,
+    __,
     region,
     user_ymin,
     user_ymax,
@@ -613,7 +607,7 @@ def figure_chart(
     alpha,
     chart_selection,
     project,
-    chart_view,
+    ___,
     map_func,
 ):
     """Make one of a variety of charts."""
@@ -1016,7 +1010,7 @@ def retrieve_chart_tables(y, x, state):
     State("filter_4", "value"),
 )
 @calls.log
-def retrieve_filters(submit, var1, var2, var3, var4, q1, q2, q3, q4):
+def retrieve_filters(__, var1, var2, var3, var4, q1, q2, q3, q4):
     """Retrieve filter variable names and queries."""
 
     variables = [var1, var2, var3, var4]
@@ -1062,10 +1056,10 @@ def retrieve_filters(submit, var1, var2, var3, var4, q1, q2, q3, q4):
 )
 @calls.log
 def retrieve_signal(
-    submit,
+    __,
     states,
     regions,
-    chart,
+    ___,
     x,
     scenarios,
     filter_store,
@@ -1219,7 +1213,7 @@ def retrieve_signal(
     Input("project", "value"),
 )
 def retrieve_recalc_parameters(
-    fcr1, capex1, opex1, losses1, fcr2, capex2, opex2, losses2, project
+    fcr1, capex1, opex1, losses1, fcr2, capex2, opex2, losses2, __
 ):
     """Retrieve all given recalc values and store them."""
     trig = callback_trigger()
@@ -1304,8 +1298,7 @@ def tabs_chart(tab_choice, chart_choice):
 
 
 @app.callback(
-    Output("rev_chart_x_bin_div", "style"),
-    Input("rev_chart_options", "value")
+    Output("rev_chart_x_bin_div", "style"), Input("rev_chart_options", "value")
 )
 @calls.log
 def toggle_bins(chart_type):
@@ -1350,7 +1343,7 @@ def toggle_rev_map_below_options(n, is_open):
     Output("options_div", "is_open"),
     Input("toggle_options", "n_clicks"),
     Input("scenario_selection_tabs", "value"),
-    State("options", "is_open")
+    State("options", "is_open"),
 )
 @calls.log
 def toggle_options(click, selection_ind, is_open):
@@ -1358,22 +1351,26 @@ def toggle_options(click, selection_ind, is_open):
     options_label = {
         "float": "left",
         "margin-left": "20px",
-        "margin-bottom": "-25px"
+        "margin-bottom": "-25px",
     }
     scenario_styles = [{"display": "none"} for _ in range(3)]
     tabs_style = {"display": "none"}
     button_children = "Show"
     scenario_styles[int(selection_ind)] = {"margin-bottom": "1px"}
-    tabs_style = {
-        "height": "5vh"
-    }
+    tabs_style = {"height": "5vh"}
     click = click or 0
     if click % 2 == 1:
         options_label = {"display": "none"}
         button_children = "Hide"
         is_open = not is_open
 
-    return *scenario_styles, tabs_style, button_children, options_label, is_open
+    return (
+        *scenario_styles,
+        tabs_style,
+        button_children,
+        options_label,
+        is_open,
+    )
 
 
 @app.callback(
