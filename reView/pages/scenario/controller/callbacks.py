@@ -383,8 +383,8 @@ def dropdown_minimizing_plot_options(scenario_options, project):
         titles = {col: convert_to_title(col) for col in columns}
         titles.update(config.titles)
         if titles:
-            for k, v in titles.items():
-                plot_options.append({"label": v, "value": k})
+            for key, val in titles.items():
+                plot_options.append({"label": val, "value": key})
 
     return plot_options
 
@@ -575,6 +575,7 @@ def dropdowns_additional_scenarios(url, project, __):
     return scenario_options
 
 
+# pylint: disable=too-many-arguments
 @app.callback(
     Output("rev_chart", "figure"),
     Output("rev_chart_loading", "style"),
