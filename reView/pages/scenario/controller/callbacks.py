@@ -219,15 +219,9 @@ def download(info):
     """Download csv file."""
     info = json.loads(info)
     if info["tmp_path"] is not None:
-        print("gotit")
-        src = info["tmp_path"]
-        dst = info["path"]
-        df = pd.read_csv(src)
-        for c in df.columns:
-            if "Unnamed: " in c:
-                del df[c]
-        os.remove(src)
-        return dcc.send_data_frame(df.to_csv, dst, index=False)
+        df = pd.read_csv(info["tmp_path"])
+        os.remove(info["tmp_path"])
+        return dcc.send_data_frame(df.to_csv, info["path"], index=False)
 
 
 @app.callback(
