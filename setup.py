@@ -22,8 +22,8 @@ with open("requirements.txt") as f:
     INSTALL_REQUIREMENTS = f.readlines()
 
 DESCRIPTION = (
-    "A data portal for reviewing Renewable Energy Potential Model "
-    "(reV) outputs"
+    "A data portal for reviewing Renewable Energy Potential Model (reV) "
+    "outputs"
 )
 DEV_REQUIREMENTS = ["pylint", "dash[testing]", "selenium"]
 TEST_REQUIREMENTS = ["pytest", "pytest-cov"]
