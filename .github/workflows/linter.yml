@@ -22,7 +22,7 @@ jobs:
           VALIDATE_ALL_CODEBASE: false
           VALIDATE_PYTHON_BLACK: false
           VALIDATE_PYTHON_ISORT: false
-          VALIDATE_PYTHON_FLAKE8: false
+          VALIDATE_PYTHON_FLAKE8: true
           VALIDATE_PYTHON_MYPY: false
           VALIDATE_DOCKERFILE_HADOLINT: false
           VALIDATE_JSCPD: false
