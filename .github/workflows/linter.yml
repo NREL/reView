@@ -4,8 +4,6 @@ on:
   push:
     branches-ignore:
       - 'gh-pages'
-  pull_request:
-    branches: [master, main]
 
 jobs:
   build:
@@ -13,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
         with:
           fetch-depth: 0
       - name: Lint Code Base
