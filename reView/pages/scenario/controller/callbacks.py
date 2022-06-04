@@ -220,7 +220,7 @@ def download(info):
     info = json.loads(info)
     if info["tmp_path"] is None:
         raise PreventUpdate
-    df = pd.read_csv(info["tmp_path"])
+    df = pd.read_csv(info["tmp_path"], low_memory=False)
     os.remove(info["tmp_path"])
     return dcc.send_data_frame(df.to_csv, info["path"], index=False)
 
