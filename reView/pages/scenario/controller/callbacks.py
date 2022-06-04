@@ -218,10 +218,11 @@ def disable_mapping_function_dev(project, __):
 def download(info):
     """Download csv file."""
     info = json.loads(info)
-    if info["tmp_path"] is not None:
-        df = pd.read_csv(info["tmp_path"])
-        os.remove(info["tmp_path"])
-        return dcc.send_data_frame(df.to_csv, info["path"], index=False)
+    if info["tmp_path"] is None:
+        raise PreventUpdate
+    df = pd.read_csv(info["tmp_path"])
+    os.remove(info["tmp_path"])
+    return dcc.send_data_frame(df.to_csv, info["path"], index=False)
 
 
 @app.callback(
@@ -705,7 +706,7 @@ def figure_chart(
     return fig, {"margin-right": "500px"}
 
 
-# pylint: disable=too-many-arguments,too-many-locals
+# pylint: disable=too-many-arguments,too-many-locals,unused-argument
 @app.callback(
     Output("rev_map", "figure"),
     Output("rev_mapcap", "children"),
@@ -738,7 +739,7 @@ def figure_map(
     color_ymax,
     map_selection,
     click_selection,
-    download,
+    download_click,
     project,
     map_function,
 ):
@@ -746,6 +747,7 @@ def figure_map(
     signal_dict = json.loads(signal)
     df = cache_map_data(signal_dict)
 
+    # Filter selections and gather demand data if requested
     df, demand_data = apply_all_selections(
         df,
         map_function,
@@ -759,10 +761,11 @@ def figure_map(
         unpacker = BespokeUnpacker(df, click_selection)
         df = unpacker.unpack_turbines()
 
+    # Save download information
     tmp_path = None
     if "rev_map_download_button" in callback_trigger():
-        tmp_path = tempfile.NamedTemporaryFile().name
-        print(f"TMP: {tmp_path}")
+        with tempfile.NamedTemporaryFile() as tmp:
+            tmp_path = tmp.name
         df.to_csv(tmp_path, index=False)
 
     # Use demand counts if available
