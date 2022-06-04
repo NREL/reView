@@ -24,7 +24,7 @@ DESCRIPTION = (
     "A data portal for reviewing Renewable Energy Potential Model "
     "(reV) outputs"
 )
-DEV_REQUIREMENTS = ["black", "pylint", "dash[testing]", "selenium"]
+DEV_REQUIREMENTS = ["pylint", "dash[testing]", "selenium"]
 TEST_REQUIREMENTS = ["pytest", "pytest-cov"]
 GUNICORN_REQUIREMENTS = ["gunicorn"]
 
