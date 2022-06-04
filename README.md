@@ -75,11 +75,6 @@
 
 ## Development
 
-This repository uses [pylint](https://pylint.pycqa.org/en/latest/) to lint the code and
-[black](https://black.readthedocs.io/en/stable/index.html) to format it
-(check out the
-[black formatting style](https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html)).
-If you wish to contribute to this repository, your code will have to adhere to both of these guidelines.
-In addition, your code must pass all existing tests. You will need to
+This repository uses [pylint](https://pylint.pycqa.org/en/latest/) to lint the code, please follow this guideline if you wish to contribute to this repository. In addition, your code must pass all existing tests. You will need to
 [download the Chrome Driver](https://chromedriver.chromium.org/getting-started) in order to run the integration tests
 included with this repository.
