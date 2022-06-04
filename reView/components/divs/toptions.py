@@ -13,7 +13,8 @@ from reView.layout.styles import (
     TABLET_STYLE_CLOSED,
 )
 
-_TOPTIONS = [
+
+TOPTIONS = [
     dcc.Tabs(
         id="scenario_selection_tabs",
         value="0",
@@ -40,6 +41,7 @@ _TOPTIONS = [
         ],
         style={"display": "none"},
     ),
+
     # Data Options
     html.Div(
         [
@@ -58,6 +60,7 @@ _TOPTIONS = [
                         className="four columns",
                         style={"margin-left": "25px"},
                     ),
+
                     # Second Scenario
                     html.Div(
                         id="scenario_b_div",
@@ -76,6 +79,7 @@ _TOPTIONS = [
                     ),
                 ],
             ),
+
             # Variable options
             html.Div(
                 [
@@ -93,6 +97,7 @@ _TOPTIONS = [
                 ],
                 className="two columns",
             ),
+
             # Show difference map
             html.Div(
                 [
@@ -161,6 +166,7 @@ _TOPTIONS = [
                 ],
                 className="four columns",
             ),
+
             # Add in a map function option (demand meeting)
             html.Div(
                 id="map_function_div",
@@ -184,6 +190,7 @@ _TOPTIONS = [
                     ),
                 ],
             ),
+
             # LCOE Recalc
             html.Div(
                 [
@@ -237,6 +244,7 @@ _TOPTIONS = [
                                     ),
                                 ],
                             ),
+
                             # Long table of scenario A recalc parameters
                             html.Div(
                                 id="recalc_a_options",
@@ -259,6 +267,7 @@ _TOPTIONS = [
                                         ],
                                         className="row",
                                     ),
+
                                     # CAPEX A
                                     html.Div(
                                         [
@@ -276,6 +285,7 @@ _TOPTIONS = [
                                         ],
                                         className="row",
                                     ),
+
                                     # OPEX A
                                     html.Div(
                                         [
@@ -293,6 +303,7 @@ _TOPTIONS = [
                                         ],
                                         className="row",
                                     ),
+
                                     # Losses A
                                     html.Div(
                                         [
@@ -332,6 +343,7 @@ _TOPTIONS = [
                                         ],
                                         className="row",
                                     ),
+
                                     # CAPEX B
                                     html.Div(
                                         [
@@ -349,6 +361,7 @@ _TOPTIONS = [
                                         ],
                                         className="row",
                                     ),
+
                                     # OPEX B
                                     html.Div(
                                         [
@@ -366,6 +379,7 @@ _TOPTIONS = [
                                         ],
                                         className="row",
                                     ),
+
                                     # Losses B
                                     html.Div(
                                         [
@@ -508,6 +522,7 @@ _TOPTIONS = [
                 className="four columns",
                 style={"margin-left": "25px"},
             ),
+
             # Variable options
             html.Div(
                 [
@@ -520,6 +535,7 @@ _TOPTIONS = [
                 ],
                 className="two columns",
             ),
+
             # Target options
             html.Div(
                 [
@@ -532,6 +548,7 @@ _TOPTIONS = [
                 ],
                 className="three columns",
             ),
+
             # Plot options
             html.Div(
                 [
@@ -574,8 +591,8 @@ REV_TOPTIONS_DIV = html.Div(
         dbc.Collapse(
             className="twelve columns",
             id="options_div",
-            is_open=True,
-            children=_TOPTIONS,
+            is_open=False,
+            children=TOPTIONS,
         ),
         html.Div(
             children=[
@@ -610,6 +627,7 @@ REV_TOPTIONS_DIV = html.Div(
                         ),
                     ],
                 ),
+
                 # Hide/show options
                 dbc.Button(
                     id="toggle_options",
@@ -625,6 +643,7 @@ REV_TOPTIONS_DIV = html.Div(
                         "height": "50%",
                     },
                 ),
+
                 # Submit Button to avoid repeated callbacks
                 dbc.Button(
                     id="submit",

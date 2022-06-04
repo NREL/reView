@@ -204,6 +204,7 @@ def map_div(id_prefix, class_name=None):
                     }
                 ),
             ),
+
             # Button to reveal below options
             dbc.Button(
                 "Options",
@@ -218,12 +219,16 @@ def map_div(id_prefix, class_name=None):
                     "height": "50%",
                 },
             ),
+
             # Below Map Options
             below_map_options_div(id_prefix=id_prefix, class_name="row"),
         ],
         className=class_name,
         style={
-            "box-shadow": "0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19)",
+            "box-shadow": (
+                "0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 "
+                "rgba(0, 0, 0, 0.19)"
+            ),
             "border-radius": "5px",
         },
     )
@@ -316,6 +321,23 @@ def below_map_options_div(id_prefix, class_name=None):
                         "border-color": "gray",
                     },
                 ),
+
+                # Download Submission
+                dbc.Button(
+                    "DOWNLOAD",
+                    id=f"{id_prefix}_map_download_button",
+                    className="me-1",
+                    color="dark",
+                    outline=True,
+                    n_clicks=0,
+                    style={
+                        "float": "right",
+                        "margin-right": "5px",
+                        "margin-top": "-1px",
+                        "color": "gray",
+                        "border-color": "gray",
+                    },
+                )
             ]
         ),
         id=f"{id_prefix}_map_below_options",
