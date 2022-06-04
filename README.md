@@ -76,7 +76,7 @@
 ## Development
 
 This repository uses [pylint](https://pylint.pycqa.org/en/latest/) to lint the code.
-If you wish to contribute to this repository, your code will have to adhere to this guidelines.
+If you wish to contribute to this repository, your code will have to adhere to this guideline.
 In addition, your code must pass all existing tests. You will need to
 [download the Chrome Driver](https://chromedriver.chromium.org/getting-started) in order to run the integration tests
 included with this repository.
