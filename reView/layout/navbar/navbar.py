@@ -72,6 +72,7 @@ NAVBAR = html.Nav(
                 type="button",
                 title=("Go to the reV viewer page."),
                 style=BUTTON_STYLES["navbar"],
+                className="twelve columns"
             ),
             id="scenario_link",
             href="/scenario_page",
@@ -83,6 +84,7 @@ NAVBAR = html.Nav(
                 type="button",
                 title=("Go to the ReEDS buildout viewer page."),
                 style=BUTTON_STYLES["navbar"],
+                className="twelve columns"
             ),
             id="reeds_link",
             href="/reeds_page",
@@ -118,6 +120,8 @@ NAVBAR = html.Nav(
                     "border-bottom-left-radius": "3px",
                     "border-top-left-radius": "3px",
                     "border-top-right-radius": "3px",
+                    "border": "2px solid white"
+                    
                 },
             ),
             href="https://www.nrel.gov/",

@@ -69,6 +69,7 @@ layout = html.Div(
             children=[
                 # The map
                 map_div(id_prefix="rev", class_name="six columns"),
+
                 # The chart
                 chart_div(id_prefix="rev", class_name="six columns"),
             ]
@@ -118,6 +119,7 @@ layout = html.Div(
 
         # Download
         dcc.Download(id="download"),
-        html.Div(id="download_info", style={"display": "none"})
+        html.Div(id="download_info_chart", style={"display": "none"}),
+        html.Div(id="download_info_map", style={"display": "none"})
     ],
 )

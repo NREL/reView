@@ -66,6 +66,7 @@ def above_chart_options_div(id_prefix, class_name=None):
                 value="chart",
                 style=TAB_STYLE,
             ),
+
             # Type of chart
             html.Div(
                 id=f"{id_prefix}_chart_options_div",
@@ -79,6 +80,7 @@ def above_chart_options_div(id_prefix, class_name=None):
                     )
                 ],
             ),
+
             # X-axis Variable
             html.Div(
                 id=f"{id_prefix}_chart_x_variable_options_div",
@@ -97,6 +99,7 @@ def above_chart_options_div(id_prefix, class_name=None):
                     )
                 ],
             ),
+
             # Region grouping
             html.Div(
                 id=f"{id_prefix}_chart_region_div",
@@ -110,6 +113,7 @@ def above_chart_options_div(id_prefix, class_name=None):
                     )
                 ],
             ),
+
             # Scenario grouping
             html.Div(
                 id=f"{id_prefix}_additional_scenarios_div",
@@ -280,6 +284,23 @@ def below_chart_options_div(id_prefix, class_name=None):
                         ),
                     ],
                 ),
+
+                # Download Submission
+                dbc.Button(
+                    "DOWNLOAD",
+                    id=f"{id_prefix}_chart_download_button",
+                    className="me-1",
+                    color="dark",
+                    outline=True,
+                    n_clicks=0,
+                    style={
+                        "float": "right",
+                        "margin-right": "5px",
+                        "margin-top": "-1px",
+                        "color": "gray",
+                        "border-color": "gray",
+                    },
+                )
             ]
         ),
         id=f"{id_prefix}_chart_below_options",

@@ -139,6 +139,37 @@ def chart_tab_div_children(chart_choice):
     return children
 
 
+def fig_to_df(fig):
+    """Return a data frame version of a plotly figure.
+
+    Parameters
+    ----------
+    fig : plotly.graph_objs._figure.Figure
+        A plotly figure with data.
+
+    Returns
+    -------
+    pandas.core.frame.DataFrame
+        A pandas data frame.
+    """
+    # Get axis titles
+    xtitle = fig.layout["xaxis"]["title"]["text"]
+    ytitle = fig.layout["yaxis"]["title"]["text"]
+
+    # Get the data
+    subdfs = []
+    for item in fig.data:
+        group = item.legendgroup.replace(" ", "_").lower()
+        x = item.x
+        y = item.y
+        subdf = pd.DataFrame({"Group": group, xtitle: x, ytitle: y})
+        subdfs.append(subdf)
+    df = pd.concat(subdfs)
+    df = df.dropna()
+
+    return df
+
+
 @calls.log
 def options_chart_type(project):
     """Add characterization plot option, if necessary."""
@@ -211,17 +242,25 @@ def disable_mapping_function_dev(project, __):
 
 @app.callback(
     Output("download", "data"),
-    Input("download_info", "children"),
+    Input("download_info_map", "children"),
+    Input("download_info_chart", "children"),
     prevent_initial_call=True,
 )
 @calls.log
-def download(info):
+def download(map_info, chart_info):
     """Download csv file."""
+    if "chart" in callback_trigger():
+        info = chart_info
+    else:
+        info = map_info
+
     info = json.loads(info)
     if info["tmp_path"] is None:
         raise PreventUpdate
+
     df = pd.read_csv(info["tmp_path"])
     os.remove(info["tmp_path"])
+
     return dcc.send_data_frame(df.to_csv, info["path"], index=False)
 
 
@@ -596,6 +635,7 @@ def dropdowns_additional_scenarios(url, project, __):
 @app.callback(
     Output("rev_chart", "figure"),
     Output("rev_chart_loading", "style"),
+    Output("download_info_chart", "children"),
     Input("map_signal", "children"),
     Input("rev_chart_options", "value"),
     Input("rev_map", "selectedData"),
@@ -606,6 +646,7 @@ def dropdowns_additional_scenarios(url, project, __):
     Input("rev_map_color_max", "value"),
     Input("rev_chart_x_bin", "value"),
     Input("rev_chart_alpha", "value"),
+    Input("rev_chart_download_button", "n_clicks"),
     State("rev_chart", "selectedData"),
     State("project", "value"),
     State("rev_chart", "relayoutData"),
@@ -623,13 +664,13 @@ def figure_chart(
     user_ymax,
     bins,
     alpha,
+    download,
     chart_selection,
     project,
     ___,
     map_func,
 ):
     """Make one of a variety of charts."""
-
     # Unpack the signal
     signal_dict = json.loads(signal)
     x_var = signal_dict["x"]
@@ -703,7 +744,21 @@ def figure_chart(
     elif chart == "box":
         fig = plotter.box(y_var)
 
-    return fig, {"margin-right": "500px"}
+    # Save download information
+    tmp_path = None
+    if "rev_chart_download_button" in callback_trigger():
+        with tempfile.NamedTemporaryFile() as tmp:
+            tmp_path = tmp.name
+        df = fig_to_df(fig)
+        df.to_csv(tmp_path, index=False)
+
+    # Package returns
+    loading_style = {"margin-right": "500px"}
+    download_info = json.dumps(
+        {"path": "review_chart_data.csv", "tmp_path": tmp_path}
+    )
+
+    return fig, loading_style, download_info
 
 
 # pylint: disable=too-many-arguments,too-many-locals,unused-argument
@@ -712,7 +767,7 @@ def figure_chart(
     Output("rev_mapcap", "children"),
     Output("rev_map", "clickData"),
     Output("rev_map_loading", "style"),
-    Output("download_info", "children"),
+    Output("download_info_map", "children"),
     Input("map_signal", "children"),
     Input("rev_map_basemap_options", "value"),
     Input("rev_map_color_options", "value"),
@@ -1401,7 +1456,7 @@ def toggle_options(click, selection_ind, is_open):
     scenario_styles[int(selection_ind)] = {"margin-bottom": "1px"}
     tabs_style = {"height": "5vh"}
     click = click or 0
-    if click % 2 == 1:
+    if click % 2 == 0:
         options_label = {"display": "none"}
         button_children = "Hide"
         is_open = not is_open
