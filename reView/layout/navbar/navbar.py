@@ -121,7 +121,6 @@ NAVBAR = html.Nav(
                     "border-top-left-radius": "3px",
                     "border-top-right-radius": "3px",
                     "border": "2px solid white"
-                    
                 },
             ),
             href="https://www.nrel.gov/",

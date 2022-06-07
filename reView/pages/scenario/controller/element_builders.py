@@ -175,12 +175,11 @@ class Plots:
         bins = np.arange(minx, maxx + bin_size, bin_size)
 
         main_df["xbin"] = bins[-1]
-        for bn in bins[::-1]:
-            main_df["xbin"][main_df[x_var] <= bn] = bn
+        for xbin in bins[::-1]:
+            main_df["xbin"][main_df[x_var] <= xbin] = xbin
         
-        main_df["ybin"] = main_df.groupby(["xbin", self.GROUP])[y_var].transform(
-                                "mean"
-                          )
+        grouper = main_df.groupby(["xbin", self.GROUP])
+        main_df["ybin"] = grouper[y_var].transform("mean")
 
         # The simpler line plot part
         main_df = main_df.sort_values([x_var, self.GROUP])

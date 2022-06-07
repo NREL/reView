@@ -80,4 +80,3 @@ OPTION_STYLE = {
     "font-size": "12px",
     "margin-top": "-1px"
 }
-

@@ -160,9 +160,7 @@ def fig_to_df(fig):
     subdfs = []
     for item in fig.data:
         group = item.legendgroup.replace(" ", "_").lower()
-        x = item.x
-        y = item.y
-        subdf = pd.DataFrame({"Group": group, xtitle: x, ytitle: y})
+        subdf = pd.DataFrame({"Group": group, xtitle: item.x, ytitle: item.y})
         subdfs.append(subdf)
     df = pd.concat(subdfs)
     df = df.dropna()
