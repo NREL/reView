@@ -75,44 +75,6 @@ class Plots:
         """Print representation string."""
         return f"<Plots object: project={self.config.project}>"
 
-    def _plot_range(self, var):
-        """Get plot range."""
-
-        user_ymin, user_ymax = self.user_scale
-        scale = self.config.scales.get(
-            DiffUnitOptions.remove_from_variable_name(var), {}
-        )
-        ymin = user_ymin or scale.get("min")
-        ymax = user_ymax or scale.get("max")
-
-        if ymin and not ymax:
-            ymax = max([df[var].max() for df in self.datasets.values()])
-        if ymax and not ymin:
-            ymin = min([df[var].min() for df in self.datasets.values()])
-        return [ymin, ymax]
-
-    def _axis_title(self, var):
-        """Make a title out of variable name and units."""
-        diff = DiffUnitOptions.from_variable_name(var)
-        is_difference = diff is not None
-        is_percent_difference = diff == DiffUnitOptions.PERCENTAGE
-        var = DiffUnitOptions.remove_from_variable_name(var)
-        var = var.removesuffix("_2")
-        title = [self.config.titles.get(var, convert_to_title(var))]
-
-        if is_percent_difference:
-            title += ["(%)"]
-        elif units := self.config.units.get(var):
-            title += [f"({units})"]
-
-        if is_difference:
-            # this is a limitation (bug?) of dash...
-            # can only have "$" at start and end of string
-            title = [t.replace("$", "dollars") for t in title]
-            title = ["$", r"\Delta", r"\text{"] + title + ["}$"]
-
-        return " ".join(title)
-
     def cumulative_sum(self, x_var, y_var):
         """Return a cumulative capacity scatter plot."""
         main_df = None
@@ -168,19 +130,7 @@ class Plots:
                 main_df = pd.concat([main_df, df])
 
         # Assign bins as max bin value
-        main_df = main_df.dropna(subset=x_var)
-        main_df = main_df.sort_values(x_var)
-        minx, maxx = main_df[x_var].min(), main_df[x_var].max()
-        xrange = maxx - minx
-        bin_size = np.ceil(xrange / bins)
-        bins = np.arange(minx, maxx + bin_size, bin_size)
-
-        main_df["xbin"] = bins[-1]
-        for xbin in bins[::-1]:
-            main_df["xbin"][main_df[x_var] <= xbin] = xbin
-
-        grouper = main_df.groupby(["xbin", self.GROUP])
-        main_df["ybin"] = grouper[y_var].transform("mean")
+        main_df = self._assign_bins(main_df, y_var, x_var, bins)
 
         # The simpler line plot part
         main_df = main_df.sort_values([x_var, self.GROUP])
@@ -274,22 +224,28 @@ class Plots:
 
         y_title = self._axis_title(y_var)
         main_df = main_df.sort_values(self.GROUP)
+        main_df = main_df.dropna(subset=y_var)
 
-        fig = px.histogram(
+        # Use numpy since plotly calculates counts in browser
+        main_df = self._histogram(main_df, y_var, bins)
+
+        fig = px.bar(
             main_df,
             x=y_var,
+            y="count",
             labels={y_var: y_title},
-            color=self.GROUP,
+            color="group",
             opacity=self.alpha,
             color_discrete_sequence=px.colors.qualitative.Safe,
-            barmode="overlay",
-            nbins=bins,
+            barmode="group",
         )
 
         fig.update_traces(
             marker=dict(line=dict(width=0)),
             unselected=dict(marker=dict(color="grey")),
         )
+        # fig.update_layout(bargap=0.0, bargroupgap=0.1)
+
 
         return self._update_fig_layout(fig, y_var)
 
@@ -381,6 +337,79 @@ class Plots:
         )
 
         return self._update_fig_layout(fig, y_var)
+
+    def _assign_bins(self, main_df, y_var, x_var, bins):
+        """Assign bin values to variable in dataframe."""
+        main_df = main_df.dropna(subset=x_var)
+        main_df = main_df.sort_values(x_var)
+        minx, maxx = main_df[x_var].min(), main_df[x_var].max()
+        xrange = maxx - minx
+        bin_size = np.ceil(xrange / bins)
+        bins = np.arange(minx, maxx + bin_size, bin_size)
+        main_df["xbin"] = bins[-1]
+        for xbin in bins[::-1]:
+            main_df["xbin"][main_df[x_var] <= xbin] = xbin
+        grouper = main_df.groupby(["xbin", self.GROUP])
+        main_df["ybin"] = grouper[y_var].transform("mean")
+        return main_df
+
+    def _axis_title(self, var):
+        """Make a title out of variable name and units."""
+        diff = DiffUnitOptions.from_variable_name(var)
+        is_difference = diff is not None
+        is_percent_difference = diff == DiffUnitOptions.PERCENTAGE
+        var = DiffUnitOptions.remove_from_variable_name(var)
+        var = var.removesuffix("_2")
+        title = [self.config.titles.get(var, convert_to_title(var))]
+
+        if is_percent_difference:
+            title += ["(%)"]
+        elif units := self.config.units.get(var):
+            title += [f"({units})"]
+
+        if is_difference:
+            # this is a limitation (bug?) of dash...
+            # can only have "$" at start and end of string
+            title = [t.replace("$", "dollars") for t in title]
+            title = ["$", r"\Delta", r"\text{"] + title + ["}$"]
+
+        return " ".join(title)
+
+    def _histogram(self, main_df, y_var, bins):
+        """Build grouped bin count dataframe for histogram."""
+        # Get bin ranges for full value range
+        main_df = main_df.dropna(subset=y_var)
+        counts, xbins = np.histogram(main_df[y_var], bins=bins)
+
+        # Build grouped binned counts
+        df = pd.DataFrame(columns=["count", y_var, "group"])
+        for group, values in main_df.groupby(self.GROUP)[y_var]:
+            sdf = pd.DataFrame({"y": values})
+            sdf[y_var] = sdf["y"].apply(
+                lambda y: [xbin for xbin in xbins[:-1] if y >= xbin][-1]
+            )
+            sdf["count"] = sdf.groupby(y_var)[y_var].transform("count")
+            sdf = sdf[[y_var, "count"]].drop_duplicates()
+            sdf["group"] = group
+            df = pd.concat([df, sdf])
+
+        return df
+
+    def _plot_range(self, var):
+        """Get plot range."""
+
+        user_ymin, user_ymax = self.user_scale
+        scale = self.config.scales.get(
+            DiffUnitOptions.remove_from_variable_name(var), {}
+        )
+        ymin = user_ymin or scale.get("min")
+        ymax = user_ymax or scale.get("max")
+
+        if ymin and not ymax:
+            ymax = max([df[var].max() for df in self.datasets.values()])
+        if ymax and not ymin:
+            ymin = min([df[var].min() for df in self.datasets.values()])
+        return [ymin, ymax]
 
     def _update_fig_layout(self, fig, y_var=None):
         """Update the figure layout with title, etc."""

@@ -656,7 +656,7 @@ def figure_chart(
     chart,
     map_selection,
     point_size,
-    __,
+    map_options,
     region,
     user_ymin,
     user_ymax,
@@ -665,7 +665,7 @@ def figure_chart(
     download,
     chart_selection,
     project,
-    ___,
+    chart_view,
     map_func,
 ):
     """Make one of a variety of charts."""
@@ -676,6 +676,7 @@ def figure_chart(
     project = signal_dict["project"]
     config = Config(project)
 
+    # Don't fail when variable not available for characterization
     if (
         chart == "char_histogram"
         and x_var not in config.characterizations_cols

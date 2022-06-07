@@ -1,6 +1,5 @@
 """reView default layout options."""
-# noqa: E0401
-import us
+import us  # noqa: E0401
 
 from reView.utils.constants import COLORS, COLORS_Q
 
