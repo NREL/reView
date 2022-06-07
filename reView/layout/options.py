@@ -1,4 +1,5 @@
 """reView default layout options."""
+# pylint: disable=import-error
 import us  # noqa: E0401
 
 from reView.utils.constants import COLORS, COLORS_Q

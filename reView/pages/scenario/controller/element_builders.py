@@ -244,8 +244,6 @@ class Plots:
             marker=dict(line=dict(width=0)),
             unselected=dict(marker=dict(color="grey")),
         )
-        # fig.update_layout(bargap=0.0, bargroupgap=0.1)
-
 
         return self._update_fig_layout(fig, y_var)
 
@@ -379,7 +377,7 @@ class Plots:
         """Build grouped bin count dataframe for histogram."""
         # Get bin ranges for full value range
         main_df = main_df.dropna(subset=y_var)
-        counts, xbins = np.histogram(main_df[y_var], bins=bins)
+        _, xbins = np.histogram(main_df[y_var], bins=bins)
 
         # Build grouped binned counts
         df = pd.DataFrame(columns=["count", y_var, "group"])
