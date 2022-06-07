@@ -16,7 +16,7 @@ BUTTON_STYLES = {
         "margin-top": "-2px",
     },
     "off": {
-        "height": "35px",
+        "height": "5px",
         "width": "175px",
         "text-align": "center",
         "padding": "0px",
@@ -28,15 +28,13 @@ BUTTON_STYLES = {
         "margin-top": "-2px",
     },
     "navbar": {
-        "height": "45px",
+        "height": "55px",
         "width": "190px",
-        "padding": "0px",
         "background-color": "#FCCD34",
         "border-radius": "4px",
         "border-color": "#1663b5",
         "font-family": "Times New Roman",
         "font-size": "18px",
-        "margin-top": "3px",
         "textTransform": "none"
     },
 }
@@ -82,4 +80,3 @@ OPTION_STYLE = {
     "font-size": "12px",
     "margin-top": "-1px"
 }
-

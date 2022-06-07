@@ -1,7 +1,9 @@
 """reView default layout options."""
-import us
+# pylint: disable=import-error
+import us  # noqa: E0401
 
-from reView.utils.constants import COLORS, COLORS_Q, REGIONS
+from reView.utils.constants import COLORS, COLORS_Q
+
 
 BASEMAP_OPTIONS = [
     {"label": "Light", "value": "light"},
@@ -21,7 +23,7 @@ CHART_OPTIONS = [
 ]
 COLOR_OPTIONS = [{"label": k, "value": k} for k, _ in COLORS.items()]
 COLOR_Q_OPTIONS = [{"label": k, "value": k} for k, _ in COLORS_Q.items()]
-REGION_OPTIONS = [{"label": k, "value": k} for k in REGIONS] + [
+REGION_OPTIONS = [
     {"label": "National", "value": "national"},
     {"label": "NREL Regions", "value": "nrel_region"},
     {"label": "States", "value": "state"},
