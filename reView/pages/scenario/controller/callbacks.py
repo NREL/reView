@@ -245,7 +245,7 @@ def disable_mapping_function_dev(project, __):
     prevent_initial_call=True,
 )
 @calls.log
-def download(map_info, chart_info):
+def download_data(map_info, chart_info):
     """Download csv file."""
     if "chart" in callback_trigger():
         info = chart_info

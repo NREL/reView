@@ -177,7 +177,7 @@ class Plots:
         main_df["xbin"] = bins[-1]
         for xbin in bins[::-1]:
             main_df["xbin"][main_df[x_var] <= xbin] = xbin
-        
+
         grouper = main_df.groupby(["xbin", self.GROUP])
         main_df["ybin"] = grouper[y_var].transform("mean")
 
