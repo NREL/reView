@@ -151,6 +151,7 @@ class Plots:
 
         return self._update_fig_layout(fig, y_var)
 
+    # noqa: R0914
     def binned(self, x_var, y_var, bins=100):
         """Return a line plot."""
         # The clustered scatter plot part

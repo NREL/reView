@@ -629,7 +629,7 @@ def dropdowns_additional_scenarios(url, project, __):
     return scenario_options
 
 
-# pylint: disable=too-many-arguments
+# pylint: disable=too-many-arguments,unused-argument
 @app.callback(
     Output("rev_chart", "figure"),
     Output("rev_chart_loading", "style"),
