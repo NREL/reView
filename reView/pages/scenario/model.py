@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Scenario page data model."""
+import json
 import os
 import logging
 import operator
@@ -257,7 +258,8 @@ def cache_map_data(signal_dict):
     recalc = signal_dict["recalc"]
     states = signal_dict["states"]
     regions = signal_dict["regions"]
-    config = Config(project)
+    diff_units = signal_dict["diff_units"]
+    y_var = signal_dict["y"]
 
     # Unpack recalc table
     recalc_a = recalc_tables["scenario_a"]
@@ -270,19 +272,17 @@ def cache_map_data(signal_dict):
     df1 = apply_filters(df1, filters)
 
     # If there's a second table, read/cache the difference
-    if path2:
+    if path2 and os.path.isfile(path2):
         # Match the format of the first dataframe
         df2 = cache_table(project, path2, recalc_b, recalc)
         df2 = apply_filters(df2, filters)
 
         # If the difference option is specified difference
-        if DiffUnitOptions.from_variable_name(signal_dict["y"]) is not None:
-            target_dir = config.directory.joinpath(".review")
-            target_dir.mkdir(parents=True, exist_ok=True)
-            calculator = Difference(index_col="sc_point_gid")
-            df = calculator.calc(df1, df2)
-        else:
-            df = df2.copy()
+        calculator = Difference(
+            index_col="sc_point_gid",
+            diff_units=diff_units
+        )
+        df = calculator.calc(df1, df2, y_var)
 
         # If mask, try that here
         if mask == "on":
@@ -511,36 +511,40 @@ def closest_demand_to_coords(selection_coords, demand_data):
 class Difference:
     """Class to handle supply curve difference calculations."""
 
-    def __init__(self, index_col):
+    def __init__(self, index_col="sc_point_gid", diff_units=False):
         """Initialize Difference object."""
         self.index_col = index_col
+        self.diff_units = diff_units
 
-    def calc(self, df1, df2):
+    def calc(self, df1, df2, y_var):
         """Calculate difference between each row in two data frames."""
         logger.debug("Calculating difference...")
 
+        # Set index
         df1 = df1.set_index(self.index_col, drop=False)
         df2 = df2.set_index(self.index_col, drop=False)
 
-        common_columns = common_numeric_columns(df1, df2)
-        difference = df2[common_columns] - df1[common_columns]
-        pct_difference = (difference / df1[common_columns]) * 100
-        df1 = df1.merge(
-            difference,
-            how="left",
-            left_index=True,
-            right_index=True,
-            suffixes=("", DiffUnitOptions.ORIGINAL),
-        )
-        df1 = df1.merge(
-            pct_difference,
-            how="left",
-            left_index=True,
-            right_index=True,
-            suffixes=("", DiffUnitOptions.PERCENTAGE),
-        )
+        # Filter for variable
+        df1 = df1.dropna(subset=y_var)
+        df2 = df2.dropna(subset=y_var)
+
+        # Find common index positions
+        idx = list(set(df1[self.index_col]).intersection(df2[self.index_col]))
+        df1 = df1.loc[idx]
+        df2 = df2.loc[idx]
+
+        diff = df1[y_var] - df2[y_var]
+
+        if self.diff_units == "percent":
+            diff = (diff / df1[y_var]) * 100
+            col = f"{y_var}_difference_percent"
+        else:
+            col = f"{y_var}_difference"
+
+        df1[col] = diff
 
         logger.debug("Difference calculated.")
+
         return df1
 
 
@@ -551,21 +555,16 @@ class ReCalculatedData:
         """Initialize Data object."""
         self.config = config
 
-    def build(self, scenario, re_calcs=None):
+    def build(self, path, recalc_table=None):
         """Read in a data table given a scenario with re-calc.
 
         Parameters
         ----------
-        scenario : str
-            The scenario key or data path for the desired data table.
-        fcr : str | numeric
-            Fixed charge as a percentage.
-        capex : str | numeric
-            Capital expenditure in USD / KW
-        opex : str | numeric
-            Fixed operating costs in USD / KW
-        losses : str | numeric
-            Generation losses as a percentage.
+        path : str
+            The scenario data path for the desired data table.
+        recalc_table : dict
+            A dictionary of parameter-value pairs needed to recalculate
+            variables.
 
         Returns
         -------
@@ -574,42 +573,24 @@ class ReCalculatedData:
             recalculated values if new parameters are given.
         """
         # This can be a path or a scenario
-        scenario = strip_rev_filename_endings(scenario)
-
-        data = self.read(scenario)
+        data = pd.read_csv(path, low_memory=False)
 
         # Recalculate if needed, else return original table
-        if any(re_calcs.values()):
-            data = self.re_calc(data, scenario, re_calcs)
+        if isinstance(recalc_table, str):
+            recalc_table = json.loads(recalc_table)
+        if any(recalc_table.values()):
+            data = self.re_calc(data, path, recalc_table)
 
         return data
 
-    def read(self, path):
-        """Read in the needed columns of a supply-curve csv.
-
-        Parameters
-        ----------
-        scenario : str
-            The scenario key for the desired data table.
-
-        Returns
-        -------
-        `pd.core.frame.DataFrame`
-            A supply-curve table with original values.
-        """
-        # Find the path and columns associated with this scenario
-        if not os.path.isfile(path):
-            path = self.config.files[path]
-        return pd.read_csv(path, low_memory=False)
-
-    def re_calc(self, data, scenario, re_calcs):
+    def re_calc(self, data, path, recalc_table):
         """Recalculate LCOE for a data frame given a specific FCR.
 
         Parameters
         ----------
         scenario : str
             The scenario key for the desired data table.
-        re_calcs : dict
+        recalc_table : dict
             A dictionary of parameter-value pairs needed to recalculate
             variables.
 
@@ -618,20 +599,22 @@ class ReCalculatedData:
         pd.core.frame.DataFrame
             A supply-curve module data frame with recalculated values.
         """
-
         # If any of these aren't specified, use the original values
+        scenario = self.path_lookup[path]
         ovalues = self.original_parameters(scenario)
-        for key, value in re_calcs.items():
+        for key, value in recalc_table.items():
             if not value:
-                re_calcs[key] = ovalues[key]
+                recalc_table[key] = ovalues[key]
             else:
-                re_calcs[key] = as_float(re_calcs[key])
+                recalc_table[key] = as_float(recalc_table[key])
 
         # Get the right units for percentages
         ovalues["fcr"] = safe_convert_percentage_to_decimal(ovalues["fcr"])
-        re_calcs["fcr"] = safe_convert_percentage_to_decimal(re_calcs["fcr"])
+        recalc_table["fcr"] = safe_convert_percentage_to_decimal(
+            recalc_table["fcr"]
+        )
         original_losses = safe_convert_percentage_to_decimal(ovalues["losses"])
-        new_losses = safe_convert_percentage_to_decimal(re_calcs["losses"])
+        new_losses = safe_convert_percentage_to_decimal(recalc_table["losses"])
 
         # Extract needed variables as vectors
         capacity = data["capacity"].values
@@ -648,8 +631,8 @@ class ReCalculatedData:
 
         # Recalculate figures
         data["mean_cf"] = mean_cf  # What else will this affect?
-        data["mean_lcoe"] = lcoe(capacity, mean_cf_adj, re_calcs)
-        data["lcot"] = lcot(capacity, trans_cap_cost, mean_cf, re_calcs)
+        data["mean_lcoe"] = lcoe(capacity, mean_cf_adj, recalc_table)
+        data["lcot"] = lcot(capacity, trans_cap_cost, mean_cf, recalc_table)
         data["total_lcoe"] = data["mean_lcoe"] + data["lcot"]
 
         return data
@@ -662,6 +645,11 @@ class ReCalculatedData:
         for key in ["fcr", "capex", "opex", "losses"]:
             ovalues[key] = as_float(params[fields[key]])
         return ovalues
+
+    @property
+    def path_lookup(self):
+        """Return a path to scenario name lookup."""
+        return {str(val): key for key, val in self.config.files.items()}
 
     def _find_fields(self, scenario):
         """Find input fields with pattern recognition."""

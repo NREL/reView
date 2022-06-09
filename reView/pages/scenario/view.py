@@ -91,7 +91,7 @@ layout = html.Div(
 
         # This table of recalc parameters
         html.Div(
-            id="recalc_table",
+            id="recalc_table_store",
             children=json.dumps(
                 {
                     "scenario_a": {

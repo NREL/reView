@@ -791,7 +791,9 @@ def figure_chart(
             for k, df in dfs.items()
         }
 
-    title = f"{config.titles.get(y_var, convert_to_title(y_var))}"
+    title_builder = Title(dfs, signal_dict, y_var, project)
+    scenario = title_builder.scenario
+    title = f"{scenario}<br>{config.titles.get(y_var, convert_to_title(y_var))}"
     if chart_selection:
         n_points_selected = len(chart_selection["points"])
         title = f"{title}  |  Selected point count: {n_points_selected:,}"
@@ -873,6 +875,14 @@ def figure_map(
     # Unpack signal and retrieve data frame
     signal_dict = json.loads(signal)
     df = cache_map_data(signal_dict)
+
+    # This might be a difference
+    if signal_dict["path2"] and os.path.isfile(signal_dict["path2"]):
+        y_var = df.columns[-1]
+    else:
+        y_var = signal_dict["y"]
+
+    # Apply user selections
     df, demand_data = apply_all_selections(
         df,
         map_function,
@@ -890,7 +900,7 @@ def figure_map(
     if "demand_connect_count" in df:
         color_var = "demand_connect_count"
     else:
-        color_var = signal_dict["y"]
+        color_var = y_var
 
     title_builder = Title(df, signal_dict, color_var, project,
                           map_selection=map_selection)
@@ -1195,7 +1205,7 @@ def retrieve_filters(__, var1, var2, var3, var4, q1, q2, q3, q4):
     State("variable", "value"),
     State("difference", "value"),
     State("mask", "value"),
-    State("recalc_table", "children"),
+    State("recalc_table_store", "children"),
     State("recalc_tab", "value"),
     State("difference_units", "value"),
     State("scenario_a_options", "children"),
@@ -1269,15 +1279,17 @@ def retrieve_signal(
         fname = (
             f"least_{minimizing_target}_by_{minimizing_variable}_{tag}_sc.csv"
         )
+
         # Build full paths and create the target file
         lc_path = config.directory / "review_outputs" / fname
         lc_path.parent.mkdir(parents=True, exist_ok=True)
-        # calculator = LeastCost(project)
         calc_least_cost(paths, lc_path, by=minimizing_target)
+
         if minimizing_plot_value == "Variable":
             y = "scenario"
         else:
             y = minimizing_plot_value
+    
         signal = {
             "filters": [],
             "mask": "off",
@@ -1288,6 +1300,7 @@ def retrieve_signal(
             "recalc_table": recalc_table,
             "added_scenarios": [],
             "regions": regions,
+            "diff_units": diff_units,
             "states": states,
             "x": x,
             "y": y,
@@ -1333,9 +1346,6 @@ def retrieve_signal(
     else:
         filters = []
 
-    if diff == "on":
-        y = f"{y}{diff_units}"
-
     # Let's just recycle all this for the chart
     signal = {
         "filters": filters,
@@ -1347,6 +1357,7 @@ def retrieve_signal(
         "recalc_table": recalc_table,
         "added_scenarios": scenarios,
         "regions": regions,
+        "diff_units": diff_units,
         "states": states,
         "x": x,
         "y": y,
@@ -1366,6 +1377,7 @@ def retrieve_signal(
     Input("losses2", "value"),
     Input("project", "value"),
 )
+@calls.log
 def retrieve_recalc_parameters(
     fcr1, capex1, opex1, losses1, fcr2, capex2, opex2, losses2, __
 ):

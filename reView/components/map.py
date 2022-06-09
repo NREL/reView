@@ -4,6 +4,7 @@
 Used in (at least) the scenario and reeds pages.
 """
 import copy
+import os
 
 import plotly.graph_objects as go
 import plotly.express as px
@@ -13,6 +14,7 @@ from reView.utils.classes import DiffUnitOptions
 from reView.utils.config import Config
 from reView.utils.constants import COLORS, DEFAULT_LAYOUT
 from reView.utils.functions import convert_to_title
+
 
 MAP_LAYOUT = copy.deepcopy(DEFAULT_LAYOUT)
 MAP_LAYOUT.update(
@@ -54,10 +56,12 @@ class Title:
         lookup = {str(value): key for key, value in self.config.files.items()}
         path1 = self.signal_dict["path"]
         label = lookup[path1]
-        if self.signal_dict["path2"]:
-            path1 = self.signal_dict["path"]
-            label = f"{label} vs {lookup[path1]}"
         label = " ".join([l.capitalize() for l in label.split("_")])
+        path2 = self.signal_dict["path2"]
+        if path2 and os.path.isfile(path2):
+            label2 = lookup[path2]
+            label2 = " ".join([l.capitalize() for l in label2.split("_")])
+            label = f"{label} vs {label2}"
         return label
 
     @property
@@ -72,6 +76,16 @@ class Title:
     @property
     def no_diff_suffix(self):
         return DiffUnitOptions.remove_from_variable_name(self.color_var)
+
+    @property
+    def chart_title(self):
+        """Create chart title."""
+        scenario = self.scenario
+        variable = self.config.titles.get(
+            self.color_var,
+            convert_to_title(self.color_var)
+        )
+        return f"{scenario}<br>{variable}"
 
     @property
     def map_title(self):
@@ -116,14 +130,6 @@ class Title:
         # allowing user input about this in config
         if "capacity" in self.no_diff_suffix and units != "percent":
             extra = self._add_total_info("MW", extra)
-    
-        is_diff = False
-        if DiffUnitOptions.from_variable_name(self.color_var) is not None:
-            is_diff = True
-        if "hydrogen_annual_kg" in self.df and not is_diff:
-            extra = self._add_total_info(
-                "hydrogen_annual_kg", "kg", extra, "H2"
-            )
 
         title = self.delimiter.join([title, extra])
         title = self._add_map_selection_to_title(title)
@@ -133,7 +139,7 @@ class Title:
     def _apply_aggregation(self, units, agg_type):
         """Return the result of aggregation of the variable."""
         aggregation = Q_(self.df[self.color_var].apply(agg_type), units)
-    
+
         if aggregation.dimensionless:
             aggregation = aggregation.to_reduced_units()
     

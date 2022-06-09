@@ -154,17 +154,17 @@ TOPTIONS = [
                     ),
                     dcc.Tabs(
                         id="difference_units",
-                        value=str(DiffUnitOptions.PERCENTAGE),
+                        value="original",
                         style=TAB_STYLE,
                         children=[
                             dcc.Tab(
-                                value=str(DiffUnitOptions.PERCENTAGE),
+                                value="percent",
                                 label="Percentage",
                                 style=TABLET_STYLE,
                                 selected_style=TAB_BOTTOM_SELECTED_STYLE,
                             ),
                             dcc.Tab(
-                                value=str(DiffUnitOptions.ORIGINAL),
+                                value="original",
                                 label="Original Units",
                                 style=TABLET_STYLE,
                                 selected_style=TAB_BOTTOM_SELECTED_STYLE,
