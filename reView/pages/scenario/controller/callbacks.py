@@ -14,9 +14,11 @@ import json
 import logging
 import os
 import tempfile
+import warnings
 
 from pathlib import Path
 
+import geopandas as gpd
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
@@ -25,6 +27,8 @@ from dash import dcc
 from dash import html
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
+from shapely.errors import ShapelyDeprecationWarning
+from shapely.geometry import Point
 
 from reView.app import app
 from reView.layout.styles import TABLET_STYLE
@@ -60,6 +64,10 @@ from reView.utils.config import Config
 from reView.utils import calls
 
 logger = logging.getLogger(__name__)
+
+warnings.filterwarnings("ignore", category=ShapelyDeprecationWarning) 
+
+
 COMMON_CALLBACKS = [
     capacity_print(id_prefix="rev"),
     display_selected_tab_above_map(id_prefix="rev"),
@@ -177,12 +185,10 @@ def options_chart_type(project):
     return CHART_OPTIONS[:-1]
 
 
-def scenario_dropdowns(groups, class_names=None):
+def scenario_dropdowns(groups):
     """Return list of dropdown options for a project's file selection."""
     dropdowns = []
-    class_names = class_names or ["five columns"]
     colors = ["#b4c9e0", "#e3effc"]
-
     for ind, (group, options) in enumerate(groups.items()):
         color = colors[ind % 2]
 
@@ -190,7 +196,12 @@ def scenario_dropdowns(groups, class_names=None):
             [
                 html.Div(
                     [html.P(group)],
-                    className=class_names[0],
+                    className="three columns",
+                    style={
+                        "background-color": color,
+                        "border-radius": "5px",
+                        "margin-right": "-1px"
+                    }
                 ),
                 html.Div(
                     [
@@ -200,11 +211,11 @@ def scenario_dropdowns(groups, class_names=None):
                             optionHeight=75,
                         )
                     ],
-                    className=class_names[-1],
-                    style={"margin-left": "15px"},
+                    className="nine columns",
+                    style={"margin-left": "-10px"},
                 ),
             ],
-            style={"background-color": color, "border-radius": "5px"},
+            style= {"border-radius": "5px"},
             className="row",
         )
 
@@ -215,6 +226,16 @@ def scenario_dropdowns(groups, class_names=None):
     )
 
     return drop_div
+
+
+def to_geo(df):
+    """Convert pandas data frame to geodataframe."""
+    df["geometry"] = df.apply(
+        lambda x: Point((x["longitude"], x["latitude"])),
+        axis=1
+    )
+    df = gpd.GeoDataFrame(df, geometry="geometry", crs="epsg:4326")
+    return df
 
 
 @app.callback(
@@ -239,27 +260,62 @@ def disable_mapping_function_dev(project, __):
 
 
 @app.callback(
-    Output("download", "data"),
-    Input("download_info_map", "children"),
+    Output("download_chart", "data"),
     Input("download_info_chart", "children"),
     prevent_initial_call=True,
 )
 @calls.log
-def download_data(map_info, chart_info):
+def download_chart(chart_info):
     """Download csv file."""
-    if "chart" in callback_trigger():
-        info = chart_info
-    else:
-        info = map_info
-
-    info = json.loads(info)
+    info = json.loads(chart_info)
     if info["tmp_path"] is None:
         raise PreventUpdate
+    src = info["tmp_path"]
+    dst = info["path"]
+    df = pd.read_csv(src)
+    os.remove(src)
+    return dcc.send_data_frame(df.to_csv, dst, index=False)
 
-    df = pd.read_csv(info["tmp_path"])
-    os.remove(info["tmp_path"])
 
-    return dcc.send_data_frame(df.to_csv, info["path"], index=False)
+@app.callback(
+    Output("download_map", "data"),
+    Input("rev_map_download_button", "n_clicks"),
+    State("map_signal", "children"),
+    State("project", "value"),
+    State("rev_map", "selectedData"),
+    State("rev_chart", "selectedData"),
+    State("rev_map", "clickData"),
+    State("map_function", "value"),
+    State("variable", "value"),
+    prevent_initial_call=True,
+)
+@calls.log
+def download_map(click, signal, project, map_selection, chart_selection,
+                 click_selection, map_function, y_var):
+    """Download geopackage file from map."""
+    signal_dict = json.loads(signal)
+    df = cache_map_data(signal_dict)
+    df, demand_data = apply_all_selections(
+        df,
+        map_function,
+        project,
+        chart_selection,
+        map_selection,
+        click_selection,
+    )
+    df = df[["sc_point_gid", "latitude", "longitude", y_var]]
+    df = to_geo(df)
+
+    if not signal_dict["path2"]:
+        name = os.path.splitext(os.path.basename(signal_dict["path"]))[0]
+    else:
+        name1 = os.path.splitext(os.path.basename(signal_dict["path"]))[0]
+        name2 = os.path.splitext(os.path.basename(signal_dict["path2"]))[0]
+        name = f"{name1}_{name2}_diff"
+    layer = f"{name}_{y_var}"
+    dst = layer + ".gpkg"
+
+    return dcc.send_bytes(df.to_file, dst, layer=layer, driver="GPKG")
 
 
 @app.callback(
@@ -284,7 +340,6 @@ def dropdown_chart_types(project):
 @calls.log
 def dropdown_colors(__, variable, project, signal, ___):
     """Provide qualitative color options for categorical data."""
-
     # To figure out if we need to update we need these
     if not signal:
         raise PreventUpdate  # @IgnoreException
@@ -368,10 +423,7 @@ def dropdown_minimizing_scenarios(url, project, minimizing_variable, __):
     if not scenario_options:
         scenario_options = [{"label": "None", "value": None}]
 
-    return scenario_dropdowns(
-        {"Scenario": scenario_options},
-        class_names=["four columns", "eight columns"],
-    )
+    return scenario_dropdowns({"Scenario": scenario_options})
 
 
 @app.callback(
@@ -470,7 +522,7 @@ def dropdown_scenarios(url, project, __):
             dropdown_options = []
             for option in options:
                 try:
-                    label = "{option:,}"
+                    label = f"{option:,}"
                 except ValueError:
                     label = str(option)
                 dropdown_options.append({"label": label, "value": option})
@@ -502,14 +554,8 @@ def dropdown_scenarios(url, project, __):
         scenario_options = [{"label": "None", "value": None}]
 
     return (
-        scenario_dropdowns(
-            {"Scenario": scenario_options},
-            class_names=["four columns", "eight columns"],
-        ),
-        scenario_dropdowns(
-            {"Scenario": scenario_options},
-            class_names=["four columns", "eight columns"],
-        ),
+        scenario_dropdowns({"Scenario": scenario_options}),
+        scenario_dropdowns({"Scenario": scenario_options})
     )
 
 
@@ -766,7 +812,6 @@ def figure_chart(
     Output("rev_mapcap", "children"),
     Output("rev_map", "clickData"),
     Output("rev_map_loading", "style"),
-    Output("download_info_map", "children"),
     Input("map_signal", "children"),
     Input("rev_map_basemap_options", "value"),
     Input("rev_map_color_options", "value"),
@@ -777,7 +822,6 @@ def figure_chart(
     Input("rev_map_color_max", "value"),
     Input("rev_map", "selectedData"),
     Input("rev_map", "clickData"),
-    Input("rev_map_download_button", "n_clicks"),
     State("project", "value"),
     State("map_function", "value"),
 )
@@ -793,15 +837,13 @@ def figure_map(
     color_ymax,
     map_selection,
     click_selection,
-    download_click,
     project,
     map_function,
 ):
     """Make the scatter plot map."""
-
+    # Unpack signal and retrieve data frame
     signal_dict = json.loads(signal)
     df = cache_map_data(signal_dict)
-
     df, demand_data = apply_all_selections(
         df,
         map_function,
@@ -814,13 +856,6 @@ def figure_map(
     if "clickData" in callback_trigger() and "turbine_y_coords" in df:
         unpacker = BespokeUnpacker(df, click_selection)
         df = unpacker.unpack_turbines()
-
-    # Save download information
-    tmp_path = None
-    if "rev_map_download_button" in callback_trigger():
-        with tempfile.NamedTemporaryFile() as tmp:
-            tmp_path = tmp.name
-        df.to_csv(tmp_path, index=False)
 
     # Use demand counts if available
     if "demand_connect_count" in df:
@@ -852,11 +887,8 @@ def figure_map(
     mapcap = json.dumps(mapcap)
     loading_style = {"margin-right": "500px"}
     click_dump = None
-    download_info = json.dumps(
-        {"path": "review_map_data.csv", "tmp_path": tmp_path}
-    )
 
-    return figure, mapcap, click_dump, loading_style, download_info
+    return figure, mapcap, click_dump, loading_style
 
 
 # @app.callback(
@@ -1453,7 +1485,7 @@ def toggle_options(click, selection_ind, is_open):
     tabs_style = {"display": "none"}
     button_children = "Show"
     scenario_styles[int(selection_ind)] = {"margin-bottom": "1px"}
-    tabs_style = {"height": "5vh"}
+    tabs_style = {"height": "50px"}
     click = click or 0
     if click % 2 == 0:
         options_label = {"display": "none"}
@@ -1511,36 +1543,33 @@ def toggle_scenario_b(difference, mask):
     return style
 
 
-# @app.callback(
-#     [
-#         Output("scenario_a_specs", "children"),
-#         Output("scenario_b_specs", "children"),
-#     ],
-#     [
-#         Input("scenario_a", "value"),
-#         Input("scenario_b", "value"),
-#         Input("project", "value"),
-#     ],
-# )
-# @calls.log
-# def scenario_specs(scenario_a, scenario_b, project):
-#     """Output the specs association with a chosen scenario."""
-#     # Return a blank space if no parameters entry found
-#     params = Config(project).parameters
-#     if not params:
-#         specs1 = ""
-#         specs2 = ""
-#     else:
-#         if "least_cost" not in scenario_a:
-#             scenario_a = os.path.basename(scenario_a).replace("_sc.csv", "")
-#             specs1 = build_specs(scenario_a, project)
-#         else:
-#             specs1 = build_spec_split(scenario_a, project)
+@app.callback(
+    Output("scenario_a_specs", "children"),
+    Output("scenario_b_specs", "children"),
+    Input("scenario_a_options", "children"),
+    Input("scenario_b_options", "children"),
+    Input("project", "value"),
+)
+@calls.log
+def scenario_specs(scenario_a, scenario_b, project):
+    """Output the specs association with a chosen scenario."""
+    # Return a blank space if no parameters entry found
+    config = Config(project)
+    params = config.parameters
+    if not params:
+        specs1 = ""
+        specs2 = ""
+    else:
+        if "least_cost" not in scenario_a:
+            scenario_a = os.path.basename(scenario_a).replace("_sc.csv", "")
+            specs1 = build_specs(scenario_a, project)
+        else:
+            specs1 = build_spec_split(scenario_a, project)
 
-#         if "least_cost" not in scenario_b:
-#             scenario_b = os.path.basename(scenario_b).replace("_sc.csv", "")
-#             specs2 = build_specs(scenario_b, project)
-#         else:
-#             specs2 = build_spec_split(scenario_b, project)
+        if "least_cost" not in scenario_b:
+            scenario_b = os.path.basename(scenario_b).replace("_sc.csv", "")
+            specs2 = build_specs(scenario_b, project)
+        else:
+            specs2 = build_spec_split(scenario_b, project)
 
-#     return specs1, specs2
+    return specs1, specs2

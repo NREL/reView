@@ -56,8 +56,9 @@ TOPTIONS = [
                             html.Div(
                                 id="scenario_a_options",
                             ),
+                            html.Div(id="scenario_a_specs")
                         ],
-                        className="four columns",
+                        className="three columns",
                         style={"margin-left": "25px"},
                     ),
 
@@ -71,6 +72,7 @@ TOPTIONS = [
                                     html.Div(
                                         id="scenario_b_options",
                                     ),
+                                    html.Div(id="scenario_b_specs")
                                 ],
                                 className="three columns",
                                 style={"margin-left": "5px"},

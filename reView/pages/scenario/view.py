@@ -118,8 +118,8 @@ layout = html.Div(
         html.Div(id="filter_store", style={"display": "none"}),
 
         # Download
-        dcc.Download(id="download"),
+        dcc.Download(id="download_chart"),
+        dcc.Download(id="download_map"),
         html.Div(id="download_info_chart", style={"display": "none"}),
-        html.Div(id="download_info_map", style={"display": "none"})
     ],
 )
