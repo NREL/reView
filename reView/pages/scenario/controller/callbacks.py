@@ -181,11 +181,10 @@ def options_chart_type(project):
     """Add characterization plot option, if necessary."""
     if Config(project).characterizations_cols:
         return CHART_OPTIONS
-
     return CHART_OPTIONS[:-1]
 
 
-def scenario_dropdowns(groups):
+def scenario_dropdowns(groups, id):
     """Return list of dropdown options for a project's file selection."""
     dropdowns = []
     colors = ["#b4c9e0", "#e3effc"]
@@ -206,6 +205,7 @@ def scenario_dropdowns(groups):
                 html.Div(
                     [
                         dcc.Dropdown(
+                            id=id,
                             options=options,
                             value=options[0]["value"],
                             optionHeight=75,
@@ -423,7 +423,12 @@ def dropdown_minimizing_scenarios(url, project, minimizing_variable, __):
     if not scenario_options:
         scenario_options = [{"label": "None", "value": None}]
 
-    return scenario_dropdowns({"Scenario": scenario_options})
+    dropdown = scenario_dropdowns(
+        {"Scenario": scenario_options},
+        id="minimizing_scenario"
+    )
+
+    return dropdown
 
 
 @app.callback(
@@ -541,6 +546,7 @@ def dropdown_scenarios(url, project, __):
     scenario_originals = [str(file) for file in config.files.values()]
     scenario_originals.sort()
     files = scenario_originals + scenario_outputs
+    files.sort()
     names = [os.path.basename(f).replace("_sc.csv", "") for f in files]
     names = [convert_to_title(name) for name in names]
     file_list = dict(zip(names, files))
@@ -553,10 +559,16 @@ def dropdown_scenarios(url, project, __):
     if not scenario_options:
         scenario_options = [{"label": "None", "value": None}]
 
-    return (
-        scenario_dropdowns({"Scenario": scenario_options}),
-        scenario_dropdowns({"Scenario": scenario_options})
+    group_a = scenario_dropdowns(
+        {"Scenario": scenario_options},
+        id="scenario_dropdown_a"
     )
+    group_b = scenario_dropdowns(
+        {"Scenario": scenario_options},
+        id="scenario_dropdown_b"
+    )
+
+    return group_a, group_b
 
 
 @app.callback(
@@ -574,7 +586,7 @@ def dropdown_scenarios(url, project, __):
 )
 @calls.log
 def dropdown_variables(
-    __, scenario_a_options, scenario_b_options, b_div, project
+        __, scenario_a_options, scenario_b_options, b_div, project
 ):
     """Update variable dropdown options."""
 
@@ -1160,9 +1172,9 @@ def retrieve_filters(__, var1, var2, var3, var4, q1, q2, q3, q4):
     Input("rev_chart_options", "value"),
     Input("rev_chart_x_var_options", "value"),
     Input("rev_additional_scenarios", "value"),
-    Input("filter_store", "children"),
-    Input("pca_plot_1", "clickData"),
-    Input("pca_plot_2", "clickData"),
+    State("filter_store", "children"),
+    State("pca_plot_1", "clickData"),
+    State("pca_plot_2", "clickData"),
     State("project", "value"),
     State("variable", "value"),
     State("difference", "value"),
@@ -1533,7 +1545,6 @@ def toggle_recalc_tab(recalc, scenario):
 @calls.log
 def toggle_scenario_b(difference, mask):
     """Show scenario b if the difference option is on."""
-
     if difference == "on":
         style = {}
     elif mask == "on":
@@ -1546,9 +1557,9 @@ def toggle_scenario_b(difference, mask):
 @app.callback(
     Output("scenario_a_specs", "children"),
     Output("scenario_b_specs", "children"),
-    Input("scenario_a_options", "children"),
-    Input("scenario_b_options", "children"),
-    Input("project", "value"),
+    Input("scenario_dropdown_a", "value"),
+    Input("scenario_dropdown_b", "value"),
+    State("project", "value"),
 )
 @calls.log
 def scenario_specs(scenario_a, scenario_b, project):
@@ -1556,19 +1567,26 @@ def scenario_specs(scenario_a, scenario_b, project):
     # Return a blank space if no parameters entry found
     config = Config(project)
     params = config.parameters
-    if not params:
+
+    # Debuggin
+    print(scenario_a)
+
+    # Infer the names
+    path_lookup = {str(value): key for key, value in config.files.items()}
+    name_a = path_lookup[scenario_a]
+    name_b = path_lookup[scenario_b]
+
+    if not params or name_a not in params:
         specs1 = ""
         specs2 = ""
     else:
         if "least_cost" not in scenario_a:
-            scenario_a = os.path.basename(scenario_a).replace("_sc.csv", "")
-            specs1 = build_specs(scenario_a, project)
+            specs1 = build_specs(name_a, project)
         else:
             specs1 = build_spec_split(scenario_a, project)
 
         if "least_cost" not in scenario_b:
-            scenario_b = os.path.basename(scenario_b).replace("_sc.csv", "")
-            specs2 = build_specs(scenario_b, project)
+            specs2 = build_specs(name_b, project)
         else:
             specs2 = build_spec_split(scenario_b, project)
 
