@@ -56,7 +56,14 @@ TOPTIONS = [
                             html.Div(
                                 id="scenario_a_options",
                             ),
-                            html.Div(id="scenario_a_specs")
+                            html.Div(
+                                id="scenario_a_specs",
+                                style={
+                                    "overflow-y": "auto",
+                                    "height": "300px",
+                                    "width": "95%"
+                                }
+                            )
                         ],
                         className="three columns",
                         style={"margin-left": "25px"},
@@ -72,7 +79,14 @@ TOPTIONS = [
                                     html.Div(
                                         id="scenario_b_options",
                                     ),
-                                    html.Div(id="scenario_b_specs")
+                                    html.Div(
+                                        id="scenario_b_specs",
+                                        style={
+                                            "overflow-y": "auto",
+                                            "height": "300px",
+                                            "width": "95%"
+                                        }
+                                    )
                                 ],
                                 className="three columns",
                                 style={"margin-left": "5px"},

@@ -83,6 +83,7 @@ def build_specs(scenario, project):
     for variable, value in dct.items():
         row = f"| {variable} | {value} |\n"
         table = table + row
+    table = dcc.Markdown(table)
     return table
 
 
@@ -99,6 +100,7 @@ def build_spec_split(path, project):
     for _, row in pdf.iterrows():
         row = f"| {row['s']} | {row['p']}% |\n"
         table = table + row
+    table = dcc.Markdown(table)
     return table
 
 
@@ -1557,6 +1559,8 @@ def toggle_scenario_b(difference, mask):
 @app.callback(
     Output("scenario_a_specs", "children"),
     Output("scenario_b_specs", "children"),
+    Output("scenario_a_specs", "style"),
+    Output("scenario_b_specs", "style"),
     Input("scenario_dropdown_a", "value"),
     Input("scenario_dropdown_b", "value"),
     State("project", "value"),
@@ -1568,26 +1572,26 @@ def scenario_specs(scenario_a, scenario_b, project):
     config = Config(project)
     params = config.parameters
 
-    # Debuggin
-    print(scenario_a)
-
     # Infer the names
     path_lookup = {str(value): key for key, value in config.files.items()}
     name_a = path_lookup[scenario_a]
     name_b = path_lookup[scenario_b]
 
-    if not params or name_a not in params:
-        specs1 = ""
-        specs2 = ""
-    else:
-        if "least_cost" not in scenario_a:
-            specs1 = build_specs(name_a, project)
-        else:
-            specs1 = build_spec_split(scenario_a, project)
+    specs_a = ""
+    specs_b = ""
+    style_a = {}
+    style_b = {}
+    if name_a in params:
+        style_a = {"overflow-y": "auto", "height": "300px", "width": "94%"}
+        specs_a = build_specs(name_a, project)
+    if "least_cost" in scenario_a:
+        style_a = {"overflow-y": "auto", "height": "300px", "width": "94%"}
+        specs_a = build_spec_split(scenario_a, project)
+    if name_b in params:
+        style_b = {"overflow-y": "auto", "height": "300px", "width": "94%"}
+        specs_b = build_specs(name_b, project)
+    if "least_cost" in scenario_b:
+        style_b = {"overflow-y": "auto", "height": "300px", "width": "94%"}
+        specs_b = build_spec_split(scenario_b, project)
 
-        if "least_cost" not in scenario_b:
-            specs2 = build_specs(name_b, project)
-        else:
-            specs2 = build_spec_split(scenario_b, project)
-
-    return specs1, specs2
+    return specs_a, specs_b, style_a, style_b
