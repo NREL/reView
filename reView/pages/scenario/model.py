@@ -132,8 +132,6 @@ def apply_all_selections(df, map_func, project, chartsel, mapsel, clicksel):
     if chartsel and len(chartsel["points"]) > 0:
         df = point_filter(df, chartsel)
 
-    # print(f"{df.columns=}")
-
     return df, demand_data
 
 
@@ -279,29 +277,10 @@ def cache_map_data(signal_dict):
 
         # If the difference option is specified difference
         if DiffUnitOptions.from_variable_name(signal_dict["y"]) is not None:
-            # How should we handle this?
-            # Optional save button...perhaps a clear saved datasets button?
             target_dir = config.directory.joinpath(".review")
             target_dir.mkdir(parents=True, exist_ok=True)
-
-            s1 = os.path.basename(path).replace("_sc.csv", "")
-            s2 = os.path.basename(path2).replace("_sc.csv", "")
-
-            fpath = f"diff_{s1}_vs_{s2}_sc.csv"
-            dst = target_dir / fpath
-
-            # If we haven't build this build it
-            if not dst.exists() or filters:
-                calculator = Difference(index_col="sc_point_gid")
-                df = calculator.calc(df1, df2)
-                if not filters:
-                    df.to_csv(dst, index=False)
-            else:
-                df = pd.read_csv(dst, low_memory=False)
-
-            # TODO: The two lines below might honestly be faster... I/O is SLOW
-            # calculator = Difference(index_col='sc_point_gid')
-            # df = calculator.calc(df1, df2)
+            calculator = Difference(index_col="sc_point_gid")
+            df = calculator.calc(df1, df2)
         else:
             df = df2.copy()
 

@@ -55,6 +55,12 @@ TOPTIONS = [
                             html.H5("Scenario A"),
                             html.Div(
                                 id="scenario_a_options",
+                                children=[
+                                    dcc.Dropdown(
+                                        id="scenario_dropdown_a",
+                                        value="placeholder"
+                                    )
+                                ]
                             ),
                             html.Div(
                                 id="scenario_a_specs",
@@ -78,6 +84,12 @@ TOPTIONS = [
                                     html.H5("Scenario B"),
                                     html.Div(
                                         id="scenario_b_options",
+                                        children=[
+                                            dcc.Dropdown(
+                                                id="scenario_dropdown_b",
+                                                value="placeholder"
+                                            )
+                                        ]
                                     ),
                                     html.Div(
                                         id="scenario_b_specs",
@@ -419,9 +431,10 @@ TOPTIONS = [
                     ),
                     html.Hr(),
                 ],
-                id="recalculate_with_new_costs",
+                id="recalc_table_div",
                 className="four columns",
             ),
+
             # Filters
             html.Div(
                 children=[

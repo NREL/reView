@@ -31,18 +31,23 @@ from shapely.errors import ShapelyDeprecationWarning
 from shapely.geometry import Point
 
 from reView.app import app
-from reView.layout.styles import TABLET_STYLE
-from reView.layout.options import (
-    CHART_OPTIONS,
-    COLOR_OPTIONS,
-    COLOR_Q_OPTIONS,
-)
 from reView.components.callbacks import (
     capacity_print,
     display_selected_tab_above_map,
 )
 from reView.components.logic import tab_styles
-from reView.components.map import Map, build_title
+from reView.components.map import Map, Title
+from reView.layout.options import (
+    CHART_OPTIONS,
+    COLOR_OPTIONS,
+    COLOR_Q_OPTIONS,
+)
+from reView.layout.styles import (
+    TAB_BOTTOM_SELECTED_STYLE,
+    TAB_STYLE,
+    TABLET_STYLE,
+    TABLET_STYLE_CLOSED,
+)
 from reView.pages.scenario.controller.element_builders import Plots
 from reView.pages.scenario.controller.selection import (
     all_files_from_selection,
@@ -56,6 +61,7 @@ from reView.pages.scenario.model import (
     cache_map_data,
     cache_table,
     cache_chart_tables,
+    ReCalculatedData
 )
 from reView.utils.bespoke import BespokeUnpacker
 from reView.utils.constants import SKIP_VARS
@@ -241,13 +247,22 @@ def to_geo(df):
 
 
 @app.callback(
-    Output("recalculate_with_new_costs", "hidden"),
+    Output("recalc_table_div", "style"),
     Input("project", "value"),
-    Input("toggle_options", "n_clicks"),
+    Input("toggle_options", "n_clicks")
 )
-def disable_recalculate_with_new_costs(project, __):
+@calls.log
+def disable_recalc(project, __):
     """Disable recalculate option based on config."""
-    return not Config(project).parameters
+    # Get config
+    config = Config(project)
+
+    # Disable entire table
+    div_style = {}
+    if not config.parameters:
+        div_style = {"display": "none"}
+
+    return div_style
 
 
 @app.callback(
@@ -406,7 +421,7 @@ def dropdown_minimizing_scenarios(url, project, minimizing_variable, __):
         return scenario_dropdowns(groups)
 
     # Find the files
-    scenario_outputs_path = config.directory / ".review"
+    scenario_outputs_path = config.directory / "review_outputs"
     scenario_outputs = [
         str(f) for f in scenario_outputs_path.glob("least*.csv")
     ]
@@ -541,7 +556,7 @@ def dropdown_scenarios(url, project, __):
         )
 
     # Find the files
-    scenario_outputs_path = config.directory.joinpath(".review")
+    scenario_outputs_path = config.directory.joinpath("review_outputs")
     scenario_outputs = [
         str(f) for f in scenario_outputs_path.glob("least*.csv")
     ]
@@ -583,12 +598,12 @@ def dropdown_scenarios(url, project, __):
     Input("url", "href"),
     Input("scenario_a_options", "children"),
     Input("scenario_b_options", "children"),
-    Input("scenario_b_div", "style"),
     Input("project", "value"),
+    State("scenario_b_div", "style"),
 )
 @calls.log
 def dropdown_variables(
-        __, scenario_a_options, scenario_b_options, b_div, project
+        __, scenario_a_options, scenario_b_options, project, b_div
 ):
     """Update variable dropdown options."""
 
@@ -615,12 +630,12 @@ def dropdown_variables(
     Output("rev_chart_x_var_options", "value"),
     Input("scenario_a_options", "children"),
     Input("scenario_b_options", "children"),
-    Input("scenario_b_div", "style"),
     Input("rev_chart_options", "value"),
+    State("scenario_b_div", "style"),
     State("project", "value"),
 )
 def dropdown_x_variables(
-    scenario_a_options, scenario_b_options, b_div, chart_type, project
+    scenario_a_options, scenario_b_options, chart_type, b_div, project
 ):
     """Return dropdown options for x variable."""
     logger.debug("Setting X variable options")
@@ -659,7 +674,7 @@ def dropdowns_additional_scenarios(url, project, __):
     config = Config(project)
 
     # Find the files
-    scenario_outputs_path = config.directory / ".review"
+    scenario_outputs_path = config.directory / "review_outputs"
     scenario_outputs = [
         str(f) for f in scenario_outputs_path.glob("least*.csv")
     ]
@@ -877,7 +892,9 @@ def figure_map(
     else:
         color_var = signal_dict["y"]
 
-    title = build_title(df, color_var, project, map_selection=map_selection)
+    title_builder = Title(df, signal_dict, color_var, project,
+                          map_selection=map_selection)
+    title = title_builder.map_title
 
     # Build figure
     map_builder = Map(
@@ -905,220 +922,217 @@ def figure_map(
     return figure, mapcap, click_dump, loading_style
 
 
-# @app.callback(
-#     Output("recalc_a_options", "children"),
-#     [
-#         Input("project", "value"),
-#         Input("scenario_a", "value"),
-#     ],
-#     [
-#         State("recalc_table", "children"),
-#     ],
-# )
-# @calls.log
-# def options_recalc_a(project, scenario, recalc_table):
-#     """Update the drop down options for each scenario."""
+@app.callback(
+    Output("recalc_a_options", "children"),
+    Input("project", "value"),
+    Input("scenario_dropdown_a", "value"),
+    State("recalc_table", "children"),
+)
+@calls.log
+def options_recalc_a(project, scenario, recalc_table):
+    """Update the drop down options for each scenario."""
+    config = Config(project)
+    data = ReCalculatedData(config)
+    recalc_table = json.loads(recalc_table)
+    scenario = os.path.basename(scenario).replace("_sc.csv", "")
 
-#     data = Data(project)
-#     recalc_table = json.loads(recalc_table)
-#     scenario = os.path.basename(scenario).replace("_sc.csv", "")
-#     if scenario not in data.scenarios:
-#         raise PreventUpdate
+    if scenario not in config.scenarios:
+        raise PreventUpdate
 
-#     if not data.parameters:
-#         raise PreventUpdate
+    if not config.parameters:
+        raise PreventUpdate
 
-#     table = recalc_table["scenario_a"]
-#     original_table = data.original_parameters(scenario)
-#     children = [
-#         # FCR A
-#         html.Div(
-#             [
-#                 html.P(
-#                     "FCR % (A): ",
-#                     className="three columns",
-#                     style={"height": "60%"},
-#                 ),
-#                 dcc.Input(
-#                     id="fcr1",
-#                     type="number",
-#                     className="nine columns",
-#                     style={"height": "60%"},
-#                     value=table["fcr"],
-#                     placeholder=original_table["fcr"],
-#                 ),
-#             ],
-#             className="row",
-#         ),
-#         # CAPEX A
-#         html.Div(
-#             [
-#                 html.P(
-#                     "CAPEX $/KW (A): ",
-#                     className="three columns",
-#                     style={"height": "60%"},
-#                 ),
-#                 dcc.Input(
-#                     id="capex1",
-#                     type="number",
-#                     className="nine columns",
-#                     style={"height": "60%"},
-#                     value=table["capex"],
-#                     placeholder=original_table["capex"],
-#                 ),
-#             ],
-#             className="row",
-#         ),
-#         # OPEX A
-#         html.Div(
-#             [
-#                 html.P(
-#                     "OPEX $/KW (A): ",
-#                     className="three columns",
-#                     style={"height": "60%"},
-#                 ),
-#                 dcc.Input(
-#                     id="opex1",
-#                     type="number",
-#                     className="nine columns",
-#                     style={"height": "60%"},
-#                     value=table["opex"],
-#                     placeholder=original_table["opex"],
-#                 ),
-#             ],
-#             className="row",
-#         ),
-#         # Losses A
-#         html.Div(
-#             [
-#                 html.P(
-#                     "Losses % (A): ",
-#                     className="three columns",
-#                     style={"height": "60%"},
-#                 ),
-#                 dcc.Input(
-#                     id="losses1",
-#                     type="number",
-#                     className="nine columns",
-#                     value=table["losses"],
-#                     placeholder=original_table["losses"],
-#                     style={"height": "60%"},
-#                 ),
-#             ],
-#             className="row",
-#         ),
-#     ]
+    scenario = os.path.basename(scenario).replace("_sc.csv", "")
+    table = recalc_table["scenario_a"]
+    if scenario not in config.parameters:
+        raise PreventUpdate
 
-#     return children
+    original_table = data.original_parameters(scenario)
+
+    children = [
+        # FCR A
+        html.Div(
+            [
+                html.P(
+                    "FCR % (A): ",
+                    className="three columns",
+                    style={"height": "60%"},
+                ),
+                dcc.Input(
+                    id="fcr1",
+                    type="number",
+                    className="nine columns",
+                    style={"height": "60%"},
+                    value=table["fcr"],
+                    placeholder=original_table["fcr"],
+                ),
+            ],
+            className="row",
+        ),
+        # CAPEX A
+        html.Div(
+            [
+                html.P(
+                    "CAPEX $/KW (A): ",
+                    className="three columns",
+                    style={"height": "60%"},
+                ),
+                dcc.Input(
+                    id="capex1",
+                    type="number",
+                    className="nine columns",
+                    style={"height": "60%"},
+                    value=table["capex"],
+                    placeholder=original_table["capex"],
+                ),
+            ],
+            className="row",
+        ),
+        # OPEX A
+        html.Div(
+            [
+                html.P(
+                    "OPEX $/KW (A): ",
+                    className="three columns",
+                    style={"height": "60%"},
+                ),
+                dcc.Input(
+                    id="opex1",
+                    type="number",
+                    className="nine columns",
+                    style={"height": "60%"},
+                    value=table["opex"],
+                    placeholder=original_table["opex"],
+                ),
+            ],
+            className="row",
+        ),
+        # Losses A
+        html.Div(
+            [
+                html.P(
+                    "Losses % (A): ",
+                    className="three columns",
+                    style={"height": "60%"},
+                ),
+                dcc.Input(
+                    id="losses1",
+                    type="number",
+                    className="nine columns",
+                    value=table["losses"],
+                    placeholder=original_table["losses"],
+                    style={"height": "60%"},
+                ),
+            ],
+            className="row",
+        ),
+    ]
+
+    return children
 
 
-# @app.callback(
-#     Output("recalc_b_options", "children"),
-#     [
-#         Input("project", "value"),
-#         Input("scenario_b", "value"),
-#     ],
-#     [
-#         State("recalc_table", "children"),
-#     ],
-# )
-# @calls.log
-# def options_recalc_b(project, scenario, recalc_table):
-#     """Update the drop down options for each scenario."""
-#     data = Data(project)
-#     recalc_table = json.loads(recalc_table)
-#     if scenario not in data.scenarios:
-#         raise PreventUpdate
+@app.callback(
+    Output("recalc_b_options", "children"),
+    Input("project", "value"),
+    Input("scenario_dropdown_b", "value"),
+    State("recalc_table", "children"),
+)
+@calls.log
+def options_recalc_b(project, scenario, recalc_table):
+    """Update the drop down options for each scenario."""
+    config = Config(project)
+    data = ReCalculatedData(config)
+    recalc_table = json.loads(recalc_table)
+    if scenario not in config.scenarios:
+        raise PreventUpdate
 
-#     if not data.parameters:
-#         raise PreventUpdate
+    if not config.parameters:
+        raise PreventUpdate
 
-#     scenario = os.path.basename(scenario).replace("_sc.csv", "")
-#     table = recalc_table["scenario_b"]
-#     original_table = data.original_parameters(scenario)
-#     scenario = os.path.basename(scenario).replace("_sc.csv", "")
-#     table = recalc_table["scenario_b"]
-#     original_table = data.original_parameters(scenario)
-#     children = [
-#         # FCR B
-#         html.Div(
-#             [
-#                 html.P(
-#                     "FCR % (B): ",
-#                     className="three columns",
-#                     style={"height": "60%"},
-#                 ),
-#                 dcc.Input(
-#                     id="fcr2",
-#                     type="number",
-#                     className="nine columns",
-#                     style={"height": "60%"},
-#                     value=table["fcr"],
-#                     placeholder=original_table["fcr"],
-#                 ),
-#             ],
-#             className="row",
-#         ),
-#         # CAPEX B
-#         html.Div(
-#             [
-#                 html.P(
-#                     "CAPEX $/KW (B): ",
-#                     className="three columns",
-#                     style={"height": "60%"},
-#                 ),
-#                 dcc.Input(
-#                     id="capex2",
-#                     type="number",
-#                     className="nine columns",
-#                     style={"height": "60%"},
-#                     value=table["capex"],
-#                     placeholder=original_table["capex"],
-#                 ),
-#             ],
-#             className="row",
-#         ),
-#         # OPEX B
-#         html.Div(
-#             [
-#                 html.P(
-#                     "OPEX $/KW (B): ",
-#                     className="three columns",
-#                     style={"height": "60%"},
-#                 ),
-#                 dcc.Input(
-#                     id="opex2",
-#                     type="number",
-#                     className="nine columns",
-#                     style={"height": "60%"},
-#                     value=table["opex"],
-#                     placeholder=original_table["opex"],
-#                 ),
-#             ],
-#             className="row",
-#         ),
-#         # Losses B
-#         html.Div(
-#             [
-#                 html.P(
-#                     "Losses % (B): ",
-#                     className="three columns",
-#                     style={"height": "60%"},
-#                 ),
-#                 dcc.Input(
-#                     id="losses2",
-#                     type="number",
-#                     className="nine columns",
-#                     value=table["losses"],
-#                     placeholder=original_table["losses"],
-#                     style={"height": "60%"},
-#                 ),
-#             ],
-#             className="row",
-#         ),
-#     ]
+    scenario = os.path.basename(scenario).replace("_sc.csv", "")
+    table = recalc_table["scenario_b"]
+    original_table = data.original_parameters(scenario)
 
-#     return children
+    children = [
+        # FCR B
+        html.Div(
+            [
+                html.P(
+                    "FCR % (B): ",
+                    className="three columns",
+                    style={"height": "60%"},
+                ),
+                dcc.Input(
+                    id="fcr2",
+                    type="number",
+                    className="nine columns",
+                    style={"height": "60%"},
+                    value=table["fcr"],
+                    placeholder=original_table["fcr"],
+                ),
+            ],
+            className="row",
+        ),
+        # CAPEX B
+        html.Div(
+            [
+                html.P(
+                    "CAPEX $/KW (B): ",
+                    className="three columns",
+                    style={"height": "60%"},
+                ),
+                dcc.Input(
+                    id="capex2",
+                    type="number",
+                    className="nine columns",
+                    style={"height": "60%"},
+                    value=table["capex"],
+                    placeholder=original_table["capex"],
+                ),
+            ],
+            className="row",
+        ),
+        # OPEX B
+        html.Div(
+            [
+                html.P(
+                    "OPEX $/KW (B): ",
+                    className="three columns",
+                    style={"height": "60%"},
+                ),
+                dcc.Input(
+                    id="opex2",
+                    type="number",
+                    className="nine columns",
+                    style={"height": "60%"},
+                    value=table["opex"],
+                    placeholder=original_table["opex"],
+                ),
+            ],
+            className="row",
+        ),
+        # Losses B
+        html.Div(
+            [
+                html.P(
+                    "Losses % (B): ",
+                    className="three columns",
+                    style={"height": "60%"},
+                ),
+                dcc.Input(
+                    id="losses2",
+                    type="number",
+                    className="nine columns",
+                    value=table["losses"],
+                    placeholder=original_table["losses"],
+                    style={"height": "60%"},
+                ),
+            ],
+            className="row",
+        ),
+    ]
+
+    return children
 
 
 @app.callback(
@@ -1256,7 +1270,7 @@ def retrieve_signal(
             f"least_{minimizing_target}_by_{minimizing_variable}_{tag}_sc.csv"
         )
         # Build full paths and create the target file
-        lc_path = config.directory / ".review" / fname
+        lc_path = config.directory / "review_outputs" / fname
         lc_path.parent.mkdir(parents=True, exist_ok=True)
         # calculator = LeastCost(project)
         calc_least_cost(paths, lc_path, by=minimizing_target)
@@ -1341,7 +1355,7 @@ def retrieve_signal(
 
 
 @app.callback(
-    Output("recalc_table", "children"),
+    Output("recalc_table_store", "children"),
     Input("fcr1", "value"),
     Input("capex1", "value"),
     Input("opex1", "value"),
@@ -1568,6 +1582,10 @@ def toggle_scenario_b(difference, mask):
 @calls.log
 def scenario_specs(scenario_a, scenario_b, project):
     """Output the specs association with a chosen scenario."""
+    # Project might be None on initial load
+    if not project:
+        raise PreventUpdate
+
     # Return a blank space if no parameters entry found
     config = Config(project)
     params = config.parameters
