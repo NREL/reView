@@ -27,6 +27,7 @@ layout = html.Div(
     children=[
         # Path Name
         dcc.Location(id="/reeds_page", refresh=False),
+
         # Constant info block
         html.Div(
             [
@@ -54,6 +55,7 @@ layout = html.Div(
             className="twelve columns",
             style={"margin-bottom": "35px"},
         ),
+
         # Year selection
         html.P(
             "Year: ",
@@ -62,12 +64,16 @@ layout = html.Div(
             style={"text-align": "left"},
         ),
         html.Div(
-            [dcc.Slider(id="years_reeds", step=2)],
+            children=[
+                dcc.Slider(id="years_reeds", step=1)
+            ],
             className="nine columns",
             style={"text-align": "center", "margin-bottom": "50px"},
         ),
+
         # The map
         map_div(id_prefix="reeds", class_name="nine columns"),
+
         # Capacity after make_map (avoiding duplicate calls)
         html.Div(id="reeds_mapcap", style={"display": "none"}),
     ],

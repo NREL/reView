@@ -42,20 +42,15 @@ from reView.layout.options import (
     COLOR_OPTIONS,
     COLOR_Q_OPTIONS,
 )
-from reView.layout.styles import (
-    TAB_BOTTOM_SELECTED_STYLE,
-    TAB_STYLE,
-    TABLET_STYLE,
-    TABLET_STYLE_CLOSED,
-)
-from reView.pages.scenario.controller.element_builders import Plots
-from reView.pages.scenario.controller.selection import (
+from reView.layout.styles import TABLET_STYLE
+from reView.pages.rev.controller.element_builders import Plots
+from reView.pages.rev.controller.selection import (
     all_files_from_selection,
     choose_scenario,
     parse_selection,
     scrape_variable_options,
 )
-from reView.pages.scenario.model import (
+from reView.pages.rev.model import (
     apply_all_selections,
     calc_least_cost,
     cache_map_data,
@@ -484,7 +479,6 @@ def dropdown_minimizing_targets(scenario_options, project):
 @calls.log
 def dropdown_projects(__, ___):
     """Update project options."""
-
     # Open config json
     project_options = [
         {"label": project, "value": project}

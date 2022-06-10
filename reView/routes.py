@@ -4,7 +4,7 @@ import logging
 from dash.dependencies import Input, Output
 
 from reView.app import app
-from reView.pages.scenario import view as scenario_view
+from reView.pages.rev import view as scenario_view
 from reView.pages.reeds import view as reeds_view
 from reView.pages.config import config
 from reView.utils.constants import (
