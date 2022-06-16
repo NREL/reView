@@ -793,12 +793,19 @@ def figure_chart(
             for k, df in dfs.items()
         }
 
+    # Build Title
     title_builder = Title(dfs, signal_dict, y_var, project)
     scenario = title_builder.scenario
     title = f"{scenario}<br>{config.titles.get(y_var, convert_to_title(y_var))}"
     if chart_selection:
         n_points_selected = len(chart_selection["points"])
         title = f"{title}  |  Selected point count: {n_points_selected:,}"
+
+    # This might be a difference
+    if signal_dict["path2"] and os.path.isfile(signal_dict["path2"]):
+        y_var = dfs[next(iter(dfs))].columns[-1]
+    else:
+        y_var = signal_dict["y"]
 
     plotter = Plots(
         project,
