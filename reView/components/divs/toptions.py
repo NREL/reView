@@ -5,7 +5,6 @@ import dash_bootstrap_components as dbc
 from dash import dcc, html
 
 from reView.environment.settings import IS_DEV_ENV
-from reView.utils.classes import DiffUnitOptions
 from reView.layout.styles import (
     TAB_BOTTOM_SELECTED_STYLE,
     TAB_STYLE,
@@ -69,7 +68,8 @@ TOPTIONS = [
                                     "height": "300px",
                                     "width": "95%"
                                 }
-                            )
+                            ),
+                            html.Hr(style={"height": "1.5px", "width": "95%"})
                         ],
                         className="three columns",
                         style={"margin-left": "25px"},
@@ -98,7 +98,12 @@ TOPTIONS = [
                                             "height": "300px",
                                             "width": "95%"
                                         }
-                                    )
+                                    ),
+                                    html.Hr(
+                                        style={
+                                            "height": "1.5px",
+                                            "width": "95%"}
+                                        )
                                 ],
                                 className="three columns",
                                 style={"margin-left": "5px"},

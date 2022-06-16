@@ -930,7 +930,7 @@ def figure_map(
     Output("recalc_a_options", "children"),
     Input("project", "value"),
     Input("scenario_dropdown_a", "value"),
-    State("recalc_table", "children"),
+    State("recalc_table_store", "children"),
 )
 @calls.log
 def options_recalc_a(project, scenario, recalc_table):
@@ -1039,7 +1039,7 @@ def options_recalc_a(project, scenario, recalc_table):
     Output("recalc_b_options", "children"),
     Input("project", "value"),
     Input("scenario_dropdown_b", "value"),
-    State("recalc_table", "children"),
+    State("recalc_table_store", "children"),
 )
 @calls.log
 def options_recalc_b(project, scenario, recalc_table):
@@ -1047,6 +1047,8 @@ def options_recalc_b(project, scenario, recalc_table):
     config = Config(project)
     data = ReCalculatedData(config)
     recalc_table = json.loads(recalc_table)
+    scenario = os.path.basename(scenario).replace("_sc.csv", "")
+
     if scenario not in config.scenarios:
         raise PreventUpdate
 
