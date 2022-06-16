@@ -590,6 +590,8 @@ def dropdown_scenarios(url, project, __):
     Output("filter_variables_3", "options"),
     Output("filter_variables_4", "options"),
     Input("url", "href"),
+    Input("scenario_dropdown_a", "value"),
+    Input("scenario_dropdown_b", "value"),
     Input("scenario_a_options", "children"),
     Input("scenario_b_options", "children"),
     Input("project", "value"),
@@ -597,7 +599,13 @@ def dropdown_scenarios(url, project, __):
 )
 @calls.log
 def dropdown_variables(
-        __, scenario_a_options, scenario_b_options, project, b_div
+        __,
+        ___,
+        ____,
+        scenario_a_options,
+        scenario_b_options,
+        project,
+        b_div
 ):
     """Update variable dropdown options."""
 
