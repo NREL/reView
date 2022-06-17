@@ -59,7 +59,7 @@ def capacity_header(
         children=[
             html.Div(
                 [
-                    html.H5(count_title) if small else html.H2(count_title),
+                    html.H5(cap_title) if small else html.H2(cap_title),
                     dcc.Loading(capacity, type="circle"),
                 ],
                 className=class_name,
