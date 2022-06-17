@@ -527,12 +527,15 @@ class Difference:
         # Filter for variable
         df1 = df1.dropna(subset=y_var)
         df2 = df2.dropna(subset=y_var)
+        df1 = df1.drop_duplicates(subset="sc_point_gid")
+        df2 = df2.drop_duplicates(subset="sc_point_gid")
 
         # Find common index positions
-        idx = list(set(df1[self.index_col]).intersection(df2[self.index_col]))
+        idx = list(set(df2[self.index_col]).intersection(df1[self.index_col]))
         df1 = df1.loc[idx]
         df2 = df2.loc[idx]
 
+        # Calculate difference
         diff = df1[y_var] - df2[y_var]
 
         if self.diff_units == "percent":
