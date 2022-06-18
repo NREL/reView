@@ -6,6 +6,7 @@ Used in (at least) the scenario and reeds pages.
 import copy
 import os
 
+import numpy as np
 import plotly.graph_objects as go
 import plotly.express as px
 
@@ -66,12 +67,17 @@ class Title:
 
     @property
     def is_diff(self):
-        return DiffUnitOptions.from_variable_name(self.color_var) is not None
+        check = False
+        if "_difference_" in self.color_var:
+            check = True
+        return check
 
     @property
     def is_percentage_diff(self):
-        percentage =  DiffUnitOptions.PERCENTAGE
-        return DiffUnitOptions.from_variable_name(self.color_var) == percentage
+        check = False
+        if self.color_var[-8:] == "_percent":
+            check = True
+        return check
 
     @property
     def no_diff_suffix(self):
@@ -138,12 +144,26 @@ class Title:
 
     def _apply_aggregation(self, units, agg_type):
         """Return the result of aggregation of the variable."""
-        aggregation = Q_(self.df[self.color_var].apply(agg_type), units)
+        # Drop nan values in variable
+        df = self.df.dropna(subset=self.color_var)
+        df = df[df[self.color_var] != -np.inf]
+
+        # If mean, use weights
+        if agg_type == "mean":
+            aggregation = np.average(
+                df[self.color_var],
+                weights=df["capacity"]
+            ).round(2)
+        else:
+            aggregation = df[self.color_var].apply(agg_type).round(2)
+
+        # Apply unit conversions
+        aggregation = Q_(aggregation, units)
 
         if aggregation.dimensionless:
             aggregation = aggregation.to_reduced_units()
     
-        if not any(t in f"{aggregation}" for t in ["dollar", "%"]):
+        if not any(t in f"{aggregation}" for t in ["dollar", "%", "percent"]):
             aggregation = aggregation.to_compact()
     
         return aggregation
@@ -151,9 +171,9 @@ class Title:
     def _add_map_selection_to_title(self, title):
         """Add the number of points selected in map to title."""
         if self.map_selection:
-            n_points_selected = len(self.map_selection["points"])
-            map_selection_print = f"Selected point count: {n_points_selected:,}"
-            title = self.delimiter.join([self.title, map_selection_print])
+            n_points = len(self.map_selection["points"])
+            map_selection_print = f"Selected point count: {n_points:,}"
+            title = self.delimiter.join([self.map_title, map_selection_print])
         return title
 
     def _add_total_info(self, units, title, description=None):

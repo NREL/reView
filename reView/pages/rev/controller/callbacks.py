@@ -66,7 +66,7 @@ from reView.utils import calls
 
 logger = logging.getLogger(__name__)
 
-warnings.filterwarnings("ignore", category=ShapelyDeprecationWarning) 
+warnings.filterwarnings("ignore", category=ShapelyDeprecationWarning)
 
 
 COMMON_CALLBACKS = [
@@ -796,7 +796,8 @@ def figure_chart(
     # Build Title
     title_builder = Title(dfs, signal_dict, y_var, project)
     scenario = title_builder.scenario
-    title = f"{scenario}<br>{config.titles.get(y_var, convert_to_title(y_var))}"
+    var_title = config.titles.get(y_var, convert_to_title(y_var))
+    title = f"{scenario}<br>{var_title}"
     if chart_selection:
         n_points_selected = len(chart_selection["points"])
         title = f"{title}  |  Selected point count: {n_points_selected:,}"
@@ -1300,7 +1301,7 @@ def retrieve_signal(
             y = "scenario"
         else:
             y = minimizing_plot_value
-    
+
         signal = {
             "filters": [],
             "mask": "off",
