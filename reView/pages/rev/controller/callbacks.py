@@ -725,7 +725,7 @@ def dropdowns_additional_scenarios(url, project, __):
 @calls.log
 def figure_chart(
     signal,
-    chart,
+    chart_type,
     map_selection,
     point_size,
     map_options,
@@ -750,7 +750,7 @@ def figure_chart(
 
     # Don't fail when variable not available for characterization
     if (
-        chart == "char_histogram"
+        chart_type == "char_histogram"
         and x_var not in config.characterizations_cols
     ):
         raise PreventUpdate  # @IgnoreException
@@ -803,6 +803,7 @@ def figure_chart(
     else:
         y_var = signal_dict["y"]
 
+    # Build plotting object
     plotter = Plots(
         project,
         dfs,
@@ -811,19 +812,7 @@ def figure_chart(
         user_scale=(user_ymin, user_ymax),
         alpha=alpha,
     )
-
-    if chart == "cumsum":
-        fig = plotter.cumulative_sum(x_var, y_var)
-    elif chart == "scatter":
-        fig = plotter.scatter(x_var, y_var)
-    elif chart == "binned":
-        fig = plotter.binned(x_var, y_var, bins=bins)
-    elif chart == "histogram":
-        fig = plotter.histogram(y_var, bins=bins)
-    elif chart == "char_histogram":
-        fig = plotter.char_hist(x_var)
-    elif chart == "box":
-        fig = plotter.box(y_var)
+    fig = plotter.figure(chart_type, x_var, y_var, bins)
 
     # Save download information
     tmp_path = None

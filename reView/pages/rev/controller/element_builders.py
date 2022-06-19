@@ -75,44 +75,6 @@ class Plots:
         """Print representation string."""
         return f"<Plots object: project={self.config.project}>"
 
-    def cumulative_sum(self, x_var, y_var):
-        """Return a cumulative capacity scatter plot."""
-        main_df = None
-        for key, df in self.datasets.items():
-            df = _fix_doubles(df)
-            if main_df is None:
-                main_df = df.copy()
-                main_df = main_df.sort_values(y_var)
-                main_df["cumsum"] = main_df[x_var].cumsum()
-                main_df[self.GROUP] = key
-            else:
-                df = df.sort_values(y_var)
-                df["cumsum"] = df[x_var].cumsum()
-                df[self.GROUP] = key
-                main_df = pd.concat([main_df, df])
-
-        x_title, y_title = self._axis_title(x_var), self._axis_title(y_var)
-        main_df = main_df.sort_values(self.GROUP)
-        fig = px.scatter(
-            main_df,
-            x="cumsum",
-            y=y_var,
-            custom_data=["sc_point_gid", "print_capacity"],
-            labels={
-                "cumsum": f"Cumulative {x_title}",
-                y_var: y_title,
-            },
-            color=self.GROUP,
-            color_discrete_sequence=px.colors.qualitative.Safe,
-        )
-
-        fig.update_traces(
-            marker=dict(size=self.point_size, line=dict(width=0)),
-            unselected=dict(marker=dict(color="grey")),
-        )
-
-        return self._update_fig_layout(fig, y_var)
-
     # noqa: R0914
     def binned(self, x_var, y_var, bins=100):
         """Return a line plot."""
@@ -176,109 +138,6 @@ class Plots:
 
         return self._update_fig_layout(fig, y_var)
 
-    def scatter(self, x_var, y_var):
-        """Return a regular scatter plot."""
-        main_df = None
-        for key, df in self.datasets.items():
-            df = _fix_doubles(df)
-            if main_df is None:
-                main_df = df.copy()
-                main_df[self.GROUP] = key
-            else:
-                df[self.GROUP] = key
-                main_df = pd.concat([main_df, df])
-
-        x_title, y_title = self._axis_title(x_var), self._axis_title(y_var)
-
-        main_df = main_df.sort_values(self.GROUP)
-        fig = px.scatter(
-            main_df,
-            x=x_var,
-            y=y_var,
-            opacity=self.alpha,
-            custom_data=["sc_point_gid", "print_capacity"],
-            labels={x_var: x_title, y_var: y_title},
-            color=self.GROUP,
-            color_discrete_sequence=px.colors.qualitative.Safe,
-        )
-
-        fig.update_traces(
-            marker_line=dict(width=0),
-            marker=dict(size=self.point_size, line=dict(width=0)),
-            unselected=dict(marker=dict(color="grey")),
-        )
-
-        return self._update_fig_layout(fig, y_var)
-
-    def histogram(self, y_var, bins=100):
-        """Return a histogram."""
-        main_df = None
-        for key, df in self.datasets.items():
-            df = _fix_doubles(df)
-            if main_df is None:
-                main_df = df.copy()
-                main_df[self.GROUP] = key
-            else:
-                df[self.GROUP] = key
-                main_df = pd.concat([main_df, df])
-
-        y_title = self._axis_title(y_var)
-        main_df = main_df.sort_values(self.GROUP)
-        main_df = main_df.dropna(subset=y_var)
-
-        # Use numpy since plotly calculates counts in browser
-        main_df = self._histogram(main_df, y_var, bins)
-
-        fig = px.bar(
-            main_df,
-            x=y_var,
-            y="count",
-            labels={y_var: y_title},
-            color="group",
-            opacity=self.alpha,
-            color_discrete_sequence=px.colors.qualitative.Safe,
-            barmode="group",
-        )
-
-        fig.update_traces(
-            marker=dict(line=dict(width=0)),
-            unselected=dict(marker=dict(color="grey")),
-        )
-
-        return self._update_fig_layout(fig, y_var)
-
-    def char_hist(self, x_var):
-        """Make a histogram of the characterization column."""
-        main_df = list(self.datasets.values())[0]
-        counts = {}
-        for str_dict in main_df[x_var]:
-            if not isinstance(str_dict, str):
-                continue
-            counts_for_sc_point = json.loads(str_dict)
-            for label, count in counts_for_sc_point.items():
-                counts[label] = counts.get(label, 0) + count
-
-        labels = sorted(counts, key=lambda k: -counts[k])
-        counts = [counts[label] for label in labels]
-
-        data = pd.DataFrame({"Category": labels, "Counts": counts})
-
-        fig = px.bar(
-            data,
-            x="Category",
-            y="Counts",
-            labels={
-                "Category": self.config.titles.get(
-                    x_var, convert_to_title(x_var)
-                )
-            },
-            opacity=self.alpha,
-            color_discrete_sequence=px.colors.qualitative.Safe,
-            barmode="overlay",
-        )
-
-        return self._update_fig_layout(fig)
-
     def box(self, y_var):
         """Return a box plot."""
 
@@ -331,6 +190,163 @@ class Plots:
                     width=0,
                 ),
             ),
+            unselected=dict(marker=dict(color="grey")),
+        )
+
+        return self._update_fig_layout(fig, y_var)
+
+    def char_hist(self, x_var):
+        """Make a histogram of the characterization column."""
+        main_df = list(self.datasets.values())[0]
+        counts = {}
+        for str_dict in main_df[x_var]:
+            if not isinstance(str_dict, str):
+                continue
+            counts_for_sc_point = json.loads(str_dict)
+            for label, count in counts_for_sc_point.items():
+                counts[label] = counts.get(label, 0) + count
+
+        labels = sorted(counts, key=lambda k: -counts[k])
+        counts = [counts[label] for label in labels]
+
+        data = pd.DataFrame({"Category": labels, "Counts": counts})
+
+        fig = px.bar(
+            data,
+            x="Category",
+            y="Counts",
+            labels={
+                "Category": self.config.titles.get(
+                    x_var, convert_to_title(x_var)
+                )
+            },
+            opacity=self.alpha,
+            color_discrete_sequence=px.colors.qualitative.Safe,
+            barmode="overlay",
+        )
+
+        return self._update_fig_layout(fig)
+
+    def cumulative_sum(self, x_var, y_var):
+        """Return a cumulative capacity scatter plot."""
+        main_df = None
+        for key, df in self.datasets.items():
+            df = _fix_doubles(df)
+            if main_df is None:
+                main_df = df.copy()
+                main_df = main_df.sort_values(y_var)
+                main_df["cumsum"] = main_df[x_var].cumsum()
+                main_df[self.GROUP] = key
+            else:
+                df = df.sort_values(y_var)
+                df["cumsum"] = df[x_var].cumsum()
+                df[self.GROUP] = key
+                main_df = pd.concat([main_df, df])
+
+        x_title, y_title = self._axis_title(x_var), self._axis_title(y_var)
+        main_df = main_df.sort_values(self.GROUP)
+        fig = px.scatter(
+            main_df,
+            x="cumsum",
+            y=y_var,
+            custom_data=["sc_point_gid", "print_capacity"],
+            labels={
+                "cumsum": f"Cumulative {x_title}",
+                y_var: y_title,
+            },
+            color=self.GROUP,
+            color_discrete_sequence=px.colors.qualitative.Safe,
+        )
+
+        fig.update_traces(
+            marker=dict(size=self.point_size, line=dict(width=0)),
+            unselected=dict(marker=dict(color="grey")),
+        )
+
+        return self._update_fig_layout(fig, y_var)
+
+    def figure(self, chart_type="cumsum", x_var=None, y_var=None, bins=None):
+        """Return plotly figure for requested chart type.""" 
+        if chart_type == "cumsum":
+            fig = self.cumulative_sum(x_var, y_var)
+        elif chart_type == "scatter":
+            fig = self.scatter(x_var, y_var)
+        elif chart_type == "binned":
+            fig = self.binned(x_var, y_var, bins=bins)
+        elif chart_type == "histogram":
+            fig = self.histogram(y_var, bins=bins)
+        elif chart_type == "char_histogram":
+            fig = self.char_hist(x_var)
+        elif chart_type == "box":
+            fig = self.box(y_var)
+        return fig
+
+    def histogram(self, y_var, bins=100):
+        """Return a histogram."""
+        main_df = None
+        for key, df in self.datasets.items():
+            df = _fix_doubles(df)
+            if main_df is None:
+                main_df = df.copy()
+                main_df[self.GROUP] = key
+            else:
+                df[self.GROUP] = key
+                main_df = pd.concat([main_df, df])
+
+        y_title = self._axis_title(y_var)
+        main_df = main_df.sort_values(self.GROUP)
+        main_df = main_df.dropna(subset=y_var)
+
+        # Use numpy since plotly calculates counts in browser
+        main_df = self._histogram(main_df, y_var, bins)
+
+        fig = px.bar(
+            main_df,
+            x=y_var,
+            y="count",
+            labels={y_var: y_title},
+            color="group",
+            opacity=self.alpha,
+            color_discrete_sequence=px.colors.qualitative.Safe,
+            barmode="group",
+        )
+
+        fig.update_traces(
+            marker=dict(line=dict(width=0)),
+            unselected=dict(marker=dict(color="grey")),
+        )
+
+        return self._update_fig_layout(fig, y_var)
+
+    def scatter(self, x_var, y_var):
+        """Return a regular scatter plot."""
+        main_df = None
+        for key, df in self.datasets.items():
+            df = _fix_doubles(df)
+            if main_df is None:
+                main_df = df.copy()
+                main_df[self.GROUP] = key
+            else:
+                df[self.GROUP] = key
+                main_df = pd.concat([main_df, df])
+
+        x_title, y_title = self._axis_title(x_var), self._axis_title(y_var)
+
+        main_df = main_df.sort_values(self.GROUP)
+        fig = px.scatter(
+            main_df,
+            x=x_var,
+            y=y_var,
+            opacity=self.alpha,
+            custom_data=["sc_point_gid", "print_capacity"],
+            labels={x_var: x_title, y_var: y_title},
+            color=self.GROUP,
+            color_discrete_sequence=px.colors.qualitative.Safe,
+        )
+
+        fig.update_traces(
+            marker_line=dict(width=0),
+            marker=dict(size=self.point_size, line=dict(width=0)),
             unselected=dict(marker=dict(color="grey")),
         )
 
