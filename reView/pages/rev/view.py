@@ -51,6 +51,7 @@ layout = html.Div(
                         ),
                     ],
                     className="three columns",
+                    style={"margin-right": "125px"}
                 ),
                 capacity_header(id_prefix="rev", class_name="four columns"),
             ],
@@ -58,7 +59,7 @@ layout = html.Div(
             style={
                 "margin-top": "30px",
                 "margin-bottom": "35px",
-                "margin-left": "150px",
+                "margin-left": "150px"
             },
         ),
         REV_TOPTIONS_DIV,

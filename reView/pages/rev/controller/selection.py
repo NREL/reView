@@ -150,7 +150,7 @@ def scrape_variable_options(
         config_titles = {k: v for k, v in config.titles.items() if k in titles}
         titles.update(config_titles)
         if titles:
-            for k, v in titles.items():
-                variable_options.append({"label": v, "value": k})
+            for key, value in titles.items():
+                variable_options.append({"label": value, "value": key})
 
     return variable_options

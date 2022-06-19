@@ -187,7 +187,7 @@ def options_chart_type(project):
     return CHART_OPTIONS[:-1]
 
 
-def scenario_dropdowns(groups, id):
+def scenario_dropdowns(groups, dropid=None):
     """Return list of dropdown options for a project's file selection."""
     dropdowns = []
     colors = ["#b4c9e0", "#e3effc"]
@@ -208,7 +208,7 @@ def scenario_dropdowns(groups, id):
                 html.Div(
                     [
                         dcc.Dropdown(
-                            id=id,
+                            id=dropid,
                             options=options,
                             value=options[0]["value"],
                             optionHeight=75,
@@ -302,12 +302,12 @@ def download_chart(chart_info):
     prevent_initial_call=True,
 )
 @calls.log
-def download_map(click, signal, project, map_selection, chart_selection,
+def download_map(__, signal, project, map_selection, chart_selection,
                  click_selection, map_function, y_var):
     """Download geopackage file from map."""
     signal_dict = json.loads(signal)
     df = cache_map_data(signal_dict)
-    df, demand_data = apply_all_selections(
+    df, _ = apply_all_selections(
         df,
         map_function,
         project,
@@ -390,18 +390,15 @@ def dropdown_colors(__, variable, project, signal, ___):
 @calls.log
 def dropdown_minimizing_scenarios(url, project, minimizing_variable, __):
     """Update the options given a project."""
-
     logger.debug("URL: %s", url)
-
-    # We need the project configuration
     config = Config(project)
 
     if config.options is not None:
         groups = {}
-
         for col in config.options.columns:
             if col in {"name", "file"} or col == minimizing_variable:
                 continue
+
             # pylint: disable=unsubscriptable-object
             options = config.options[col].unique()
             dropdown_options = []
@@ -413,32 +410,33 @@ def dropdown_minimizing_scenarios(url, project, minimizing_variable, __):
                 dropdown_options.append({"label": label, "value": option})
             groups[col] = dropdown_options
 
-        return scenario_dropdowns(groups)
+        dropdown = scenario_dropdowns(groups, dropid="")
 
-    # Find the files
-    scenario_outputs_path = config.directory / "review_outputs"
-    scenario_outputs = [
-        str(f) for f in scenario_outputs_path.glob("least*.csv")
-    ]
-    scenario_outputs = []
-    scenario_originals = [str(file) for file in config.files.values()]
-    files = scenario_originals + scenario_outputs
-    names = [os.path.basename(f).replace("_sc.csv", "") for f in files]
-    names = [convert_to_title(name) for name in names]
-    file_list = dict(zip(names, files))
+    else:
+        # Find the files
+        scenario_outputs_path = config.directory.joinpath("review_outputs")
+        scenario_outputs = [
+            str(f) for f in scenario_outputs_path.glob("least*.csv")
+        ]
+        scenario_outputs = []
+        scenario_originals = [str(file) for file in config.files.values()]
+        files = scenario_originals + scenario_outputs
+        names = [os.path.basename(f).replace("_sc.csv", "") for f in files]
+        names = [convert_to_title(name) for name in names]
+        file_list = dict(zip(names, files))
 
-    scenario_options = [
-        {"label": key, "value": os.path.expanduser(file)}
-        for key, file in file_list.items()
-    ]
+        scenario_options = [
+            {"label": key, "value": os.path.expanduser(file)}
+            for key, file in file_list.items()
+        ]
 
-    if not scenario_options:
-        scenario_options = [{"label": "None", "value": None}]
+        if not scenario_options:
+            scenario_options = [{"label": "None", "value": None}]
 
-    dropdown = scenario_dropdowns(
-        {"Scenario": scenario_options},
-        id="minimizing_scenario"
-    )
+        dropdown = scenario_dropdowns(
+            {"Scenario": scenario_options},
+            dropid="minimizing_scenario"
+        )
 
     return dropdown
 
@@ -523,8 +521,6 @@ def dropdown_minimizing_plot_options(scenario_options, project):
 def dropdown_scenarios(url, project, __):
     """Update the options given a project."""
     logger.debug("URL: %s", url)
-
-    # We need the project configuration
     config = Config(project)
 
     if config.options is not None:
@@ -544,40 +540,39 @@ def dropdown_scenarios(url, project, __):
                 dropdown_options.append({"label": label, "value": option})
             groups[col] = dropdown_options
 
-        return (
-            scenario_dropdowns(groups),
-            scenario_dropdowns(groups),
+        group_a = scenario_dropdowns(groups)
+        group_b = scenario_dropdowns(groups)
+
+    else:
+        # Find the files
+        scenario_outputs_path = config.directory.joinpath("review_outputs")
+        scenario_outputs = [
+            str(f) for f in scenario_outputs_path.glob("least*.csv")
+        ]
+        scenario_originals = [str(file) for file in config.files.values()]
+        scenario_originals.sort()
+        files = scenario_originals + scenario_outputs
+        files.sort()
+        names = [os.path.basename(f).replace("_sc.csv", "") for f in files]
+        names = [convert_to_title(name) for name in names]
+        file_list = dict(zip(names, files))
+
+        scenario_options = [
+            {"label": key, "value": os.path.expanduser(file)}
+            for key, file in file_list.items()
+        ]
+
+        if not scenario_options:
+            scenario_options = [{"label": "None", "value": None}]
+
+        group_a = scenario_dropdowns(
+            {"Scenario": scenario_options},
+            dropid="scenario_dropdown_a"
         )
-
-    # Find the files
-    scenario_outputs_path = config.directory.joinpath("review_outputs")
-    scenario_outputs = [
-        str(f) for f in scenario_outputs_path.glob("least*.csv")
-    ]
-    scenario_originals = [str(file) for file in config.files.values()]
-    scenario_originals.sort()
-    files = scenario_originals + scenario_outputs
-    files.sort()
-    names = [os.path.basename(f).replace("_sc.csv", "") for f in files]
-    names = [convert_to_title(name) for name in names]
-    file_list = dict(zip(names, files))
-
-    scenario_options = [
-        {"label": key, "value": os.path.expanduser(file)}
-        for key, file in file_list.items()
-    ]
-
-    if not scenario_options:
-        scenario_options = [{"label": "None", "value": None}]
-
-    group_a = scenario_dropdowns(
-        {"Scenario": scenario_options},
-        id="scenario_dropdown_a"
-    )
-    group_b = scenario_dropdowns(
-        {"Scenario": scenario_options},
-        id="scenario_dropdown_b"
-    )
+        group_b = scenario_dropdowns(
+            {"Scenario": scenario_options},
+            dropid="scenario_dropdown_b"
+        )
 
     return group_a, group_b
 
@@ -1260,8 +1255,6 @@ def retrieve_signal(
 ):
     """Create signal for sharing data between map and chart with dependence."""
     trig = callback_trigger()
-
-    # Get/build the value scale table
     config = Config(project)
 
     # Unpack recalc table
@@ -1276,7 +1269,7 @@ def retrieve_signal(
     if lowest_scenario_open:
         if minimizing_variable in config.low_cost_groups:
             paths = [
-                config.directory / file
+                config.directory.joinpath(file)
                 for file in config.low_cost_groups[minimizing_variable]
             ]
         else:
@@ -1293,7 +1286,7 @@ def retrieve_signal(
         )
 
         # Build full paths and create the target file
-        lc_path = config.directory / "review_outputs" / fname
+        lc_path = config.directory.joinpath("review_outputs", fname)
         lc_path.parent.mkdir(parents=True, exist_ok=True)
         calc_least_cost(paths, lc_path, by=minimizing_target)
 
@@ -1317,63 +1310,65 @@ def retrieve_signal(
             "x": x,
             "y": y,
         }
-        return json.dumps(signal), None, None
 
-    # Prevent the first trigger when difference is off
-    if "scenario_b" in trig and diff == "off":
-        raise PreventUpdate
-
-    # Prevent the first trigger when mask is off
-    if "mask" in trig and mask == "off":
-        raise PreventUpdate
-
-    if pca1_click_selection and pca1_click_selection.get("points"):
-        path = pca1_click_selection["points"][0]["customdata"][0]
-        path2 = None
-        y = pca_plot_value
-        states = [] if pca_plot_region == "CONUS" else [pca_plot_region]
-    elif pca2_click_selection and pca2_click_selection.get("points"):
-        path = pca2_click_selection["points"][0]["customdata"][0]
-        path2 = None
-        y = pca_plot_value
-        states = [] if pca_plot_region == "CONUS" else [pca_plot_region]
     else:
-        path = choose_scenario(scenario_a_options, config)
-        path = os.path.expanduser(path)
-        if diff == "off" and mask == "off":
+
+        # Prevent the first trigger when difference is off
+        if "scenario_b" in trig and diff == "off":
+            raise PreventUpdate
+
+        # Prevent the first trigger when mask is off
+        if "mask" in trig and mask == "off":
+            raise PreventUpdate
+
+        if pca1_click_selection and pca1_click_selection.get("points"):
+            path = pca1_click_selection["points"][0]["customdata"][0]
             path2 = None
+            y = pca_plot_value
+            states = [] if pca_plot_region == "CONUS" else [pca_plot_region]
+        elif pca2_click_selection and pca2_click_selection.get("points"):
+            path = pca2_click_selection["points"][0]["customdata"][0]
+            path2 = None
+            y = pca_plot_value
+            states = [] if pca_plot_region == "CONUS" else [pca_plot_region]
         else:
-            path2 = choose_scenario(scenario_b_options, config)
-            path2 = os.path.expanduser(path2)
+            path = choose_scenario(scenario_a_options, config)
+            path = os.path.expanduser(path)
+            if diff == "off" and mask == "off":
+                path2 = None
+            else:
+                path2 = choose_scenario(scenario_b_options, config)
+                path2 = os.path.expanduser(path2)
 
-    logger.debug("path = %s", path)
-    logger.debug("path2 = %s", path2)
+        logger.debug("path = %s", path)
+        logger.debug("path2 = %s", path2)
 
-    if scenarios:
-        scenarios = [os.path.expanduser(path) for path in scenarios]
+        if scenarios:
+            scenarios = [os.path.expanduser(path) for path in scenarios]
 
-    # Pack up the filters
-    if filter_store:
-        filters = json.loads(filter_store)
-    else:
-        filters = []
+        # Pack up the filters
+        if filter_store:
+            filters = json.loads(filter_store)
+        else:
+            filters = []
 
-    # Let's just recycle all this for the chart
-    signal = {
-        "filters": filters,
-        "mask": mask,
-        "path": str(path) if path else path,
-        "path2": str(path2) if path2 else path2,
-        "project": project,
-        "recalc": recalc,
-        "recalc_table": recalc_table,
-        "added_scenarios": scenarios,
-        "regions": regions,
-        "diff_units": diff_units,
-        "states": states,
-        "x": x,
-        "y": y,
-    }
+        # Let's just recycle all this for the chart
+        signal = {
+            "filters": filters,
+            "mask": mask,
+            "path": str(path) if path else path,
+            "path2": str(path2) if path2 else path2,
+            "project": project,
+            "recalc": recalc,
+            "recalc_table": recalc_table,
+            "added_scenarios": scenarios,
+            "regions": regions,
+            "diff_units": diff_units,
+            "states": states,
+            "x": x,
+            "y": y,
+        }
+
     return json.dumps(signal), None, None
 
 
