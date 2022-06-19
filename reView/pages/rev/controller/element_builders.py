@@ -266,7 +266,7 @@ class Plots:
         return self._update_fig_layout(fig, y_var)
 
     def figure(self, chart_type="cumsum", x_var=None, y_var=None, bins=None):
-        """Return plotly figure for requested chart type.""" 
+        """Return plotly figure for requested chart type."""
         if chart_type == "cumsum":
             fig = self.cumulative_sum(x_var, y_var)
         elif chart_type == "scatter":

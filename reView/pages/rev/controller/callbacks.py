@@ -218,7 +218,7 @@ def scenario_dropdowns(groups, dropid=None):
                     style={"margin-left": "-10px"},
                 ),
             ],
-            style= {"border-radius": "5px"},
+            style={"border-radius": "5px"},
             className="row",
         )
 
