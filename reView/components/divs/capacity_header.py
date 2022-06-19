@@ -55,7 +55,8 @@ def capacity_header(
         count = html.H1(id=count_id, children="")
 
     # Print total capacity after all the filters are applied
-    return html.Div(
+    div = html.Div(
+        style=style or {},
         children=[
             html.Div(
                 [
@@ -74,7 +75,8 @@ def capacity_header(
                 ],
                 className=class_name,
                 style={"margin-top": "-10px"}
-            ),
-        ],
-        style=style or {},
+            )
+        ]
     )
+
+    return div

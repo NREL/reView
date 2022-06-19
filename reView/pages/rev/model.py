@@ -19,10 +19,8 @@ from reView.utils.functions import (
     lcot,
     safe_convert_percentage_to_decimal,
     capacity_factor_from_lcoe,
-    adjust_cf_for_losses,
-    common_numeric_columns,
+    adjust_cf_for_losses
 )
-from reView.utils.classes import DiffUnitOptions
 from reView.utils.config import Config
 from reView.app import cache, cache2, cache3
 
@@ -32,6 +30,7 @@ logger = logging.getLogger(__name__)
 DIST_METRIC = DistanceMetric.get_metric("haversine")
 
 
+# pylint: disable=too-many-locals, too-many-branches, too-many-statements
 def apply_all_selections(df, map_func, project, chartsel, mapsel, clicksel):
     """_summary_
 
@@ -182,14 +181,14 @@ def calc_mask(df1, df2, unique_id_col="sc_point_gid"):
     return df
 
 
-def least_cost(dfs, by="total_lcoe", group_col="sc_point_gid"):
+def least_cost(dfs, bycol="total_lcoe", group_col="sc_point_gid"):
     """Return a single least cost df from a list dfs."""
     # Make one big data frame
     bdf = pd.concat(dfs)
     bdf = bdf.reset_index(drop=True)
 
     # Group, find minimum, and subset
-    idx = bdf.groupby(group_col)[by].idxmin()
+    idx = bdf.groupby(group_col)[bycol].idxmin()
     data = bdf.iloc[idx]
 
     return data
@@ -202,7 +201,7 @@ def read_df_and_store_scenario_name(file):
     return data
 
 
-def calc_least_cost(paths, out_file, by="total_lcoe"):
+def calc_least_cost(paths, out_file, bycol="total_lcoe"):
     """Build the single least cost table from a list of tables."""
     # Not including an overwrite option for now
     if not os.path.exists(out_file):
@@ -218,7 +217,7 @@ def calc_least_cost(paths, out_file, by="total_lcoe"):
                 dfs.append(data)
 
         # Make one big data frame and save
-        data = least_cost(dfs, by=by)
+        data = least_cost(dfs, bycol=bycol)
         data.to_csv(out_file, index=False)
 
 
@@ -292,7 +291,7 @@ def cache_map_data(signal_dict):
 
     # Filter for states
     if states:
-        if any(s in df["state"].values for s in states):
+        if any(df["state"].isin(states)):
             df = df[df["state"].isin(states)]
 
         if "offshore" in states:
@@ -302,7 +301,7 @@ def cache_map_data(signal_dict):
 
     # Filter for regions
     if regions:
-        if any([s in df["nrel_region"].values for s in regions]):
+        if any(df["nrel_region"].isin(regions)):
             df = df[df["nrel_region"].isin(regions)]
 
     return df
@@ -353,7 +352,7 @@ def cache_chart_tables(
 
         # Subset by state selection
         if states:
-            if any([s in df["state"] for s in states]):
+            if any(df["state"].isin(states)):
                 df = df[df["state"].isin(states)]
 
             if "offshore" in states:
@@ -536,18 +535,20 @@ class Difference:
         df2 = df2.loc[idx]
 
         # Calculate difference
-        diff = df1[y_var] - df2[y_var]
+        df = self.difference(df1, df2, y_var)
+        logger.debug("Difference calculated.")
 
+        return df
+
+    def difference(self, df1, df2, y_var):
+        """Return single dataset with difference between two."""
+        diff = df1[y_var] - df2[y_var]
         if self.diff_units == "percent":
             diff = (diff / df1[y_var]) * 100
             col = f"{y_var}_difference_percent"
         else:
             col = f"{y_var}_difference"
-
         df1[col] = diff
-
-        logger.debug("Difference calculated.")
-
         return df1
 
 

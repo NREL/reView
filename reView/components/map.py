@@ -67,6 +67,7 @@ class Title:
 
     @property
     def is_diff(self):
+        """Check if the color variable indicates a difference variable."""
         check = False
         if "_difference_" in self.color_var:
             check = True
@@ -74,6 +75,7 @@ class Title:
 
     @property
     def is_percentage_diff(self):
+        """Check if a difference variable is a percentage difference."""
         check = False
         if self.color_var[-8:] == "_percent":
             check = True
@@ -81,6 +83,7 @@ class Title:
 
     @property
     def no_diff_suffix(self):
+        """Return variable suffix."""
         return DiffUnitOptions.remove_from_variable_name(self.color_var)
 
     @property
@@ -112,10 +115,10 @@ class Title:
         if self.is_diff:
             title = self.delimiter.join([title, "Difference"])
 
-        if self.no_diff_suffix and self.no_diff_suffix.lower() != "none":
-            var_exists = True
-        else:
-            var_exists = False
+        var_exists = False
+        if self.no_diff_suffix:
+            if self.no_diff_suffix.lower() != "none":
+                var_exists = True
 
         not_category = units != "category"
 
@@ -162,10 +165,10 @@ class Title:
 
         if aggregation.dimensionless:
             aggregation = aggregation.to_reduced_units()
-    
+
         if not any(t in f"{aggregation}" for t in ["dollar", "%", "percent"]):
             aggregation = aggregation.to_compact()
-    
+
         return aggregation
 
     def _add_map_selection_to_title(self, title):
@@ -182,7 +185,7 @@ class Title:
         desc = f" {description}:" if description else ":"
         total_print =  f"Total{desc} {total.to_compact():~H.2f}"
         return self.delimiter.join([title, total_print])
-    
+
 
 class Map:
     """Methods for building the mapbox scatter plot."""

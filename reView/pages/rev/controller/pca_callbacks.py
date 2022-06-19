@@ -231,7 +231,8 @@
 #     config = Config(project)
 #     # TODO: Remove hardcoded path
 #     # path = choose_scenario(scenario_options, config)
-#     path = "C:\\Users\\ppinchuk\\review_datasets\\hydrogen\\review_pca\\wind_flat_esr01_wcm0_ecpm0_f0035_wcm10_pcm05_nrwal_00.csv"
+#     path = ("C:\\Users\\ppinchuk\\review_datasets\\hydrogen\\review_pca\\"
+            # "wind_flat_esr01_wcm0_ecpm0_f0035_wcm10_pcm05_nrwal_00.csv"
 #     plot_options = [{"label": "Variable", "value": "Variable"}]
 #     if path and os.path.exists(path):
 #         data = pd.read_csv(path)

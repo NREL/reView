@@ -54,8 +54,12 @@ def slider_year(project, __):
     """Return year slider for given project."""
     # Get unique years from table
     years = pd.read_csv(project, usecols=["year"])["year"].unique()
-    marks = {int(y): str(y) for y in years}
-    marks = {int(y): {"label": str(y), "style": {"transform": "rotate(45deg)"}} for y in years}
+    marks = {}
+    for year in years:
+        marks[int(year)] = {
+            "label": str(year),
+            "style": {"transform": "rotate(45deg)"}
+        }
 
     ymin = int(years.min())
     ymax = int(years.max())
@@ -72,7 +76,7 @@ def year_print(year):
     return str(year)
 
 
-# Repeat elements below
+# pylint: disable=cell-var-from-loop
 for i in [1, 2]:
 
     @app.callback(
@@ -92,6 +96,7 @@ for i in [1, 2]:
         call_number = int(call)
         return options, options[call_number]["value"]
 
+    # pylint: disable=too-many-locals
     @app.callback(
         Output(f"reeds_{i}_map", "figure"),
         Output(f"reeds_{i}_mapcap", "children"),
@@ -119,19 +124,21 @@ for i in [1, 2]:
         # If there is no year, the dropdowns haven't populated yet
         if not year:
             raise PreventUpdate
-        
+
         # Get data
         df = cache_reeds(project, year)
         capacity = [col for col in CAPACITY_COLUMNS if col in df.columns]
-        assert len(capacity) == 1, f"Could determine capacity column in {project}."
+        if len(capacity) != 1:
+            raise AssertionError("Could not find capacity column in "
+                                 f"{project}.")
         capacity = capacity[0]
         df["print_capacity"] = df[capacity]
-    
+
         # Build Title
         agg = str(round(df[capacity].mean(), 2))
         name = to_name(project)
         title = f"{name} - {year} <br> Avg. {agg} MW"
-    
+
         mapper = Map(
             df=df,
             color_var=capacity,
@@ -145,20 +152,20 @@ for i in [1, 2]:
             point_size=point_size,
             reverse_color=reverse_color_clicks % 2 == 1,
         )
-    
+
         mapcap = df[["sc_point_gid", "print_capacity"]].to_dict()
-    
+
         return figure, json.dumps(mapcap)
-    
+
     @app.callback(
         Output(f"reeds_{i}_map_below_options", "is_open"),
         Input(f"reeds_{i}_map_below_options_button", "n_clicks"),
         State(f"reeds_{i}_map_below_options", "is_open"),
     )
     @calls.log
-    def toggle_reeds_map_below_options(n, is_open):
+    def toggle_reeds_map_below_options(n_clicks, is_open):
         """Toggle the blow options for reeds."""
         logger.debug("REEDS OPTIONS BUTTON TRIGGERED...")
-        if n:
+        if n_clicks:
             return not is_open
         return is_open

@@ -121,14 +121,13 @@ layout = html.Div(
                 map_div(id_prefix="reeds_2", class_name="twelve columns"),
            ]
         ),
+
         # Capacity after make_map (avoiding duplicate calls)
         html.Div(id="reeds_1_mapcap", style={"display": "none"}),
         html.Div(id="reeds_2_mapcap", style={"display": "none"}),
 
         # Store callback number to keep dropdowns different
         html.Div(id="call_1", children="0", style={"display": "none"}),
-        html.Div(id="call_2", children="1", style={"display": "none"}), 
-    
-
+        html.Div(id="call_2", children="1", style={"display": "none"}),
     ],
 )
