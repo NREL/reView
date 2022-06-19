@@ -1,12 +1,9 @@
 # -*- coding: utf-8 -*-
 """Scenario Model tests."""
-from itertools import product
-
 import pandas as pd
 
 from reView.pages.rev.model import Difference
 from reView.utils.functions import common_numeric_columns
-from reView.utils.classes import DiffUnitOptions
 
 
 def test_difference_calc(test_data_dir):

@@ -18,7 +18,6 @@ import warnings
 
 from pathlib import Path
 
-import geopandas as gpd
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
@@ -27,8 +26,6 @@ from dash import dcc
 from dash import html
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
-from shapely.errors import ShapelyDeprecationWarning
-from shapely.geometry import Point
 
 from reView.app import app
 from reView.components.callbacks import (
@@ -66,7 +63,6 @@ from reView.utils import calls
 
 logger = logging.getLogger(__name__)
 
-warnings.filterwarnings("ignore", category=ShapelyDeprecationWarning)
 
 
 COMMON_CALLBACKS = [
@@ -231,14 +227,64 @@ def scenario_dropdowns(groups, dropid=None):
     return drop_div
 
 
-def to_geo(df):
+def to_geo(df, dst, layer):
     """Convert pandas data frame to geodataframe."""
-    df["geometry"] = df.apply(
-        lambda x: Point((x["longitude"], x["latitude"])),
-        axis=1
-    )
-    df = gpd.GeoDataFrame(df, geometry="geometry", crs="epsg:4326")
-    return df
+    import pyproj
+
+    from pygeopkg.core.geopkg import GeoPackage
+    from pygeopkg.core.srs import SRS
+    from pygeopkg.core.field import Field
+    from pygeopkg.conversion.to_geopkg_geom import (
+        point_to_gpkg_point, make_gpkg_geom_header)
+    from pygeopkg.shared.enumeration import GeometryType, SQLFieldTypes
+    from pygeopkg.shared.constants import SHAPE
+
+
+    # Initialize file
+    gpkg = GeoPackage.create(os.path.expanduser(dst), flavor="EPSG")
+
+    # Create spatial references
+    wkt = pyproj.CRS("epsg:4326").to_wkt()
+    srs = SRS("WGS_1984", "EPSG", 4326, wkt)
+
+    # Create fields and set types
+    fields = []
+    for col, values in df.iteritems():
+        dtype = str(values.dtype)
+        if "int" in dtype:
+            ftype = SQLFieldTypes.integer
+        elif "float" in dtype:
+            ftype = SQLFieldTypes.integer
+        elif dtype == "object":
+            ftype = SQLFieldTypes.text
+        elif dtype == "bool":
+            ftype = SQLFieldTypes.boolean
+        else:
+            raise TypeError("Could not determine data type of values for "
+                            f"{col} column.")
+        fields.append(Field(col, ftype))
+
+    # Create feature class
+    features = gpkg.create_feature_class(layer, srs, fields=fields,
+                                         shape_type=GeometryType.point)
+
+    # Build data rows
+    header = make_gpkg_geom_header(features.srs.srs_id)
+    field_names = list(df.columns)
+    field_names.insert(0, SHAPE)
+    rows = []
+    for _, row in df.iterrows():
+        lat = row["latitude"]
+        lon = row["longitude"]
+        wkb = point_to_gpkg_point(header, lon, lat)
+        values = list(row.values)
+        values.insert(0, wkb)
+        rows.append(values)
+
+    # Finally insert rows
+    features.insert_rows(field_names, rows)
+    del features
+    del gpkg
 
 
 @app.callback(
@@ -316,7 +362,6 @@ def download_map(__, signal, project, map_selection, chart_selection,
         click_selection,
     )
     df = df[["sc_point_gid", "latitude", "longitude", y_var]]
-    df = to_geo(df)
 
     if not signal_dict["path2"]:
         name = os.path.splitext(os.path.basename(signal_dict["path"]))[0]
@@ -324,10 +369,13 @@ def download_map(__, signal, project, map_selection, chart_selection,
         name1 = os.path.splitext(os.path.basename(signal_dict["path"]))[0]
         name2 = os.path.splitext(os.path.basename(signal_dict["path2"]))[0]
         name = f"{name1}_{name2}_diff"
-    layer = f"{name}_{y_var}"
-    dst = layer + ".gpkg"
 
-    return dcc.send_bytes(df.to_file, dst, layer=layer, driver="GPKG")
+    layer = f"{name}_{y_var}"
+    src = tempfile.NamedTemporaryFile().name
+    dst = layer + ".gpkg"
+    df = to_geo(df, src, layer)
+
+    return dcc.send_file(src, dst)
 
 
 @app.callback(
