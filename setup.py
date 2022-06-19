@@ -11,15 +11,6 @@ from setuptools import setup
 
 REPO_DIR = os.path.abspath(os.path.dirname(__file__))
 VERSION_FILE = os.path.join(REPO_DIR, "reView", "version.py")
-with open(VERSION_FILE, encoding="utf-8") as f:
-    VERSION = f.read().split("=")[-1].strip().strip('"').strip("'")
-
-with open(os.path.join(REPO_DIR, "README.md"), encoding="utf-8") as f:
-    README = f.read()
-
-with open("requirements.txt") as f:
-    INSTALL_REQUIREMENTS = f.readlines()
-
 DESCRIPTION = (
     "A data portal for reviewing Renewable Energy Potential Model "
     "(reV) outputs"
@@ -27,6 +18,15 @@ DESCRIPTION = (
 DEV_REQUIREMENTS = ["pylint", "dash[testing]", "selenium"]
 TEST_REQUIREMENTS = ["pytest", "pytest-cov"]
 GUNICORN_REQUIREMENTS = ["gunicorn"]
+
+with open(VERSION_FILE, encoding="utf-8") as f:
+    VERSION = f.read().split("=")[-1].strip().strip('"').strip("'")
+
+with open(os.path.join(REPO_DIR, "README.md"), encoding="utf-8") as f:
+    README = f.read()
+
+with open("requirements.txt") as f:
+    INSTALL_REQUIREMENTS = f.read().splitlines()
 
 
 setup(
