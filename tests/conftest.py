@@ -3,10 +3,12 @@
 from pathlib import Path
 
 import pytest
+
 from selenium.webdriver.chrome.options import Options
 
-from reView import TEST_DATA_DIR
 import reView.utils.config
+
+from reView import TEST_DATA_DIR
 from reView.utils.functions import load_project_configs
 
 

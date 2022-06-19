@@ -67,14 +67,14 @@ NAVBAR = html.Nav(
         ),
         dcc.Link(
             html.Button(
-                id="reV_link_button",
+                id="rev_link_button",
                 children="reV Page",
                 type="button",
                 title=("Go to the reV viewer page."),
                 style=BUTTON_STYLES["navbar"],
                 className="twelve columns"
             ),
-            id="scenario_link",
+            id="rev_link",
             href="/scenario_page",
         ),
         dcc.Link(
