@@ -390,7 +390,7 @@ def filter_on_load_selection(df, load_center_ind, demand_data):
     load_center_coords, load = closest_load_center(
         load_center_ind, demand_data
     )
-    demand_data = demand_data.iloc[load_center_ind : load_center_ind + 1]
+    demand_data = demand_data.iloc[load_center_ind: load_center_ind + 1]
     df = filter_points_by_demand(df, load_center_coords, load)
     return df, demand_data
 
@@ -645,7 +645,7 @@ class ReCalculatedData:
         """Return the original parameters for fcr, capex, opex, and losses."""
         fields = self._find_fields(scenario)
         params = self.config.parameters[scenario]
-        ovalues = dict()
+        ovalues = {}
         for key in ["fcr", "capex", "opex", "losses"]:
             ovalues[key] = as_float(params[fields[key]])
         return ovalues

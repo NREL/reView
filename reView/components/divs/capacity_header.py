@@ -3,14 +3,9 @@
 from dash import dcc, html
 
 
-def capacity_header(
-        id_prefix,
-        style=None,
-        class_name=None,
-        cap_title="Remaining Generation Capacity",
-        count_title="Number of Sites",
-        small=False
-    ):
+def capacity_header(id_prefix, style=None, class_name=None,
+                    cap_title="Remaining Generation Capacity",
+                    count_title="Number of Sites", small=False):
     """Standard capacity output header divs.
 
     Parameters

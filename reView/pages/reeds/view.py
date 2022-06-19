@@ -105,7 +105,7 @@ layout = html.Div(
                     small=True
                 ),
                 map_div(id_prefix="reeds_1", class_name="twelve columns"),
-           ]
+            ]
         ),
         html.Div(
             className="five columns",
@@ -119,7 +119,7 @@ layout = html.Div(
                     small=True
                 ),
                 map_div(id_prefix="reeds_2", class_name="twelve columns"),
-           ]
+            ]
         ),
 
         # Capacity after make_map (avoiding duplicate calls)

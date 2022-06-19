@@ -57,11 +57,11 @@ class Title:
         lookup = {str(value): key for key, value in self.config.files.items()}
         path1 = self.signal_dict["path"]
         label = lookup[path1]
-        label = " ".join([l.capitalize() for l in label.split("_")])
+        label = " ".join([s.capitalize() for s in label.split("_")])
         path2 = self.signal_dict["path2"]
         if path2 and os.path.isfile(path2):
             label2 = lookup[path2]
-            label2 = " ".join([l.capitalize() for l in label2.split("_")])
+            label2 = " ".join([s.capitalize() for s in label2.split("_")])
             label = f"{label} vs {label2}"
         return label
 
@@ -183,7 +183,7 @@ class Title:
         """Add info about total of variable to title."""
         total = self._apply_aggregation(units, "sum")
         desc = f" {description}:" if description else ":"
-        total_print =  f"Total{desc} {total.to_compact():~H.2f}"
+        total_print = f"Total{desc} {total.to_compact():~H.2f}"
         return self.delimiter.join([title, total_print])
 
 
