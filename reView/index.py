@@ -2,7 +2,7 @@
 # pylint: skip-file
 """Transition reView project index file."""
 import reView.pages.reeds.controller.callbacks
-import reView.pages.scenario.controller.callbacks
+import reView.pages.rev.controller.callbacks
 
 from reView.app import app, server
 from reView.environment.settings import (

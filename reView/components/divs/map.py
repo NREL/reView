@@ -275,7 +275,7 @@ def below_map_options_div(id_prefix, class_name=None):
                             id=f"{id_prefix}_map_point_size",
                             value=DEFAULT_POINT_SIZE,
                             type="number",
-                            debounce=False,
+                            debounce=True,
                             style=OPTION_STYLE,
                         ),
                     ],

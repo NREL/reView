@@ -1283,6 +1283,42 @@
             "Exclusion Layer": "2030 ATB Mod Exclusions",
             "Aggregation": "Typical 400MW",
             "Capacity Density (KW/sqkm)": 3
+        },
+        "05_b_b_mid": {
+            "Scenario Name": "ATB Baseline Moderate",
+            "Rating (MW)": 5.5,
+            "Hub Height (m)": 120,
+            "Total Capex ($/kW)": 1094.91,
+            "Losses (%)": "11.8%",
+            "FCR (%)": "6.3%",
+            "Opex ($/kW/yr)": 36.81
+        },
+        "06_b_b_low": {
+            "Scenario Name": "ATB Baseline Advanced",
+            "Rating (MW)": 7.0,
+            "Hub Height (m)": 135,
+            "Total Capex ($/kW)": 811.74,
+            "Losses (%)": "9.4%",
+            "FCR (%)": "6.3%",
+            "Opex ($/kW/yr)": 32.09
+        },
+        "07_b_b_current": {
+            "Scenario Name": "ATB Baseline Current",
+            "Rating (MW)": 2.4,
+            "Hub Height (m)": 88,
+            "Total Capex ($/kW)": 1350.7,
+            "Losses (%)": "16.7%",
+            "FCR (%)": "7.5%",
+            "Opex ($/kW/yr)": 41.53
+        },
+        "21_b_b_high": {
+            "Scenario Name": "ATB Baseline Conservative",
+            "Rating (MW)": 4.0,
+            "Hub Height (m)": 110,
+            "Total Capex ($/kW)": 1255.37,
+            "Losses (%)": "16.7%",
+            "FCR (%)": "6.3%",
+            "Opex ($/kW/yr)": 41.53
         }
     }
 }

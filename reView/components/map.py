@@ -4,7 +4,9 @@
 Used in (at least) the scenario and reeds pages.
 """
 import copy
+import os
 
+import numpy as np
 import plotly.graph_objects as go
 import plotly.express as px
 
@@ -13,6 +15,7 @@ from reView.utils.classes import DiffUnitOptions
 from reView.utils.config import Config
 from reView.utils.constants import COLORS, DEFAULT_LAYOUT
 from reView.utils.functions import convert_to_title
+
 
 MAP_LAYOUT = copy.deepcopy(DEFAULT_LAYOUT)
 MAP_LAYOUT.update(
@@ -34,88 +37,154 @@ MAP_LAYOUT.update(
 
 
 # The title functions below will probably go into a single class at some point
-def build_title(df, var, project, map_selection=None, delimiter="  |  "):
-    """Create chart title."""
-    # Project configuration object
-    config = Config(project)
-    var_no_diff_suffix = DiffUnitOptions.remove_from_variable_name(var)
-    is_diff = DiffUnitOptions.from_variable_name(var) is not None
-    is_percentage_diff = (
-        DiffUnitOptions.from_variable_name(var) == DiffUnitOptions.PERCENTAGE
-    )
-    if is_diff and is_percentage_diff:
-        units = "percent"
-    else:
-        units = config.units.get(var_no_diff_suffix)
+class Title:
+    """Methods for building map and chart titles."""
 
-    # Append variable title
-    title = config.titles.get(var_no_diff_suffix, convert_to_title(var))
+    def __init__(self, df, signal_dict, color_var, project, map_selection=None,
+                 delimiter="  |  "):
+        """Initialize Title object."""
+        self.config = Config(project)
+        self.df = df
+        self.signal_dict = signal_dict
+        self.color_var = color_var
+        self.project = project
+        self.map_selection = map_selection
+        self.delimiter = delimiter
 
-    # Difference title
-    if is_diff:
-        title = delimiter.join([title, "Difference"])
+    @property
+    def scenario(self):
+        """Build Scenario Title Portion."""
+        lookup = {str(value): key for key, value in self.config.files.items()}
+        path1 = self.signal_dict["path"]
+        label = lookup[path1]
+        label = " ".join([s.capitalize() for s in label.split("_")])
+        path2 = self.signal_dict["path2"]
+        if path2 and os.path.isfile(path2):
+            label2 = lookup[path2]
+            label2 = " ".join([s.capitalize() for s in label2.split("_")])
+            label = f"{label} vs {label2}"
+        return label
 
-    var_exists = var_no_diff_suffix and var_no_diff_suffix.lower() != "none"
-    not_category = units != "category"
+    @property
+    def is_diff(self):
+        """Check if the color variable indicates a difference variable."""
+        check = False
+        if "_difference_" in self.color_var:
+            check = True
+        return check
 
-    if var_exists and not_category:
-        title = _add_extras_to_title(
-            title, df, var, units, map_selection, delimiter
+    @property
+    def is_percentage_diff(self):
+        """Check if a difference variable is a percentage difference."""
+        check = False
+        if self.color_var[-8:] == "_percent":
+            check = True
+        return check
+
+    @property
+    def no_diff_suffix(self):
+        """Return variable suffix."""
+        return DiffUnitOptions.remove_from_variable_name(self.color_var)
+
+    @property
+    def chart_title(self):
+        """Create chart title."""
+        scenario = self.scenario
+        variable = self.config.titles.get(
+            self.color_var,
+            convert_to_title(self.color_var)
+        )
+        return f"{scenario}<br>{variable}"
+
+    @property
+    def map_title(self):
+        """Create map title."""
+        # Get units
+        if self.is_diff and self.is_percentage_diff:
+            units = "percent"
+        else:
+            units = self.config.units.get(self.no_diff_suffix)
+
+        # Get variable title
+        title = self.config.titles.get(
+            self.no_diff_suffix,
+            convert_to_title(self.color_var)
         )
 
-    return title
+        # Difference title
+        if self.is_diff:
+            title = self.delimiter.join([title, "Difference"])
 
+        var_exists = False
+        if self.no_diff_suffix:
+            if self.no_diff_suffix.lower() != "none":
+                var_exists = True
 
-def _add_extras_to_title(title, df, var, units, map_selection, delimiter):
-    """Add extra info to map title."""
-    average = _apply_aggregation(df, var, units, "mean")
-    extra = f"Average: {average:~H.2f}"
+        not_category = units != "category"
 
-    # we can make this more general by
-    # allowing user input about this in config
-    var_no_diff_suffix = DiffUnitOptions.remove_from_variable_name(var)
-    if "capacity" in var_no_diff_suffix and units != "percent":
-        extra = _add_total_info(var, "MW", extra, df, delimiter)
+        if var_exists and not_category:
+            title = self._add_extras_to_title(title, units)
 
-    is_not_diff = DiffUnitOptions.from_variable_name(var) is not None
-    if "hydrogen_annual_kg" in df and is_not_diff:
-        extra = _add_total_info(
-            "hydrogen_annual_kg", "kg", extra, df, delimiter, "H2"
-        )
+        # Add dataset name to title
+        title = "<br>".join([self.scenario, title])
 
-    title = delimiter.join([title, extra])
-    title = _add_map_selection_to_title(title, map_selection, delimiter)
-    return title
+        return title
 
+    def _add_extras_to_title(self, title, units):
+        """Add extra info to map title."""
+        average = self._apply_aggregation(units, "mean")
+        extra = f"Average: {average:~H.2f}"
 
-def _add_map_selection_to_title(title, map_selection, delimiter="  |  "):
-    """Add the number of points selected in map to title."""
-    if map_selection:
-        n_points_selected = len(map_selection["points"])
-        map_selection_print = f"Selected point count: {n_points_selected:,}"
-        title = delimiter.join([title, map_selection_print])
+        # we can make this more general by
+        # allowing user input about this in config
+        if "capacity" in self.no_diff_suffix and units != "percent":
+            extra = self._add_total_info("MW", extra)
 
-    return title
+        title = self.delimiter.join([title, extra])
+        title = self._add_map_selection_to_title(title)
 
+        return title
 
-def _add_total_info(col_name, units, title, df, delimiter, description=None):
-    """Add info about total of variable to title."""
-    total = _apply_aggregation(df, col_name, units, "sum")
-    desc = f" {description}:" if description else ":"
-    return delimiter.join([title, f"Total{desc} {total.to_compact():~H.2f}"])
+    def _apply_aggregation(self, units, agg_type):
+        """Return the result of aggregation of the variable."""
+        # Drop nan values in variable
+        df = self.df.dropna(subset=self.color_var)
+        df = df[df[self.color_var] != -np.inf]
 
+        # If mean, use weights
+        if agg_type == "mean":
+            aggregation = np.average(
+                df[self.color_var],
+                weights=df["capacity"]
+            ).round(2)
+        else:
+            aggregation = df[self.color_var].apply(agg_type).round(2)
 
-def _apply_aggregation(df, var, units, agg_type):
-    """Return the result of aggregation of the variable."""
-    aggregation = Q_(df[var].apply(agg_type), units)
+        # Apply unit conversions
+        aggregation = Q_(aggregation, units)
 
-    if aggregation.dimensionless:
-        aggregation = aggregation.to_reduced_units()
+        if aggregation.dimensionless:
+            aggregation = aggregation.to_reduced_units()
 
-    if not any(t in f"{aggregation}" for t in ["dollar", "%"]):
-        aggregation = aggregation.to_compact()
+        if not any(t in f"{aggregation}" for t in ["dollar", "%", "percent"]):
+            aggregation = aggregation.to_compact()
 
-    return aggregation
+        return aggregation
+
+    def _add_map_selection_to_title(self, title):
+        """Add the number of points selected in map to title."""
+        if self.map_selection:
+            n_points = len(self.map_selection["points"])
+            map_selection_print = f"Selected point count: {n_points:,}"
+            title = self.delimiter.join([self.map_title, map_selection_print])
+        return title
+
+    def _add_total_info(self, units, title, description=None):
+        """Add info about total of variable to title."""
+        total = self._apply_aggregation(units, "sum")
+        desc = f" {description}:" if description else ":"
+        total_print = f"Total{desc} {total.to_compact():~H.2f}"
+        return self.delimiter.join([title, total_print])
 
 
 class Map:

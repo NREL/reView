@@ -5,7 +5,6 @@ import dash_bootstrap_components as dbc
 from dash import dcc, html
 
 from reView.environment.settings import IS_DEV_ENV
-from reView.utils.classes import DiffUnitOptions
 from reView.layout.styles import (
     TAB_BOTTOM_SELECTED_STYLE,
     TAB_STYLE,
@@ -55,9 +54,24 @@ TOPTIONS = [
                             html.H5("Scenario A"),
                             html.Div(
                                 id="scenario_a_options",
+                                children=[
+                                    dcc.Dropdown(
+                                        id="scenario_dropdown_a",
+                                        value="placeholder"
+                                    )
+                                ]
                             ),
+                            html.Div(
+                                id="scenario_a_specs",
+                                style={
+                                    "overflow-y": "auto",
+                                    "height": "300px",
+                                    "width": "95%"
+                                }
+                            ),
+                            html.Hr(style={"height": "1.5px", "width": "95%"})
                         ],
-                        className="four columns",
+                        className="three columns",
                         style={"margin-left": "25px"},
                     ),
 
@@ -70,7 +84,26 @@ TOPTIONS = [
                                     html.H5("Scenario B"),
                                     html.Div(
                                         id="scenario_b_options",
+                                        children=[
+                                            dcc.Dropdown(
+                                                id="scenario_dropdown_b",
+                                                value="placeholder"
+                                            )
+                                        ]
                                     ),
+                                    html.Div(
+                                        id="scenario_b_specs",
+                                        style={
+                                            "overflow-y": "auto",
+                                            "height": "300px",
+                                            "width": "95%"
+                                        }
+                                    ),
+                                    html.Hr(
+                                        style={
+                                            "height": "1.5px",
+                                            "width": "95%"}
+                                    )
                                 ],
                                 className="three columns",
                                 style={"margin-left": "5px"},
@@ -126,17 +159,17 @@ TOPTIONS = [
                     ),
                     dcc.Tabs(
                         id="difference_units",
-                        value=str(DiffUnitOptions.PERCENTAGE),
+                        value="original",
                         style=TAB_STYLE,
                         children=[
                             dcc.Tab(
-                                value=str(DiffUnitOptions.PERCENTAGE),
+                                value="percent",
                                 label="Percentage",
                                 style=TABLET_STYLE,
                                 selected_style=TAB_BOTTOM_SELECTED_STYLE,
                             ),
                             dcc.Tab(
-                                value=str(DiffUnitOptions.ORIGINAL),
+                                value="original",
                                 label="Original Units",
                                 style=TABLET_STYLE,
                                 selected_style=TAB_BOTTOM_SELECTED_STYLE,
@@ -403,9 +436,10 @@ TOPTIONS = [
                     ),
                     html.Hr(),
                 ],
-                id="recalculate_with_new_costs",
+                id="recalc_table_div",
                 className="four columns",
             ),
+
             # Filters
             html.Div(
                 children=[

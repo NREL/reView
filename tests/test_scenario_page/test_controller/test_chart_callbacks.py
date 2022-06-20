@@ -2,7 +2,7 @@
 """Chart callback tests."""
 import pytest
 
-from reView.pages.scenario.controller.callbacks import (
+from reView.pages.rev.controller.callbacks import (
     options_chart_type,
     chart_tab_div_children,
 )
