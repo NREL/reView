@@ -103,7 +103,7 @@ TOPTIONS = [
                                         style={
                                             "height": "1.5px",
                                             "width": "95%"}
-                                        )
+                                    )
                                 ],
                                 className="three columns",
                                 style={"margin-left": "5px"},

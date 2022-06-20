@@ -17,7 +17,7 @@ def cache_reeds(path, year):
     """Create table of single year buildout."""
     df = pd.read_csv(path)
     if year not in df["year"].values:
-        df = df[df["year"] == year -1]
+        df = df[df["year"] == year - 1]
     else:
         df = df[df["year"] == year]
     return df
