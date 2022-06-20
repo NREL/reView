@@ -272,6 +272,7 @@ def download_chart(chart_info):
     os.remove(src)
     return dcc.send_data_frame(df.to_csv, dst, index=False)
 
+
 # pylint: disable=too-many-locals
 @app.callback(
     Output("download_map", "data"),
