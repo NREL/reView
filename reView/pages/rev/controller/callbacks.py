@@ -224,6 +224,7 @@ def scenario_dropdowns(groups, dropid=None):
 
     return drop_div
 
+
 @app.callback(
     Output("recalc_table_div", "style"),
     Input("project", "value"),

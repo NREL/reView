@@ -78,7 +78,6 @@ def to_geo(df, dst, layer):
     del gpkg
 
 
-
 def convert_to_title(col_name):
     """Turn a column name into a title.
 
