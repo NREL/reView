@@ -1,16 +1,78 @@
 """reView functions."""
 import json
+import logging
 import os
 import re
-import logging
+
 from pathlib import Path
 
+from pygeopkg.core.geopkg import GeoPackage
+from pygeopkg.core.srs import SRS
+from pygeopkg.core.field import Field
+from pygeopkg.conversion.to_geopkg_geom import (
+    point_to_gpkg_point,
+    make_gpkg_geom_header
+)
+from pygeopkg.shared.enumeration import GeometryType, SQLFieldTypes
+from pygeopkg.shared.constants import SHAPE
+
+import pyproj
 import numpy as np
 import dash
 
 from reView import REVIEW_CONFIG_DIR, REVIEW_DATA_DIR
 
 logger = logging.getLogger(__name__)
+
+
+def to_geo(df, dst, layer):
+    """Convert pandas data frame to geodataframe."""
+    # Initialize file
+    gpkg = GeoPackage.create(dst, flavor="EPSG")
+
+    # Create spatial references
+    wkt = pyproj.CRS("epsg:4326").to_wkt()
+    srs = SRS("WGS_1984", "EPSG", 4326, wkt)
+
+    # Create fields and set types
+    fields = []
+    for col, values in df.iteritems():
+        dtype = str(values.dtype)
+        if "int" in dtype:
+            ftype = SQLFieldTypes.integer
+        elif "float" in dtype:
+            ftype = SQLFieldTypes.integer
+        elif dtype == "object":
+            ftype = SQLFieldTypes.text
+        elif dtype == "bool":
+            ftype = SQLFieldTypes.boolean
+        else:
+            raise TypeError("Could not determine data type of values for "
+                            f"{col} column.")
+        fields.append(Field(col, ftype))
+
+    # Create feature class
+    features = gpkg.create_feature_class(name=layer, srs=srs, fields=fields,
+                                         shape_type=GeometryType.point)
+
+    # Build data rows
+    header = make_gpkg_geom_header(features.srs.srs_id)
+    field_names = list(df.columns)
+    field_names.insert(0, SHAPE)
+    rows = []
+    for _, row in df.iterrows():
+        lat = row["latitude"]
+        lon = row["longitude"]
+        wkb = point_to_gpkg_point(header, lon, lat)
+        values = list(row.values)
+        values.insert(0, wkb)
+        rows.append(values)
+
+    # Finally insert rows
+    features.insert_rows(field_names, rows)
+    del features
+    del gpkg
+
 
 
 def convert_to_title(col_name):

@@ -14,7 +14,6 @@ import json
 import logging
 import os
 import tempfile
-import warnings
 
 from pathlib import Path
 
@@ -57,12 +56,11 @@ from reView.pages.rev.model import (
 )
 from reView.utils.bespoke import BespokeUnpacker
 from reView.utils.constants import SKIP_VARS
-from reView.utils.functions import convert_to_title, callback_trigger
+from reView.utils.functions import convert_to_title, callback_trigger, to_geo
 from reView.utils.config import Config
 from reView.utils import calls
 
 logger = logging.getLogger(__name__)
-
 
 
 COMMON_CALLBACKS = [
@@ -226,67 +224,6 @@ def scenario_dropdowns(groups, dropid=None):
 
     return drop_div
 
-
-def to_geo(df, dst, layer):
-    """Convert pandas data frame to geodataframe."""
-    import pyproj
-
-    from pygeopkg.core.geopkg import GeoPackage
-    from pygeopkg.core.srs import SRS
-    from pygeopkg.core.field import Field
-    from pygeopkg.conversion.to_geopkg_geom import (
-        point_to_gpkg_point, make_gpkg_geom_header)
-    from pygeopkg.shared.enumeration import GeometryType, SQLFieldTypes
-    from pygeopkg.shared.constants import SHAPE
-
-
-    # Initialize file
-    gpkg = GeoPackage.create(os.path.expanduser(dst), flavor="EPSG")
-
-    # Create spatial references
-    wkt = pyproj.CRS("epsg:4326").to_wkt()
-    srs = SRS("WGS_1984", "EPSG", 4326, wkt)
-
-    # Create fields and set types
-    fields = []
-    for col, values in df.iteritems():
-        dtype = str(values.dtype)
-        if "int" in dtype:
-            ftype = SQLFieldTypes.integer
-        elif "float" in dtype:
-            ftype = SQLFieldTypes.integer
-        elif dtype == "object":
-            ftype = SQLFieldTypes.text
-        elif dtype == "bool":
-            ftype = SQLFieldTypes.boolean
-        else:
-            raise TypeError("Could not determine data type of values for "
-                            f"{col} column.")
-        fields.append(Field(col, ftype))
-
-    # Create feature class
-    features = gpkg.create_feature_class(layer, srs, fields=fields,
-                                         shape_type=GeometryType.point)
-
-    # Build data rows
-    header = make_gpkg_geom_header(features.srs.srs_id)
-    field_names = list(df.columns)
-    field_names.insert(0, SHAPE)
-    rows = []
-    for _, row in df.iterrows():
-        lat = row["latitude"]
-        lon = row["longitude"]
-        wkb = point_to_gpkg_point(header, lon, lat)
-        values = list(row.values)
-        values.insert(0, wkb)
-        rows.append(values)
-
-    # Finally insert rows
-    features.insert_rows(field_names, rows)
-    del features
-    del gpkg
-
-
 @app.callback(
     Output("recalc_table_div", "style"),
     Input("project", "value"),
@@ -351,6 +288,7 @@ def download_chart(chart_info):
 def download_map(__, signal, project, map_selection, chart_selection,
                  click_selection, map_function, y_var):
     """Download geopackage file from map."""
+    # Retrieve the data frame
     signal_dict = json.loads(signal)
     df = cache_map_data(signal_dict)
     df, _ = apply_all_selections(
@@ -361,8 +299,11 @@ def download_map(__, signal, project, map_selection, chart_selection,
         map_selection,
         click_selection,
     )
+
+    # Reduce table size to speed up process
     df = df[["sc_point_gid", "latitude", "longitude", y_var]]
 
+    # Create the table name
     if not signal_dict["path2"]:
         name = os.path.splitext(os.path.basename(signal_dict["path"]))[0]
     else:
@@ -370,12 +311,12 @@ def download_map(__, signal, project, map_selection, chart_selection,
         name2 = os.path.splitext(os.path.basename(signal_dict["path2"]))[0]
         name = f"{name1}_{name2}_diff"
 
-    layer = f"{name}_{y_var}"
-    src = tempfile.NamedTemporaryFile().name
-    dst = layer + ".gpkg"
-    df = to_geo(df, src, layer)
+    layer = f"review_{name}_{y_var}"
+    dst = tempfile.NamedTemporaryFile().name
+    fname = layer + ".gpkg"
+    to_geo(df, dst, layer)
 
-    return dcc.send_file(src, dst)
+    return dcc.send_file(dst, fname)
 
 
 @app.callback(
@@ -1325,7 +1266,7 @@ def retrieve_signal(
         # Build full paths and create the target file
         lc_path = config.directory.joinpath("review_outputs", fname)
         lc_path.parent.mkdir(parents=True, exist_ok=True)
-        calc_least_cost(paths, lc_path, by=minimizing_target)
+        calc_least_cost(paths, lc_path, bycol=minimizing_target)
 
         if minimizing_plot_value == "Variable":
             y = "scenario"
