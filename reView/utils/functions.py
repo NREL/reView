@@ -34,6 +34,10 @@ def to_geo(df, dst, layer):
     wkt = pyproj.CRS("epsg:4326").to_wkt()
     srs = SRS("WGS_1984", "EPSG", 4326, wkt)
 
+    # The index field breaks it
+    if "index" in df:
+        del df["index"]
+
     # Create fields and set types
     fields = []
     for col, values in df.iteritems():

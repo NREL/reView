@@ -282,7 +282,7 @@ def download_chart(chart_info):
     State("rev_map", "clickData"),
     State("map_function", "value"),
     State("variable", "value"),
-    prevent_initial_call=True,
+    prevent_initial_call=True
 )
 @calls.log
 def download_map(__, signal, project, map_selection, chart_selection,
@@ -301,22 +301,22 @@ def download_map(__, signal, project, map_selection, chart_selection,
     )
 
     # Reduce table size to speed up process
-    df = df[["sc_point_gid", "latitude", "longitude", y_var]]
+    # df = df[["sc_point_gid", "latitude", "longitude", y_var]]
 
     # Create the table name
-    if not signal_dict["path2"]:
-        name = os.path.splitext(os.path.basename(signal_dict["path"]))[0]
-    else:
-        name1 = os.path.splitext(os.path.basename(signal_dict["path"]))[0]
+    name = os.path.splitext(os.path.basename(signal_dict["path"]))[0] + "_diff"
+    if signal_dict["path2"]:
         name2 = os.path.splitext(os.path.basename(signal_dict["path2"]))[0]
-        name = f"{name1}_{name2}_diff"
+        name = f"{name2}_{name}"
 
+    # Build geopackage and send it
     layer = f"review_{name}_{y_var}"
-    dst = tempfile.NamedTemporaryFile().name
-    fname = layer + ".gpkg"
-    to_geo(df, dst, layer)
+    with tempfile.NamedTemporaryFile() as tmp:
+        dst = tmp.name
+        fname = layer + ".gpkg"
+        to_geo(df, dst, layer)
 
-    return dcc.send_file(dst, fname)
+        return dcc.send_file(dst, fname)
 
 
 @app.callback(
