@@ -35,7 +35,8 @@ BUTTON_STYLES = {
         "border-color": "#1663b5",
         "font-family": "Times New Roman",
         "font-size": "18px",
-        "textTransform": "none"
+        "textTransform": "none",
+        "border": "2px solid white"
     },
 }
 BOTTOM_DIV_STYLE = {

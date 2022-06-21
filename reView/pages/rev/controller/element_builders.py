@@ -206,7 +206,7 @@ class Plots:
             for label, count in counts_for_sc_point.items():
                 counts[label] = counts.get(label, 0) + count
 
-        labels = sorted(counts, key=lambda k: -counts[k])
+        labels = sorted(counts, key=lambda k: -counts[k])  # add in labels
         counts = [counts[label] for label in labels]
 
         data = pd.DataFrame({"Category": labels, "Counts": counts})

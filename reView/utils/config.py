@@ -56,7 +56,7 @@ class Config:
         return f"Config({self.project!r})"
 
     @property
-    def characterizations_cols(self):
+    def characterization_cols(self):
         """list: List of column names with characterization info."""
         return self._config.get("characterizations_cols", [])
 

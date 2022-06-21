@@ -41,7 +41,7 @@ class Title:
     """Methods for building map and chart titles."""
 
     def __init__(self, df, signal_dict, color_var, project, map_selection=None,
-                 delimiter="  |  "):
+                 chart_selection=None, x_var=None, delimiter="  |  "):
         """Initialize Title object."""
         self.config = Config(project)
         self.df = df
@@ -49,7 +49,9 @@ class Title:
         self.color_var = color_var
         self.project = project
         self.map_selection = map_selection
+        self.chart_selection = chart_selection
         self.delimiter = delimiter
+        self.x_var = x_var
 
     @property
     def scenario(self):
@@ -90,11 +92,18 @@ class Title:
     def chart_title(self):
         """Create chart title."""
         scenario = self.scenario
-        variable = self.config.titles.get(
+        var_title = self.config.titles.get(
             self.color_var,
             convert_to_title(self.color_var)
         )
-        return f"{scenario}<br>{variable}"
+        title = f"{scenario}<br>{var_title}"
+        if self.chart_selection:
+            if self.x_var not in self.config.characterization_cols:
+                n_points_selected = len(self.chart_selection["points"])
+                title = (f"{title}  |  Selected point count: "
+                         f"{n_points_selected:,}")
+
+        return title
 
     @property
     def map_title(self):
@@ -104,6 +113,10 @@ class Title:
             units = "percent"
         else:
             units = self.config.units.get(self.no_diff_suffix)
+
+        # Y variable can now have "_mode" in it, nixing the above
+        if self.color_var.endswith("_mode"):
+            units = "category"
 
         # Get variable title
         title = self.config.titles.get(
@@ -176,7 +189,7 @@ class Title:
         if self.map_selection:
             n_points = len(self.map_selection["points"])
             map_selection_print = f"Selected point count: {n_points:,}"
-            title = self.delimiter.join([self.map_title, map_selection_print])
+            title = self.delimiter.join([title, map_selection_print])
         return title
 
     def _add_total_info(self, units, title, description=None):
@@ -219,6 +232,11 @@ class Map:
         else:
             self.units = ""
 
+        if color_var.endswith("_mode"):
+            self.units = "category"
+
+
+
     def __repr__(self):
         """Return representation string."""
         name = self.__class__.__name__
@@ -246,14 +264,16 @@ class Map:
                     }
                 ],
             )
+
         elif self.units == "category":
             # Create data object
+            self.df[self.color_var][self.df[self.color_var].isnull()] = "nan"
             figure = px.scatter_mapbox(
                 data_frame=self.df,
                 color=self.color_var,
                 lon="longitude",
                 lat="latitude",
-                custom_data=["sc_point_gid", "print_capacity"],
+                # custom_data=["sc_point_gid", "print_capacity"],
                 hover_name="text",
             )
             figure.update_traces(marker=self.marker(point_size, reverse_color))

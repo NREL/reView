@@ -84,7 +84,7 @@ def build_specs(scenario, project):
 
 def build_spec_split(path, project):
     """Calculate the percentage of each scenario present."""
-    df = cache_table(project, path)
+    df = cache_table(project, y_var="capacity", path=path)
     scenarios, counts = np.unique(df["scenario"], return_counts=True)
     total = df.shape[0]
     percentages = [counts[i] / total for i in range(len(counts))]
@@ -174,11 +174,14 @@ def fig_to_df(fig):
 
 
 @calls.log
-def options_chart_type(project):
+def options_chart_type(project, y_var=None):
     """Add characterization plot option, if necessary."""
-    if Config(project).characterizations_cols:
-        return CHART_OPTIONS
-    return CHART_OPTIONS[:-1]
+    config = Config(project)
+    if config.characterization_cols and y_var in config.characterization_cols:
+        options = [CHART_OPTIONS[-1]]
+    else:
+        options = CHART_OPTIONS[:-1]
+    return options
 
 
 def scenario_dropdowns(groups, dropid=None):
@@ -300,6 +303,7 @@ def download_map(__, signal, project, map_selection, chart_selection,
         chart_selection,
         map_selection,
         click_selection,
+        y_var
     )
 
     # Reduce table size to speed up process
@@ -323,12 +327,21 @@ def download_map(__, signal, project, map_selection, chart_selection,
 
 @app.callback(
     Output("rev_chart_options", "options"),
+    Output("rev_chart_options", "value"),
     Input("project", "value"),
+    Input("submit", "n_clicks"),
+    State("variable", "value"),
+    State("rev_chart_options", "value")
 )
 @calls.log
-def dropdown_chart_types(project):
+def dropdown_chart_types(project, _, y_var, current_option):
     """Add characterization plot option, if necessary."""
-    return options_chart_type(project)
+    options = options_chart_type(project, y_var)
+    if len(options) == 1:
+        value = options[0]["value"]
+    else:
+        value = current_option
+    return options, value
 
 
 @app.callback(
@@ -631,7 +644,7 @@ def dropdown_x_variables(
         config = Config(project)
         variable_options = [
             {"label": config.titles.get(x, convert_to_title(x)), "value": x}
-            for x in config.characterizations_cols
+            for x in config.characterization_cols
         ]
         val = variable_options[0]["value"]
     else:
@@ -742,7 +755,7 @@ def figure_chart(
     # Don't fail when variable not available for characterization
     if (
         chart_type == "char_histogram"
-        and x_var not in config.characterizations_cols
+        and x_var not in config.characterization_cols
     ):
         raise PreventUpdate  # @IgnoreException
 
@@ -774,19 +787,16 @@ def figure_chart(
                 project,
                 chart_selection,
                 map_selection,
-                clicksel=None,
+                click_selection=None,
+                y_var=y_var
             )[0]
             for k, df in dfs.items()
         }
 
     # Build Title
-    title_builder = Title(dfs, signal_dict, y_var, project)
-    scenario = title_builder.scenario
-    var_title = config.titles.get(y_var, convert_to_title(y_var))
-    title = f"{scenario}<br>{var_title}"
-    if chart_selection:
-        n_points_selected = len(chart_selection["points"])
-        title = f"{title}  |  Selected point count: {n_points_selected:,}"
+    title_builder = Title(dfs, signal_dict, y_var, project,
+                          chart_selection=chart_selection)
+    title = title_builder.chart_title
 
     # This might be a difference
     if signal_dict["path2"] and os.path.isfile(signal_dict["path2"]):
@@ -840,6 +850,7 @@ def figure_chart(
     Input("rev_map", "clickData"),
     State("project", "value"),
     State("map_function", "value"),
+    State("rev_chart_x_var_options", "value"),
 )
 @calls.log
 def figure_map(
@@ -855,6 +866,7 @@ def figure_map(
     click_selection,
     project,
     map_function,
+    x_var
 ):
     """Make the scatter plot map."""
     # Unpack signal and retrieve data frame
@@ -867,6 +879,10 @@ def figure_map(
     else:
         y_var = signal_dict["y"]
 
+    # This could also be a modal category
+    if y_var in Config(project).characterization_cols:
+        y_var += "_mode"
+
     # Apply user selections
     df, demand_data = apply_all_selections(
         df,
@@ -875,6 +891,8 @@ def figure_map(
         chart_selection,
         map_selection,
         click_selection,
+        y_var,
+        x_var
     )
 
     if "clickData" in callback_trigger() and "turbine_y_coords" in df:

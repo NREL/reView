@@ -1,17 +1,21 @@
 # -*- coding: utf-8 -*-
 """Scenario page data model."""
 import json
-import os
 import logging
-import operator
 import multiprocessing as mp
+import operator
+import os
+
+from collections import Counter
 
 import numpy as np
 import pandas as pd
+
 from sklearn.neighbors import BallTree
 from sklearn.metrics import DistanceMetric
 from tqdm import tqdm
 
+from reView.app import cache, cache2, cache3
 from reView.utils.functions import (
     as_float,
     strip_rev_filename_endings,
@@ -22,16 +26,17 @@ from reView.utils.functions import (
     adjust_cf_for_losses
 )
 from reView.utils.config import Config
-from reView.app import cache, cache2, cache3
 
 pd.set_option("mode.chained_assignment", None)
 logger = logging.getLogger(__name__)
+
 
 DIST_METRIC = DistanceMetric.get_metric("haversine")
 
 
 # pylint: disable=too-many-locals, too-many-branches, too-many-statements
-def apply_all_selections(df, map_func, project, chartsel, mapsel, clicksel):
+def apply_all_selections(df, map_function, project, chart_selection,
+                         map_selection, click_selection, y_var, x_var=None):
     """_summary_
 
     Parameters
@@ -55,24 +60,25 @@ def apply_all_selections(df, map_func, project, chartsel, mapsel, clicksel):
         _description_
     """
     demand_data = None
+    config = Config(project)
 
     # If there is a selection in the chart, filter these points
-    if map_func == "demand":
+    if map_function == "demand":
         demand_data = Config(project).demand_data
         demand_data["load"] = demand_data["H2_MT"] * 1e3  # convert to kg
-        if clicksel and len(clicksel["points"]) > 0:
-            point = clicksel["points"][0]
+        if click_selection and len(click_selection["points"]) > 0:
+            point = click_selection["points"][0]
             if point["curveNumber"] == 1:
                 df, demand_data = filter_on_load_selection(
                     df, point["pointIndex"], demand_data
                 )
-        elif mapsel and len(mapsel["points"]) > 0:
+        elif map_selection and len(map_selection["points"]) > 0:
             selected_demand_points = [
-                p for p in mapsel["points"] if p["curveNumber"] == 1
+                p for p in map_selection["points"] if p["curveNumber"] == 1
             ]
             if not selected_demand_points:
-                mean_lat = np.mean([p["lat"] for p in mapsel["points"]])
-                mean_lon = np.mean([p["lon"] for p in mapsel["points"]])
+                mean_lat = np.mean([p["lat"] for p in map_selection["points"]])
+                mean_lon = np.mean([p["lon"] for p in map_selection["points"]])
                 selection_coords = np.radians([[mean_lat, mean_lon]])
                 load_center_ind = closest_demand_to_coords(
                     selection_coords, demand_data
@@ -95,7 +101,7 @@ def apply_all_selections(df, map_func, project, chartsel, mapsel, clicksel):
                 df = df[df["demand_connect_count"] > 0]
                 demand_data = demand_data.iloc[demand_idxs]
 
-    elif map_func == "meet_demand":
+    elif map_function == "meet_demand":
         demand_data = Config(project).demand_data
         demand_data["load"] = demand_data["H2_MT"] * 1e3  # convert to kg
 
@@ -126,11 +132,15 @@ def apply_all_selections(df, map_func, project, chartsel, mapsel, clicksel):
 
     else:
         # If there is a selection in the map, filter these points
-        if mapsel and len(mapsel["points"]) > 0:
-            df = point_filter(df, mapsel)
+        if map_selection and len(map_selection["points"]) > 0:
+            df = point_filter(df, map_selection)
 
-    if chartsel and len(chartsel["points"]) > 0:
-        df = point_filter(df, chartsel)
+    if chart_selection and len(chart_selection["points"]) > 0:
+        if x_var in config.characterization_cols:
+            categories = [p["label"] for p in chart_selection["points"]]
+            df = df[df[y_var].isin(categories)]
+        else:
+            df = point_filter(df, chart_selection)
 
     return df, demand_data
 
@@ -221,26 +231,46 @@ def calc_least_cost(paths, out_file, bycol="total_lcoe"):
         data.to_csv(out_file, index=False)
 
 
+def key_mode(dct):
+    """Return the key associated with the modal value in a dictionary."""
+    return Counter(dct).most_common()[0][0]
+
+
 # pylint: disable=no-member
 # pylint: disable=unsubscriptable-object
 # pylint: disable=unsupported-assignment-operation
 @cache.memoize()
-def cache_table(project, path, recalc_table=None, recalc="off"):
+def cache_table(project, path, y_var, recalc_table=None, recalc="off"):
     """Read in just a single table."""
+     # Get config
+    config = Config(project)
+
     # Get the table
     if recalc == "on":
         data = ReCalculatedData(config=Config(project)).build(
             path, recalc_table
         )
     else:
-        data = pd.read_csv(path, low_memory=False)
+        cols = [y_var, "capacity", "sc_point_gid", "state", "county",
+                "nrel_region", "latitude", "longitude"]
+        data = pd.read_csv(path, usecols=cols, low_memory=False)
 
     # We want some consistent fields
-    data["index"] = data.index
     if "capacity" not in data.columns and "hybrid_capacity" in data.columns:
         data["capacity"] = data["hybrid_capacity"].copy()
     if "print_capacity" not in data.columns:
         data["print_capacity"] = data["capacity"].copy()
+
+    # If characterization, use modal category
+    if y_var in config.characterization_cols:
+        ncol = y_var + "_mode"
+        cdata = data[~data[y_var].isnull()]
+        odata = data[data[y_var].isnull()]
+        odata[ncol] = "nan"
+        cdata[ncol] = cdata[y_var].map(json.loads)
+        cdata[ncol] = cdata[ncol].apply(key_mode)
+        data = pd.concat([odata, cdata])
+
     return data
 
 
@@ -265,7 +295,7 @@ def cache_map_data(signal_dict):
     recalc_b = recalc_tables["scenario_b"]
 
     # Read and cache first table
-    df1 = cache_table(project, path, recalc_a, recalc)
+    df1 = cache_table(project, path, y_var, recalc_a, recalc)
 
     # Apply filters
     df1 = apply_filters(df1, filters)
@@ -287,7 +317,7 @@ def cache_map_data(signal_dict):
         if mask == "on":
             df = calc_mask(df1, df)
     else:
-        df = df1.copy()
+        df = df1
 
     # Filter for states
     if states:
