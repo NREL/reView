@@ -245,7 +245,7 @@ def key_mode(dct):
 @cache.memoize()
 def cache_table(project, path, y_var, recalc_table=None, recalc="off"):
     """Read in just a single table."""
-     # Get config
+    # Get config
     config = Config(project)
 
     # Get the table

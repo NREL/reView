@@ -237,8 +237,6 @@ class Map:
         if color_var.endswith("_mode"):
             self.units = "category"
 
-
-
     def __repr__(self):
         """Return representation string."""
         name = self.__class__.__name__
@@ -298,7 +296,7 @@ class Map:
                     color_discrete_sequence=px.colors.qualitative.Safe,
                     custom_data=["sc_point_gid", "print_capacity"],
                     hover_name="text",
-                )                
+                )
             figure.update_traces(marker=self.marker(point_size, reverse_color))
         else:
             # Create data object
