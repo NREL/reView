@@ -195,11 +195,11 @@ class Plots:
 
         return self._update_fig_layout(fig, y_var)
 
-    def char_hist(self, y_var):
+    def char_hist(self, x_var):
         """Make a histogram of the characterization column."""
         main_df = list(self.datasets.values())[0]
         counts = {}
-        for str_dict in main_df[y_var]:
+        for str_dict in main_df[x_var]:
             if not isinstance(str_dict, str):
                 continue
             counts_for_sc_point = json.loads(str_dict)
@@ -210,13 +210,19 @@ class Plots:
         counts = [counts[label] for label in labels]
 
         lookup = None
-        if "lookup" in self.config.characterization_cols[y_var]:
-            lookup = self.config.characterization_cols[y_var]["lookup"]
-            labels = [lookup[label] for label in labels]
+        if "lookup" in self.config.characterization_cols[x_var]:
+            lookup = self.config.characterization_cols[x_var]["lookup"]
+            new_labels = []
+            for label in labels:
+                if label in lookup:
+                    new_labels.append(lookup[label])
+                else:
+                    new_labels.append(label)
+            labels = new_labels
 
         colormap = None
-        if "colormap" in self.config.characterization_cols[y_var]:
-            colormap = self.config.characterization_cols[y_var]["colormap"]
+        if "colormap" in self.config.characterization_cols[x_var]:
+            colormap = self.config.characterization_cols[x_var]["colormap"]
             if lookup:
                 colormap = {lookup[k]: color for k, color in colormap.items()}
 
@@ -230,7 +236,7 @@ class Plots:
                 color="Category",
                 labels={
                     "Category": self.config.titles.get(
-                        y_var, convert_to_title(y_var)
+                        x_var, convert_to_title(x_var)
                     )
                 },
                 opacity=self.alpha,
@@ -244,7 +250,7 @@ class Plots:
                 y="Counts",
                 labels={
                     "Category": self.config.titles.get(
-                        y_var, convert_to_title(y_var)
+                        x_var, convert_to_title(x_var)
                     )
                 },
                 opacity=self.alpha,
@@ -303,7 +309,7 @@ class Plots:
         elif chart_type == "histogram":
             fig = self.histogram(y_var, bins=bins)
         elif chart_type == "char_histogram":
-            fig = self.char_hist(y_var)
+            fig = self.char_hist(x_var)
         elif chart_type == "box":
             fig = self.box(y_var)
         return fig
@@ -333,9 +339,10 @@ class Plots:
             y="count",
             labels={y_var: y_title},
             color="group",
+            custom_data=["bin_size"],
             opacity=self.alpha,
             color_discrete_sequence=px.colors.qualitative.Safe,
-            barmode="group",
+            barmode="group"
         )
 
         fig.update_traces(
@@ -421,6 +428,7 @@ class Plots:
         # Get bin ranges for full value range
         main_df = main_df.dropna(subset=y_var)
         _, xbins = np.histogram(main_df[y_var], bins=bins)
+        bin_size = np.diff(xbins)[0]
 
         # Build grouped binned counts
         df = pd.DataFrame(columns=["count", y_var, "group"])
@@ -433,6 +441,9 @@ class Plots:
             sdf = sdf[[y_var, "count"]].drop_duplicates()
             sdf["group"] = group
             df = pd.concat([df, sdf])
+
+        # Add bin size for chart selection filtering later
+        df["bin_size"] = bin_size
 
         return df
 

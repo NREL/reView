@@ -30,13 +30,11 @@ BUTTON_STYLES = {
     "navbar": {
         "height": "55px",
         "width": "190px",
-        "background-color": "#FCCD34",
         "border-radius": "4px",
         "border-color": "#1663b5",
         "font-family": "Times New Roman",
         "font-size": "18px",
         "textTransform": "none",
-        "border": "2px solid white"
     },
 }
 BOTTOM_DIV_STYLE = {

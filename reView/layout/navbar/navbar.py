@@ -5,6 +5,8 @@ Created on Sun Aug 23 14:59:00 2020
 
 @author: travis
 """
+import dash_bootstrap_components as dbc
+
 from dash import dcc, html
 
 from reView.layout.styles import BUTTON_STYLES
@@ -66,25 +68,30 @@ NAVBAR = html.Nav(
             ]
         ),
         dcc.Link(
-            html.Button(
+            dbc.Button(
                 id="rev_link_button",
                 children="reV Page",
                 type="button",
                 title=("Go to the reV viewer page."),
+                size="lg",
+                className="me-1",
+                color="light",
                 style=BUTTON_STYLES["navbar"],
-                className="twelve columns"
+                # className="twelve columns"
             ),
             id="rev_link",
             href="/scenario_page",
         ),
         dcc.Link(
-            html.Button(
+            dbc.Button(
                 id="reeds_link_button",
                 children="ReEDS Page",
-                type="button",
+                className="me-1",
+                size="lg",
+                color="light",
                 title=("Go to the ReEDS buildout viewer page."),
                 style=BUTTON_STYLES["navbar"],
-                className="twelve columns"
+                # className="twelve columns"
             ),
             id="reeds_link",
             href="/reeds_page",

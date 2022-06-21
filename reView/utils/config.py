@@ -5,6 +5,7 @@ Created on Sat Aug 15 15:47:40 2020
 
 @author: travis
 """
+import ast
 import logging
 
 from functools import cached_property, lru_cache
@@ -56,6 +57,14 @@ class Config:
         return f"Config({self.project!r})"
 
     @property
+    def capacity_density(self):
+        """Return capacity-dependent scaling information if available."""
+        density = self._config.get("capacity_density", None)
+        if density:
+            density = float(density)
+        return density
+
+    @property
     def characterization_cols(self):
         """list: List of column names with characterization info."""
         return self._config.get("characterization_cols", [])
@@ -69,6 +78,15 @@ class Config:
     def demand_data(self):
         """Return demand data if it exists."""
         return self._safe_read("demand_file")
+
+    @property
+    def eos(self):
+        """Return capacity-dependent scaling information if available."""
+        eos = self._config.get("eos", None)
+        neos = {}
+        for key, value in eos.items():
+            neos[key] = ast.literal_eval(value)
+        return neos
 
     @cached_property
     def files(self):
@@ -88,6 +106,11 @@ class Config:
     def low_cost_groups(self):
         """dict: Low-cost group options dictionary."""
         return self._config.get("low_cost_groups", {})
+
+    @property
+    def name_lookup(self):
+        """Return file to name lookup dictionary."""
+        return {str(v): k for k, v in dict(self._project_files).items()}
 
     @cached_property
     def options(self):
@@ -115,11 +138,24 @@ class Config:
             except ValueError:
                 continue
 
+    @property
+    def resolution(self):
+        """Return capacity-dependent scaling information if available."""
+        resolution = self._config.get("resolution", None)
+        if resolution:
+            resolution = int(resolution)
+        return resolution
+
     @classmethod
     @property
     def sorted_projects(cls):
         """Return the sorted names of available projects."""
         return sorted(cls.projects)
+
+    @property
+    def sam(self):
+        """Return SAM information if available."""
+        return self._config.get("sam", None)
 
     @property
     def scales(self):

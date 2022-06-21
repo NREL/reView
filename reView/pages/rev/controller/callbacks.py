@@ -84,7 +84,7 @@ def build_specs(scenario, project):
 
 def build_spec_split(path, project):
     """Calculate the percentage of each scenario present."""
-    df = cache_table(project, y_var="capacity", path=path)
+    df = cache_table(project, y_var="capacity", x_var="mean_lcoe", path=path)
     scenarios, counts = np.unique(df["scenario"], return_counts=True)
     total = df.shape[0]
     percentages = [counts[i] / total for i in range(len(counts))]
@@ -180,7 +180,7 @@ def options_chart_type(project, y_var=None):
     if config.characterization_cols and y_var in config.characterization_cols:
         options = [CHART_OPTIONS[-1]]
     else:
-        options = CHART_OPTIONS[:-1]
+        options = CHART_OPTIONS
     return options
 
 
@@ -287,11 +287,12 @@ def download_chart(chart_info):
     State("rev_map", "clickData"),
     State("map_function", "value"),
     State("variable", "value"),
+    State("rev_chart_options", "value"),
     prevent_initial_call=True
 )
 @calls.log
 def download_map(__, signal, project, map_selection, chart_selection,
-                 click_selection, map_function, y_var):
+                 click_selection, map_function, y_var, chrat_type):
     """Download geopackage file from map."""
     # Retrieve the data frame
     signal_dict = json.loads(signal)
@@ -303,7 +304,8 @@ def download_map(__, signal, project, map_selection, chart_selection,
         chart_selection,
         map_selection,
         click_selection,
-        y_var
+        y_var,
+        chart_type
     )
 
     # Reduce table size to speed up process
@@ -749,14 +751,6 @@ def figure_chart(
     x_var = signal_dict["x"]
     y_var = signal_dict["y"]
     project = signal_dict["project"]
-    config = Config(project)
-
-    # Don't fail when variable not available for characterization
-    if (
-        chart_type == "char_histogram"
-        and y_var not in config.characterization_cols
-    ):
-        raise PreventUpdate  # @IgnoreException
 
     # Get the data frames
     dfs = cache_chart_tables(signal_dict, region)
@@ -787,7 +781,9 @@ def figure_chart(
                 chart_selection,
                 map_selection,
                 click_selection=None,
-                y_var=y_var
+                y_var=y_var,
+                x_var=x_var,
+                chart_type=chart_type
             )[0]
             for k, df in dfs.items()
         }
@@ -850,6 +846,7 @@ def figure_chart(
     State("project", "value"),
     State("map_function", "value"),
     State("rev_chart_x_var_options", "value"),
+    State("rev_chart_options", "value"),
 )
 @calls.log
 def figure_map(
@@ -865,7 +862,8 @@ def figure_map(
     click_selection,
     project,
     map_function,
-    x_var
+    x_var,
+    chart_type
 ):
     """Make the scatter plot map."""
     # Unpack signal and retrieve data frame
@@ -885,12 +883,15 @@ def figure_map(
     # Apply user selections
     df, demand_data = apply_all_selections(
         df,
+        signal_dict,
         map_function,
         project,
         chart_selection,
         map_selection,
         click_selection,
-        y_var
+        y_var,
+        x_var,
+        chart_type
     )
 
     if "clickData" in callback_trigger() and "turbine_y_coords" in df:

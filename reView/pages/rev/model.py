@@ -5,12 +5,14 @@ import logging
 import multiprocessing as mp
 import operator
 import os
+import platform
 
 from collections import Counter
 
 import numpy as np
 import pandas as pd
 
+from pandarallel import pandarallel as pdl
 from sklearn.neighbors import BallTree
 from sklearn.metrics import DistanceMetric
 from tqdm import tqdm
@@ -28,6 +30,7 @@ from reView.utils.functions import (
 from reView.utils.config import Config
 
 pd.set_option("mode.chained_assignment", None)
+pdl.initialize(progress_bar=True, verbose=0)
 logger = logging.getLogger(__name__)
 
 
@@ -35,8 +38,86 @@ DIST_METRIC = DistanceMetric.get_metric("haversine")
 
 
 # pylint: disable=too-many-locals, too-many-branches, too-many-statements
-def apply_all_selections(df, map_function, project, chart_selection,
-                         map_selection, click_selection, y_var):
+def adjust_capacities(df, project, signal_dict, x_var, chart_selection):
+    """Adjust capacities and lcoes for given characterization selection."""
+    def adjust_capacity(row, x_var, cats, res, density):
+        """Keep given categorical capacity, remove the rest."""
+        row[x_var] = json.loads(row[x_var])
+        if row[x_var]:
+            removals = {k: v for k, v in row[x_var].items() if k not in cats}
+            removed_cells = sum(removals.values())
+            removed_km2 = (res * res * removed_cells) / 1_000_000
+            removed_cap = removed_km2 * density
+            row["capacity"] -= removed_cap
+        return row
+
+    def adjust_lcoe(df, sam, eos):
+        """Adjust for economies of scale if possible."""
+        # Unpack SAM info
+        capex = float(sam["capital_cost"])
+        fcr = float(sam["fixed_charge_rate"])
+        opex = float(sam["fixed_operating_cost"])
+
+        # Adjust capex, get full cost
+        capex *= np.interp(df["capacity"], eos["capacity"], eos["scalar"])
+        capex *= df["capacity"] * 1_000
+
+        # Get full opex
+        opex *= df["capacity"] * 1_000
+
+        # Calculate generation
+        gen = df["mean_cf"] * df["capacity"] * 8_760
+        df["mean_lcoe"] = ((capex * fcr) + opex) / gen
+
+        return df
+
+    # Get config
+    config = Config(project)
+
+    # Get categories
+    cats = [p["label"] for p in chart_selection["points"]]
+
+    # These might've been translated
+    if "lookup" in config.characterization_cols[x_var]:
+        lookup = config.characterization_cols[x_var]["lookup"]
+        ilookup = {v: k for k, v in lookup.items()}
+        cats = [ilookup[cat] for cat in cats]
+
+    # It needs to have capacity density for this
+    density = config.capacity_density
+    res = config.resolution
+
+    # Adjust capacities for each row
+    if res and density:
+        if platform.system() == "Windows":
+            df = df.apply(adjust_capacity, cats=cats, x_var=x_var, res=res,
+                          density=density, axis=1)
+        else:
+            df = df.parallel_apply(adjust_capacity, cats=cats, x_var=x_var,
+                                   res=res, density=density, axis=1)
+
+        # Adjust LCOEs if possible
+        if config.sam and config.eos:
+            # Using pattern recognition for now, in a hurry
+            name = config.name_lookup[signal_dict["path"]]
+            parts = name.split("_")
+            sam = {k: v for k, v in config.sam.items() if k in parts}
+            eos = {k: v for k, v in config.eos.items() if k in parts}
+            sam = sam[next(iter(sam))]
+            eos = eos[next(iter(eos))]
+            if eos and sam:
+                df = adjust_lcoe(df, sam=sam, eos=eos)
+
+    # Remove cells with no capacity
+    df = df[df["capacity"] > 0]
+
+    return df
+
+
+# pylint: disable=too-many-locals, too-many-branches, too-many-statements
+def apply_all_selections(df, signal_dict, map_function, project,
+                         chart_selection, map_selection, click_selection,
+                         y_var, x_var, chart_type):
     """_summary_
 
     Parameters
@@ -135,9 +216,24 @@ def apply_all_selections(df, map_function, project, chart_selection,
             df = point_filter(df, map_selection)
 
     if chart_selection and len(chart_selection["points"]) > 0:
-        if y_var.endswith("_mode"):
-            categories = [p["label"] for p in chart_selection["points"]]
-            df = df[df[y_var].isin(categories)]
+        if chart_type == "char_histogram":
+            if y_var.endswith("_mode"):
+                categories = [p["label"] for p in chart_selection["points"]]
+                df = df[df[y_var].isin(categories)]
+            elif not signal_dict["path2"]:
+                df = adjust_capacities(df, project, signal_dict, x_var,
+                                       chart_selection)
+
+        elif chart_type == "histogram":
+            points = chart_selection["points"]
+            bin_size = points[0]["customdata"][0]
+            sdfs = []
+            for point in points:
+                bottom_bin = point["x"]
+                top_bin = bottom_bin + bin_size
+                sdf = df[(df[y_var] >= bottom_bin) & (df[y_var] < top_bin)]
+                sdfs.append(sdf)
+            df = pd.concat(sdfs)
         else:
             df = point_filter(df, chart_selection)
 
@@ -243,10 +339,11 @@ def key_mode(dct):
 # pylint: disable=unsubscriptable-object
 # pylint: disable=unsupported-assignment-operation
 @cache.memoize()
-def cache_table(project, path, y_var, recalc_table=None, recalc="off"):
+def cache_table(project, path, y_var, x_var, recalc_table=None, recalc="off"):
     """Read in just a single table."""
     # Get config
     config = Config(project)
+    all_cols = pd.read_csv(path, nrows=0).columns
 
     # Get the table
     if recalc == "on":
@@ -254,8 +351,11 @@ def cache_table(project, path, y_var, recalc_table=None, recalc="off"):
             path, recalc_table
         )
     else:
-        cols = [y_var, "capacity", "sc_point_gid", "state", "county",
-                "nrel_region", "latitude", "longitude"]
+        cols = [y_var, x_var, "mean_cf", "capacity", "area_sq_km",
+                "sc_point_gid", "state", "county", "latitude", "longitude"]
+        if "nrel_region" in all_cols:
+            cols.append("nrel_region")
+
         data = pd.read_csv(path, usecols=cols, low_memory=False)
 
     # We want some consistent fields
@@ -265,12 +365,25 @@ def cache_table(project, path, y_var, recalc_table=None, recalc="off"):
         data["print_capacity"] = data["capacity"].copy()
 
     # If characterization, use modal category
+    if x_var in config.characterization_cols:
+        ncol = x_var + "_mode"
+        cdata = data[~data[x_var].isnull()]
+        odata = data[data[x_var].isnull()]
+        odata[ncol] = "nan"
+        cdata[ncol] = cdata[x_var].map(json.loads)
+        cdata[ncol] = cdata[ncol].apply(key_mode)
+        if "lookup" in config.characterization_cols[x_var]:
+            lookup = config.characterization_cols[x_var]["lookup"]
+            cdata[ncol] = cdata[ncol].map(lookup)
+        data = pd.concat([odata, cdata])
+
+    # If characterization, use modal category
     if y_var in config.characterization_cols:
         ncol = y_var + "_mode"
         cdata = data[~data[y_var].isnull()]
         odata = data[data[y_var].isnull()]
         odata[ncol] = "nan"
-        cdata[ncol] = cdata[y_var].map(json.loads)
+        cdata[ncol] = cdata[x_var].map(json.loads)
         cdata[ncol] = cdata[ncol].apply(key_mode)
         if "lookup" in config.characterization_cols[y_var]:
             lookup = config.characterization_cols[y_var]["lookup"]
@@ -295,13 +408,14 @@ def cache_map_data(signal_dict):
     regions = signal_dict["regions"]
     diff_units = signal_dict["diff_units"]
     y_var = signal_dict["y"]
+    x_var = signal_dict["x"]
 
     # Unpack recalc table
     recalc_a = recalc_tables["scenario_a"]
     recalc_b = recalc_tables["scenario_b"]
 
     # Read and cache first table
-    df1 = cache_table(project, path, y_var, recalc_a, recalc)
+    df1 = cache_table(project, path, y_var, x_var, recalc_a, recalc)
 
     # Apply filters
     df1 = apply_filters(df1, filters)
@@ -309,7 +423,7 @@ def cache_map_data(signal_dict):
     # If there's a second table, read/cache the difference
     if path2 and os.path.isfile(path2):
         # Match the format of the first dataframe
-        df2 = cache_table(project, path2, y_var, recalc_b, recalc)
+        df2 = cache_table(project, path2, y_var, x_var, recalc_b, recalc)
         df2 = apply_filters(df2, filters)
 
         # If the difference option is specified difference
