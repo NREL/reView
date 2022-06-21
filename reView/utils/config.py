@@ -58,7 +58,7 @@ class Config:
     @property
     def characterization_cols(self):
         """list: List of column names with characterization info."""
-        return self._config.get("characterizations_cols", [])
+        return self._config.get("characterization_cols", [])
 
     @property
     def directory(self):

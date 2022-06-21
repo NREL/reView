@@ -195,35 +195,62 @@ class Plots:
 
         return self._update_fig_layout(fig, y_var)
 
-    def char_hist(self, x_var):
+    def char_hist(self, y_var):
         """Make a histogram of the characterization column."""
         main_df = list(self.datasets.values())[0]
         counts = {}
-        for str_dict in main_df[x_var]:
+        for str_dict in main_df[y_var]:
             if not isinstance(str_dict, str):
                 continue
             counts_for_sc_point = json.loads(str_dict)
             for label, count in counts_for_sc_point.items():
                 counts[label] = counts.get(label, 0) + count
 
-        labels = sorted(counts, key=lambda k: -counts[k])  # add in labels
+        labels = sorted(counts, key=lambda k: -counts[k])
         counts = [counts[label] for label in labels]
+
+        lookup = None
+        if "lookup" in self.config.characterization_cols[y_var]:
+            lookup = self.config.characterization_cols[y_var]["lookup"]
+            labels = [lookup[label] for label in labels]
+
+        colormap = None
+        if "colormap" in self.config.characterization_cols[y_var]:
+            colormap = self.config.characterization_cols[y_var]["colormap"]
+            if lookup:
+                colormap = {lookup[k]: color for k, color in colormap.items()}
 
         data = pd.DataFrame({"Category": labels, "Counts": counts})
 
-        fig = px.bar(
-            data,
-            x="Category",
-            y="Counts",
-            labels={
-                "Category": self.config.titles.get(
-                    x_var, convert_to_title(x_var)
-                )
-            },
-            opacity=self.alpha,
-            color_discrete_sequence=px.colors.qualitative.Safe,
-            barmode="overlay",
-        )
+        if colormap:
+            fig = px.bar(
+                data,
+                x="Category",
+                y="Counts",
+                color="Category",
+                labels={
+                    "Category": self.config.titles.get(
+                        y_var, convert_to_title(y_var)
+                    )
+                },
+                opacity=self.alpha,
+                color_discrete_map=colormap,
+                barmode="overlay",
+            )
+        else:
+            fig = px.bar(
+                data,
+                x="Category",
+                y="Counts",
+                labels={
+                    "Category": self.config.titles.get(
+                        y_var, convert_to_title(y_var)
+                    )
+                },
+                opacity=self.alpha,
+                color_discrete_sequence=px.colors.qualitative.Safe,
+                barmode="overlay",
+            )
 
         return self._update_fig_layout(fig)
 
@@ -276,7 +303,7 @@ class Plots:
         elif chart_type == "histogram":
             fig = self.histogram(y_var, bins=bins)
         elif chart_type == "char_histogram":
-            fig = self.char_hist(x_var)
+            fig = self.char_hist(y_var)
         elif chart_type == "box":
             fig = self.box(y_var)
         return fig

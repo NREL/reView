@@ -635,9 +635,8 @@ def dropdown_variables(
     State("scenario_b_div", "style"),
     State("project", "value"),
 )
-def dropdown_x_variables(
-    scenario_a_options, scenario_b_options, chart_type, b_div, project
-):
+def dropdown_x_variables(scenario_a_options, scenario_b_options, chart_type,
+                         b_div, project):
     """Return dropdown options for x variable."""
     logger.debug("Setting X variable options")
     if chart_type == "char_histogram":
@@ -755,7 +754,7 @@ def figure_chart(
     # Don't fail when variable not available for characterization
     if (
         chart_type == "char_histogram"
-        and x_var not in config.characterization_cols
+        and y_var not in config.characterization_cols
     ):
         raise PreventUpdate  # @IgnoreException
 
@@ -891,8 +890,7 @@ def figure_map(
         chart_selection,
         map_selection,
         click_selection,
-        y_var,
-        x_var
+        y_var
     )
 
     if "clickData" in callback_trigger() and "turbine_y_coords" in df:
@@ -1475,7 +1473,7 @@ def tabs_chart(tab_choice, chart_choice):
 def toggle_bins(chart_type):
     """Show the bin size option under the chart."""
 
-    if chart_type in {"binned", "histogram"}:
+    if chart_type in {"binned", "histogram", "char_histogram"}:
         return {}
     return {"display": "none"}
 

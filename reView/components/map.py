@@ -226,6 +226,8 @@ class Map:
             df, color_var, project, color_min, color_max
         )
         self.demand_data = demand_data
+        if project:
+            self.config = Config(project)
 
         if project:
             self.units = Config(self.project).units.get(self.color_var, "")
@@ -268,14 +270,35 @@ class Map:
         elif self.units == "category":
             # Create data object
             self.df[self.color_var][self.df[self.color_var].isnull()] = "nan"
-            figure = px.scatter_mapbox(
-                data_frame=self.df,
-                color=self.color_var,
-                lon="longitude",
-                lat="latitude",
-                # custom_data=["sc_point_gid", "print_capacity"],
-                hover_name="text",
-            )
+
+            # Check for color mapping
+            var = self.color_var.replace("_mode", "")
+            if "colormap" in self.config.characterization_cols[var]:
+                charcols = self.config.characterization_cols[var]
+                colormap = charcols["colormap"]
+                if "lookup" in self.config.characterization_cols[var]:
+                    lookup = self.config.characterization_cols[var]["lookup"]
+                    colormap = {lookup[k]: c for k, c in colormap.items()}
+
+                figure = px.scatter_mapbox(
+                    data_frame=self.df,
+                    color=self.color_var,
+                    lon="longitude",
+                    lat="latitude",
+                    color_discrete_map=colormap,
+                    custom_data=["sc_point_gid", "print_capacity"],
+                    hover_name="text",
+                )
+            else:
+                figure = px.scatter_mapbox(
+                    data_frame=self.df,
+                    color=self.color_var,
+                    lon="longitude",
+                    lat="latitude",
+                    color_discrete_sequence=px.colors.qualitative.Safe,
+                    custom_data=["sc_point_gid", "print_capacity"],
+                    hover_name="text",
+                )                
             figure.update_traces(marker=self.marker(point_size, reverse_color))
         else:
             # Create data object

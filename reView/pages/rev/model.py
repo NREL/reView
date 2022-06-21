@@ -36,7 +36,7 @@ DIST_METRIC = DistanceMetric.get_metric("haversine")
 
 # pylint: disable=too-many-locals, too-many-branches, too-many-statements
 def apply_all_selections(df, map_function, project, chart_selection,
-                         map_selection, click_selection, y_var, x_var=None):
+                         map_selection, click_selection, y_var):
     """_summary_
 
     Parameters
@@ -60,7 +60,6 @@ def apply_all_selections(df, map_function, project, chart_selection,
         _description_
     """
     demand_data = None
-    config = Config(project)
 
     # If there is a selection in the chart, filter these points
     if map_function == "demand":
@@ -136,7 +135,7 @@ def apply_all_selections(df, map_function, project, chart_selection,
             df = point_filter(df, map_selection)
 
     if chart_selection and len(chart_selection["points"]) > 0:
-        if x_var in config.characterization_cols:
+        if y_var.endswith("_mode"):
             categories = [p["label"] for p in chart_selection["points"]]
             df = df[df[y_var].isin(categories)]
         else:
@@ -233,7 +232,11 @@ def calc_least_cost(paths, out_file, bycol="total_lcoe"):
 
 def key_mode(dct):
     """Return the key associated with the modal value in a dictionary."""
-    return Counter(dct).most_common()[0][0]
+    if dct:
+        value = Counter(dct).most_common()[0][0]
+    else:
+        value = "nan"
+    return value
 
 
 # pylint: disable=no-member
@@ -269,6 +272,9 @@ def cache_table(project, path, y_var, recalc_table=None, recalc="off"):
         odata[ncol] = "nan"
         cdata[ncol] = cdata[y_var].map(json.loads)
         cdata[ncol] = cdata[ncol].apply(key_mode)
+        if "lookup" in config.characterization_cols[y_var]:
+            lookup = config.characterization_cols[y_var]["lookup"]
+            cdata[ncol] = cdata[ncol].map(lookup)
         data = pd.concat([odata, cdata])
 
     return data
@@ -303,7 +309,7 @@ def cache_map_data(signal_dict):
     # If there's a second table, read/cache the difference
     if path2 and os.path.isfile(path2):
         # Match the format of the first dataframe
-        df2 = cache_table(project, path2, recalc_b, recalc)
+        df2 = cache_table(project, path2, y_var, recalc_b, recalc)
         df2 = apply_filters(df2, filters)
 
         # If the difference option is specified difference
