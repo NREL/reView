@@ -4,7 +4,7 @@ from dash import dcc, html
 
 
 def capacity_header(id_prefix, style=None, class_name=None,
-                    cap_title="Remaining Generation Capacity",
+                    cap_title="Remaining Capacity",
                     count_title="Number of Sites", small=False):
     """Standard capacity output header divs.
 
@@ -62,14 +62,14 @@ def capacity_header(id_prefix, style=None, class_name=None,
                 style={"margin-bottom": "-10px"}
             ),
 
-            # Print total capacity after all the filters are applied
+            # Print site count after all the filters are applied
             html.Div(
                 [
                     html.H5(count_title) if small else html.H2(count_title),
                     dcc.Loading(count, type="circle"),
                 ],
                 className=class_name,
-                style={"margin-top": "-10px"}
+                style={"margin-bottom": "-10px", "margin-left": "150px"}
             )
         ]
     )

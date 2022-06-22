@@ -11,6 +11,7 @@ from reView.layout.styles import (
     TABLET_STYLE,
     TABLET_STYLE_CLOSED,
 )
+from reView.utils.config import Config
 
 
 TOPTIONS = [
@@ -48,6 +49,23 @@ TOPTIONS = [
                 # className="six columns",
                 style={"margin-bottom": "10px"},
                 children=[
+                    # Project Selection
+                    html.Div(
+                        [
+                            html.H5("Project"),
+                            dcc.Dropdown(
+                                id="project",
+                                options=[
+                                    # pylint: disable=not-an-iterable
+                                    {"label": project, "value": project}
+                                    for project in Config.sorted_projects
+                                ],
+                            ),
+                        ],
+                        className="four columns",
+                        style={"margin-left": "50px"}
+                    ),
+
                     # First Scenario
                     html.Div(
                         [
@@ -71,7 +89,7 @@ TOPTIONS = [
                             ),
                             html.Hr(style={"height": "1.5px", "width": "95%"})
                         ],
-                        className="three columns",
+                        className="four columns",
                         style={"margin-left": "25px"},
                     ),
 
@@ -105,7 +123,7 @@ TOPTIONS = [
                                             "width": "95%"}
                                     )
                                 ],
-                                className="three columns",
+                                className="four columns",
                                 style={"margin-left": "5px"},
                             )
                         ],

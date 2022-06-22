@@ -176,11 +176,12 @@ def fig_to_df(fig):
 @calls.log
 def options_chart_type(project, y_var=None):
     """Add characterization plot option, if necessary."""
-    config = Config(project)
-    if config.characterization_cols and y_var in config.characterization_cols:
-        options = [CHART_OPTIONS[-1]]
-    else:
-        options = CHART_OPTIONS
+    options = CHART_OPTIONS
+    if project:
+        config = Config(project)
+        if config.characterization_cols:
+            if y_var in config.characterization_cols:
+                options = [CHART_OPTIONS[-1]]
     return options
 
 
@@ -287,29 +288,29 @@ def download_chart(chart_info):
     State("rev_map", "clickData"),
     State("map_function", "value"),
     State("variable", "value"),
+    State("rev_chart_x_var_options", "value"),
     State("rev_chart_options", "value"),
     prevent_initial_call=True
 )
 @calls.log
 def download_map(__, signal, project, map_selection, chart_selection,
-                 click_selection, map_function, y_var, chrat_type):
+                 click_selection, map_function, y_var, x_var, chart_type):
     """Download geopackage file from map."""
     # Retrieve the data frame
     signal_dict = json.loads(signal)
     df = cache_map_data(signal_dict)
     df, _ = apply_all_selections(
         df,
+        signal_dict,
         map_function,
         project,
         chart_selection,
         map_selection,
         click_selection,
         y_var,
+        x_var,
         chart_type
     )
-
-    # Reduce table size to speed up process
-    # df = df[["sc_point_gid", "latitude", "longitude", y_var]]
 
     # Create the table name
     name = os.path.splitext(os.path.basename(signal_dict["path"]))[0] + "_diff"
@@ -330,13 +331,13 @@ def download_map(__, signal, project, map_selection, chart_selection,
 @app.callback(
     Output("rev_chart_options", "options"),
     Output("rev_chart_options", "value"),
-    Input("project", "value"),
     Input("submit", "n_clicks"),
+    State("project", "value"),
     State("variable", "value"),
     State("rev_chart_options", "value")
 )
 @calls.log
-def dropdown_chart_types(project, _, y_var, current_option):
+def dropdown_chart_types(_, project, y_var, current_option):
     """Add characterization plot option, if necessary."""
     options = options_chart_type(project, y_var)
     if len(options) == 1:
@@ -597,6 +598,7 @@ def dropdown_scenarios(url, project, __):
     Input("scenario_b_options", "children"),
     Input("project", "value"),
     State("scenario_b_div", "style"),
+    State("variable", "value")
 )
 @calls.log
 def dropdown_variables(
@@ -606,21 +608,28 @@ def dropdown_variables(
         scenario_a_options,
         scenario_b_options,
         project,
-        b_div
+        b_div,
+        old_variable
 ):
     """Update variable dropdown options."""
-
+    # Scrape variable options from entire div
     variable_options = scrape_variable_options(
         project, scenario_a_options, scenario_b_options, b_div
     )
-
     if not variable_options:
         print("NO VARIABLE OPTIONS FOUND!")
         variable_options = [{"label": "None", "value": "None"}]
 
+    # If the old choice is available, use that
+    values = [o["value"] for o in variable_options]
+    if old_variable in values:
+        value = old_variable
+    else:
+        value = "capacity"
+
     return (
         variable_options,
-        "capacity",
+        value,
         variable_options,
         variable_options,
         variable_options,
@@ -631,13 +640,15 @@ def dropdown_variables(
 @app.callback(
     Output("rev_chart_x_var_options", "options"),
     Output("rev_chart_x_var_options", "value"),
-    Input("scenario_a_options", "children"),
-    Input("scenario_b_options", "children"),
+    Input("submit", "n_clicks"),
     Input("rev_chart_options", "value"),
+    Input("scenario_a_options", "children"),
+    State("scenario_b_options", "children"),
     State("scenario_b_div", "style"),
     State("project", "value"),
 )
-def dropdown_x_variables(scenario_a_options, scenario_b_options, chart_type,
+@calls.log
+def dropdown_x_variables(_, chart_type, scenario_a_options, scenario_b_options,
                          b_div, project):
     """Return dropdown options for x variable."""
     logger.debug("Setting X variable options")
@@ -776,6 +787,7 @@ def figure_chart(
         dfs = {
             k: apply_all_selections(
                 df,
+                signal_dict,
                 map_func,
                 project,
                 chart_selection,
@@ -1166,6 +1178,7 @@ def retrieve_chart_tables(y_var, x_var, state):
 @app.callback(
     Output("filter_store", "children"),
     Input("submit", "n_clicks"),
+    Input("project", "value"),
     State("filter_variables_1", "value"),
     State("filter_variables_2", "value"),
     State("filter_variables_3", "value"),
@@ -1176,7 +1189,7 @@ def retrieve_chart_tables(y_var, x_var, state):
     State("filter_4", "value"),
 )
 @calls.log
-def retrieve_filters(__, var1, var2, var3, var4, q1, q2, q3, q4):
+def retrieve_filters(__, ___, var1, var2, var3, var4, q1, q2, q3, q4):
     """Retrieve filter variable names and queries."""
 
     variables = [var1, var2, var3, var4]
