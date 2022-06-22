@@ -82,7 +82,7 @@ def adjust_capacities(df, project, signal_dict, x_var, chart_selection):
     if "lookup" in config.characterization_cols[x_var]:
         lookup = config.characterization_cols[x_var]["lookup"]
         ilookup = {v: k for k, v in lookup.items()}
-        cats = [ilookup[cat] for cat in cats]
+        cats = [ilookup[cat] for cat in cats if cat in ilookup]
 
     # It needs to have capacity density for this
     density = config.capacity_density
@@ -331,7 +331,6 @@ def key_mode(dct):
     if dct:
         value = Counter(dct).most_common()[0][0]
     else:
-        print(dct)
         value = "nan"
     return value
 

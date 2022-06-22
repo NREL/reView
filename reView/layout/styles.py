@@ -28,8 +28,8 @@ BUTTON_STYLES = {
         "margin-top": "-2px",
     },
     "navbar": {
-        "height": "55px",
-        "width": "190px",
+        "height": "45px",
+        "width": "140px",
         "border-radius": "4px",
         "border-color": "#1663b5",
         "font-family": "Times New Roman",
