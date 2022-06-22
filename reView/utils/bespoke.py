@@ -15,10 +15,11 @@ import json
 
 import numpy as np
 import pandas as pd
-
-from pyproj import Transformer
+import pyproj
 
 from reView.utils.classes import CountyCode
+
+pyproj.network.set_network_enabled(False)
 
 
 SPLIT_COLS = ["capacity", "annual_energy-means"]
@@ -52,7 +53,7 @@ class BespokeUnpacker:
     def get_xy(self, row):
         """Project row to an equal area crs."""
         lat, lon = row["latitude"], row["longitude"]
-        transformer = Transformer.from_crs(
+        transformer = pyproj.Transformer.from_crs(
             self.src_crs,
             self.trgt_crs,
             always_xy=True
@@ -68,15 +69,15 @@ class BespokeUnpacker:
     @property
     def spacing(self):
         """Infer the spacing between points."""
-        # Assuming a 128 agg factor for now  # <------------------------------- How to best infer this?
+        # Assuming a 128 agg factor for now
         spacing = 11_520
         return spacing
 
     def to_wgs(self, rdf):
         """Convert x, y coordinates in unpacked dataframe to WGS84."""
-        xs = rdf["x"].values
-        ys = rdf["y"].values
-        transformer = Transformer.from_crs(
+        lats = rdf["x"].values
+        lons = rdf["y"].values
+        transformer = pyproj.Transformer.from_crs(
             self.trgt_crs,
             self.src_crs,
             always_xy=True
@@ -102,7 +103,7 @@ class BespokeUnpacker:
         df = self.df.iloc[self.df.index != self.index]
         row = self.df.iloc[self.index]
 
-        # Get coordinates from equal area projection <------------------------- How to best do this? regionally?
+        # Get coordinates from equal area projection
         x, y = self.get_xy(row)
         del row["longitude"]
         del row["latitude"]
@@ -116,10 +117,6 @@ class BespokeUnpacker:
         ys = json.loads(row["turbine_y_coords"])
         xs = [x + blx for x in xs]
         ys = [y + bly for y in ys]
-
-        # Update row
-        # for col in SPLIT_COLS:
-        #     row[col] /= len(xs)
 
         # Build new data frame
         nrows = []
