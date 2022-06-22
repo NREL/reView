@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 
 from pandarallel import pandarallel as pdl
-from sklearn.neighbors import BallTree
+# from sklearn.neighbors import BallTree
 from sklearn.metrics import DistanceMetric
 from tqdm import tqdm
 
@@ -143,78 +143,73 @@ def apply_all_selections(df, signal_dict, map_function, project,
     """
     # demand_data = None
 
-    # # If there is a selection in the chart, filter these points
-    # if map_function == "demand":
-    #     demand_data = Config(project).demand_data
-    #     demand_data["load"] = demand_data["H2_MT"] * 1e3  # convert to kg
-    #     if click_selection and len(click_selection["points"]) > 0:
-    #         point = click_selection["points"][0]
-    #         if point["curveNumber"] == 1:
-    #             df, demand_data = filter_on_load_selection(
-    #                 df, point["pointIndex"], demand_data
-    #             )
-    #     elif map_selection and len(map_selection["points"]) > 0:
-    #         selected_demand_points = [
-    #             p for p in map_selection["points"] if p["curveNumber"] == 1
-    #         ]
-    #         if not selected_demand_points:
-    #             mean_lat = np.mean([p["lat"] for p in map_selection["points"]])
-    #             mean_lon = np.mean([p["lon"] for p in map_selection["points"]])
-    #             selection_coords = np.radians([[mean_lat, mean_lon]])
-    #             load_center_ind = closest_demand_to_coords(
-    #                 selection_coords, demand_data
-    #             )
-    #             df, demand_data = filter_on_load_selection(
-    #                 df, load_center_ind, demand_data
-    #             )
-    #         else:
-    #             df["demand_connect_count"] = 0
-    #             demand_idxs = []
-    #             for point in selected_demand_points:
-    #                 demand_idxs.append(point["pointIndex"])
-    #                 selected_df, __ = filter_on_load_selection(
-    #                     df, point["pointIndex"], demand_data
-    #                 )
-    #                 df.loc[
-    #                     df.sc_point_gid.isin(selected_df.sc_point_gid),
-    #                     "demand_connect_count",
-    #                 ] += 1
-    #             df = df[df["demand_connect_count"] > 0]
-    #             demand_data = demand_data.iloc[demand_idxs]
+    # If there is a selection in the chart, filter these points
+    if map_function == "demand":
+        demand_data = Config(project).demand_data
+        demand_data["load"] = demand_data["H2_MT"] * 1e3  # convert to kg
+        if click_selection and len(click_selection["points"]) > 0:
+            point = click_selection["points"][0]
+            if point["curveNumber"] == 1:
+                df, demand_data = filter_on_load_selection(
+                    df, point["pointIndex"], demand_data
+                )
+        elif map_selection and len(map_selection["points"]) > 0:
+            selected_demand_points = [
+                p for p in map_selection["points"] if p["curveNumber"] == 1
+            ]
+            if not selected_demand_points:
+                mean_lat = np.mean([p["lat"] for p in map_selection["points"]])
+                mean_lon = np.mean([p["lon"] for p in map_selection["points"]])
+                selection_coords = np.radians([[mean_lat, mean_lon]])
+                load_center_ind = closest_demand_to_coords(
+                    selection_coords, demand_data
+                )
+                df, demand_data = filter_on_load_selection(
+                    df, load_center_ind, demand_data
+                )
+            else:
+                df["demand_connect_count"] = 0
+                demand_idxs = []
+                for point in selected_demand_points:
+                    demand_idxs.append(point["pointIndex"])
+                    selected_df, __ = filter_on_load_selection(
+                        df, point["pointIndex"], demand_data
+                    )
+                    df.loc[
+                        df.sc_point_gid.isin(selected_df.sc_point_gid),
+                        "demand_connect_count",
+                    ] += 1
+                df = df[df["demand_connect_count"] > 0]
+                demand_data = demand_data.iloc[demand_idxs]
 
-    # elif map_function == "meet_demand":
-    #     demand_data = Config(project).demand_data
-    #     demand_data["load"] = demand_data["H2_MT"] * 1e3  # convert to kg
+# elif map_function == "meet_demand":
+#     demand_data = Config(project).demand_data
+#     demand_data["load"] = demand_data["H2_MT"] * 1e3  # convert to kg
 
-    #     # add h2 data
-    #     demand_coords = demand_data[["latitude", "longitude"]].values
-    #     sc_coords = df[["latitude", "longitude"]].values
-    #     demand_coords = np.radians(demand_coords)
-    #     sc_coords = np.radians(sc_coords)
-    #     tree = BallTree(demand_coords, metric="haversine")
-    #     __, ind = tree.query(sc_coords, return_distance=True, k=1)
-    #     df["h2_load_id"] = demand_data["OBJECTID"].values[ind]
-    #     filtered_points = []
-    #     for d_id in df["h2_load_id"].unique():
-    #         temp_df = df[df["h2_load_id"] == d_id].copy()
-    #         temp_df = temp_df.sort_values("total_lcoh_fcr")
-    #         temp_df["h2_supply"] = temp_df["hydrogen_annual_kg"].cumsum()
-    #         load = demand_data[demand_data["OBJECTID"] == d_id]["load"].iloc[0]
-    #         where_inds = np.where(temp_df["h2_supply"] <= load)[0]
-    #         if where_inds.size > 0:
-    #             final_ind = where_inds.max() + 1
-    #             filtered_points.append(temp_df.iloc[0:final_ind])
-    #         else:
-    #             filtered_points.append(temp_df)
-    #     df = pd.concat(filtered_points)
-    #     demand_data = demand_data[
-    #         demand_data["OBJECTID"].isin(df["h2_load_id"].unique())
-    #     ]
-
-    # else:
-    # If there is a selection in the map, filter these points
-    if map_selection and len(map_selection["points"]) > 0:
-        df = point_filter(df, map_selection)
+#     # add h2 data
+#     demand_coords = demand_data[["latitude", "longitude"]].values
+#     sc_coords = df[["latitude", "longitude"]].values
+#     demand_coords = np.radians(demand_coords)
+#     sc_coords = np.radians(sc_coords)
+#     tree = BallTree(demand_coords, metric="haversine")
+#     __, ind = tree.query(sc_coords, return_distance=True, k=1)
+#     df["h2_load_id"] = demand_data["OBJECTID"].values[ind]
+#     filtered_points = []
+#     for d_id in df["h2_load_id"].unique():
+#         temp_df = df[df["h2_load_id"] == d_id].copy()
+#         temp_df = temp_df.sort_values("total_lcoh_fcr")
+#         temp_df["h2_supply"] = temp_df["hydrogen_annual_kg"].cumsum()
+#         load = demand_data[demand_data["OBJECTID"] == d_id]["load"].iloc[0]
+#         where_inds = np.where(temp_df["h2_supply"] <= load)[0]
+#         if where_inds.size > 0:
+#             final_ind = where_inds.max() + 1
+#             filtered_points.append(temp_df.iloc[0:final_ind])
+#         else:
+#             filtered_points.append(temp_df)
+#     df = pd.concat(filtered_points)
+#     demand_data = demand_data[
+#         demand_data["OBJECTID"].isin(df["h2_load_id"].unique())
+#     ]
 
     if chart_selection and len(chart_selection["points"]) > 0:
         if chart_type == "char_histogram":

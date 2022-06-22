@@ -15,6 +15,7 @@ from reView.utils.classes import DiffUnitOptions
 from reView.utils.config import Config
 from reView.utils.constants import COLORS, DEFAULT_LAYOUT
 from reView.utils.functions import convert_to_title
+from reView.pages.rev.model import point_filter
 
 
 MAP_LAYOUT = copy.deepcopy(DEFAULT_LAYOUT)
@@ -160,8 +161,14 @@ class Title:
 
     def _apply_aggregation(self, units, agg_type):
         """Return the result of aggregation of the variable."""
+        # Apply map filter
+        if self.map_selection and len(self.map_selection["points"]) > 0:
+            df = point_filter(self.df, self.map_selection)
+        else:
+            df = self.df
+
         # Drop nan values in variable
-        df = self.df.dropna(subset=self.color_var)
+        df = df.dropna(subset=self.color_var)
         df = df[df[self.color_var] != -np.inf]
 
         # If mean, use weights
