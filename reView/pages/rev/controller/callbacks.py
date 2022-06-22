@@ -48,6 +48,7 @@ from reView.pages.rev.controller.selection import (
 )
 from reView.pages.rev.model import (
     apply_all_selections,
+    apply_filters,
     calc_least_cost,
     cache_map_data,
     cache_table,
@@ -765,6 +766,8 @@ def figure_chart(
 
     # Get the data frames
     dfs = cache_chart_tables(signal_dict, region)
+
+    # Return empty alert
     if all(df.empty for df in dfs.values()):
         figure = go.Figure()
         figure.update_layout(
@@ -786,19 +789,17 @@ def figure_chart(
     if map_selection:
         dfs = {
             k: apply_all_selections(
-                df,
-                signal_dict,
-                map_func,
-                project,
-                chart_selection,
-                map_selection,
-                click_selection=None,
+                df=df,
+                signal_dict=signal_dict,
+                project=project,
+                chart_selection=None,
+                map_selection=map_selection,
                 y_var=y_var,
                 x_var=x_var,
                 chart_type=chart_type
-            )[0]
-            for k, df in dfs.items()
+            ) for k, df in dfs.items()
         }
+
 
     # Build Title
     title_builder = Title(dfs, signal_dict, y_var, project,
@@ -893,18 +894,20 @@ def figure_map(
         y_var += "_mode"
 
     # Apply user selections
-    df, demand_data = apply_all_selections(
-        df,
-        signal_dict,
-        map_function,
-        project,
-        chart_selection,
-        map_selection,
-        click_selection,
-        y_var,
-        x_var,
-        chart_type
+    df = apply_all_selections(
+        df=df,
+        signal_dict=signal_dict,
+        project=project,
+        chart_selection=chart_selection,
+        map_selection=None,
+        y_var=y_var,
+        x_var=x_var,
+        chart_type=chart_type
     )
+
+    # Apply filters again for characterizations
+    filters = signal_dict["filters"]
+    df = apply_filters(df, filters)
 
     if "clickData" in callback_trigger() and "turbine_y_coords" in df:
         unpacker = BespokeUnpacker(df, click_selection)
@@ -930,13 +933,13 @@ def figure_map(
         colorscale=color,
         color_min=color_ymin,
         color_max=color_ymax,
-        demand_data=demand_data,
+        demand_data=None
     )
     figure = map_builder.figure(
         point_size=point_size,
         reverse_color=reverse_color_clicks % 2 == 1,
     )
-    mapcap = df[["sc_point_gid", "print_capacity"]].to_dict()
+    mapcap = df[["sc_point_gid", "capacity"]].to_dict()
 
     # Package returns
     mapcap = json.dumps(mapcap)

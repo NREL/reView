@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 
 from pandarallel import pandarallel as pdl
-# from sklearn.neighbors import BallTree
+from sklearn.neighbors import BallTree
 from sklearn.metrics import DistanceMetric
 from tqdm import tqdm
 
@@ -50,6 +50,7 @@ def adjust_capacities(df, project, signal_dict, x_var, chart_selection):
                 removed_km2 = (res * res * removed_cells) / 1_000_000
                 removed_cap = removed_km2 * density
                 row["capacity"] -= removed_cap
+                row["area_sq_km"] -= removed_km2
         return row
 
     def adjust_lcoe(df, sam, eos):
@@ -69,6 +70,7 @@ def adjust_capacities(df, project, signal_dict, x_var, chart_selection):
         # Calculate generation
         gen = df["mean_cf"] * df["capacity"] * 8_760
         df["mean_lcoe"] = ((capex * fcr) + opex) / gen
+        df["total_lcoe"] = df["mean_lcoe"] + df["lcot"]
 
         return df
 
@@ -115,35 +117,9 @@ def adjust_capacities(df, project, signal_dict, x_var, chart_selection):
     return df
 
 
-# pylint: disable=too-many-locals, too-many-branches, too-many-statements
-def apply_all_selections(df, signal_dict, map_function, project,
-                         chart_selection, map_selection, click_selection,
-                         y_var, x_var, chart_type):
-    """_summary_
-
-    Parameters
-    ----------
-    df : _type_
-        _description_
-    map_func : _type_
-        _description_
-    project : _type_
-        _description_
-    chartsel : _type_
-        _description_
-    mapsel : _type_
-        _description_
-    clicksel : _type_
-        _description_
-
-    Returns
-    -------
-    _type_
-        _description_
-    """
-    # demand_data = None
-
-    # If there is a selection in the chart, filter these points
+def meet_demand(df, map_function, project, click_selection, map_selection):
+    """Demand meeting function."""
+    demand_data = None
     if map_function == "demand":
         demand_data = Config(project).demand_data
         demand_data["load"] = demand_data["H2_MT"] * 1e3  # convert to kg
@@ -182,34 +158,65 @@ def apply_all_selections(df, signal_dict, map_function, project,
                 df = df[df["demand_connect_count"] > 0]
                 demand_data = demand_data.iloc[demand_idxs]
 
-# elif map_function == "meet_demand":
-#     demand_data = Config(project).demand_data
-#     demand_data["load"] = demand_data["H2_MT"] * 1e3  # convert to kg
+    elif map_function == "meet_demand":
+        demand_data = Config(project).demand_data
+        demand_data["load"] = demand_data["H2_MT"] * 1e3  # convert to kg
 
-#     # add h2 data
-#     demand_coords = demand_data[["latitude", "longitude"]].values
-#     sc_coords = df[["latitude", "longitude"]].values
-#     demand_coords = np.radians(demand_coords)
-#     sc_coords = np.radians(sc_coords)
-#     tree = BallTree(demand_coords, metric="haversine")
-#     __, ind = tree.query(sc_coords, return_distance=True, k=1)
-#     df["h2_load_id"] = demand_data["OBJECTID"].values[ind]
-#     filtered_points = []
-#     for d_id in df["h2_load_id"].unique():
-#         temp_df = df[df["h2_load_id"] == d_id].copy()
-#         temp_df = temp_df.sort_values("total_lcoh_fcr")
-#         temp_df["h2_supply"] = temp_df["hydrogen_annual_kg"].cumsum()
-#         load = demand_data[demand_data["OBJECTID"] == d_id]["load"].iloc[0]
-#         where_inds = np.where(temp_df["h2_supply"] <= load)[0]
-#         if where_inds.size > 0:
-#             final_ind = where_inds.max() + 1
-#             filtered_points.append(temp_df.iloc[0:final_ind])
-#         else:
-#             filtered_points.append(temp_df)
-#     df = pd.concat(filtered_points)
-#     demand_data = demand_data[
-#         demand_data["OBJECTID"].isin(df["h2_load_id"].unique())
-#     ]
+        # add h2 data
+        demand_coords = demand_data[["latitude", "longitude"]].values
+        sc_coords = df[["latitude", "longitude"]].values
+        demand_coords = np.radians(demand_coords)
+        sc_coords = np.radians(sc_coords)
+        tree = BallTree(demand_coords, metric="haversine")
+        __, ind = tree.query(sc_coords, return_distance=True, k=1)
+        df["h2_load_id"] = demand_data["OBJECTID"].values[ind]
+        filtered_points = []
+        for d_id in df["h2_load_id"].unique():
+            temp_df = df[df["h2_load_id"] == d_id].copy()
+            temp_df = temp_df.sort_values("total_lcoh_fcr")
+            temp_df["h2_supply"] = temp_df["hydrogen_annual_kg"].cumsum()
+            load = demand_data[demand_data["OBJECTID"] == d_id]["load"].iloc[0]
+            where_inds = np.where(temp_df["h2_supply"] <= load)[0]
+            if where_inds.size > 0:
+                final_ind = where_inds.max() + 1
+                filtered_points.append(temp_df.iloc[0:final_ind])
+            else:
+                filtered_points.append(temp_df)
+        df = pd.concat(filtered_points)
+        demand_data = demand_data[
+            demand_data["OBJECTID"].isin(df["h2_load_id"].unique())
+        ]
+
+    return df
+
+
+# pylint: disable=too-many-locals, too-many-branches, too-many-statements
+def apply_all_selections(df, signal_dict, project, chart_selection,
+                         map_selection, y_var, x_var, chart_type):
+    """_summary_
+
+    Parameters
+    ----------
+    df : _type_
+        _description_
+    map_func : _type_
+        _description_
+    project : _type_
+        _description_
+    chartsel : _type_
+        _description_
+    mapsel : _type_
+        _description_
+    clicksel : _type_
+        _description_
+
+    Returns
+    -------
+    _type_
+        _description_
+    """
+    if map_selection:
+        df = point_filter(df, map_selection)
 
     if chart_selection and len(chart_selection["points"]) > 0:
         if chart_type == "char_histogram":
@@ -232,7 +239,7 @@ def apply_all_selections(df, signal_dict, map_function, project,
         else:
             df = point_filter(df, chart_selection)
 
-    return df, None
+    return df
 
 
 def apply_filters(df, filters):
@@ -353,6 +360,10 @@ def cache_table(project, path, y_var, x_var, recalc_table=None, recalc="off"):
         if "turbine_y_coords" in all_cols:
             cols.append("turbine_y_coords")
             cols.append("turbine_x_coords")
+        if "lcot" in all_cols:
+            cols.append("lcot")
+        if "total_lcoe" in all_cols:
+            cols.append("total_lcoe")
 
         data = pd.read_csv(path, usecols=cols, low_memory=False)
 

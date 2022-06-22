@@ -207,7 +207,7 @@ class Plots:
                 counts[label] = counts.get(label, 0) + count
 
         labels = sorted(counts, key=lambda k: -counts[k])
-        counts = [counts[label] for label in labels]
+        areas = [(counts[label] * 90 * 90) / 1_000_000 for label in labels]
         labels = [str(int(float(label))) for label in labels]
 
         lookup = None
@@ -227,13 +227,13 @@ class Plots:
             if lookup:
                 colormap = {lookup[k]: color for k, color in colormap.items()}
 
-        data = pd.DataFrame({"Category": labels, "Counts": counts})
+        data = pd.DataFrame({"Category": labels, "Area sq km": areas})
 
         if colormap:
             fig = px.bar(
                 data,
                 x="Category",
-                y="Counts",
+                y="Area sq km",
                 color="Category",
                 labels={
                     "Category": self.config.titles.get(
@@ -248,7 +248,7 @@ class Plots:
             fig = px.bar(
                 data,
                 x="Category",
-                y="Counts",
+                y="Area sq km",
                 labels={
                     "Category": self.config.titles.get(
                         x_var, convert_to_title(x_var)

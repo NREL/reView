@@ -30,7 +30,7 @@ def tab_styles(tab_choice, options):
 
 
 def format_capacity_title(
-    map_capacity, map_selection=None, capacity_col_name="print_capacity"
+    map_capacity, map_selection=None, capacity_col_name="capacity"
 ):
     """Calculate total remaining capacity after all filters are applied.
 
@@ -69,6 +69,6 @@ def format_capacity_title(
         df = df[df["sc_point_gid"].isin(gids)]
 
     total_capacity = Q_(df[capacity_col_name].sum(), "MW")
-    total_capacity = f"{total_capacity.to_compact():~H.4f}"
+    total_capacity = f"{total_capacity.to_compact():~H.2f}"
     num_sites = f"{df.shape[0]:,}"
     return total_capacity, num_sites

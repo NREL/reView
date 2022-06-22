@@ -146,7 +146,7 @@ TOPTIONS = [
                         value="capacity",
                     ),
                 ],
-                className="two columns",
+                className="three columns",
             ),
 
             # Show difference map
