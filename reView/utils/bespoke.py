@@ -46,7 +46,7 @@ class BespokeUnpacker:
     def __repr__(self):
         """Return representation string for Layout object."""
         attrs = ["index", "lat", "lon", "text"]
-        attrs = ", ".join([f"{a}={self.__getattribute__(a)}" for a in attrs])
+        attrs = ", ".join([f"{a}={attr}" for a, attr in self.__dict__.items()])
         return f"<BespokeUnpacker object: {attrs}>"
 
     def get_xy(self, row):
@@ -98,7 +98,6 @@ class BespokeUnpacker:
             A reV supply curve data frame containing all original farm points
             except one that is replaced with individual turbine entries.
         """
-
         # Separate target row
         df = self.df.iloc[self.df.index != self.index]
         row = self.df.iloc[self.index]
@@ -129,6 +128,7 @@ class BespokeUnpacker:
             nrow["x"] = x
             nrow["y"] = ys[i]
             nrows.append(nrow)
+
         rdf = pd.DataFrame(nrows)
         nindex = np.arange(
             self.df.index[-1],

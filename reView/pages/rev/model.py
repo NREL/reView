@@ -356,6 +356,9 @@ def cache_table(project, path, y_var, x_var, recalc_table=None, recalc="off"):
                 "sc_point_gid", "state", "county", "latitude", "longitude"]
         if "nrel_region" in all_cols:
             cols.append("nrel_region")
+        if "turbine_y_coords" in all_cols:
+            cols.append("turbine_y_coords")
+            cols.append("turbine_x_coords")
 
         data = pd.read_csv(path, usecols=cols, low_memory=False)
 
