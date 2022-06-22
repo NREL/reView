@@ -331,6 +331,7 @@ def key_mode(dct):
     if dct:
         value = Counter(dct).most_common()[0][0]
     else:
+        print(dct)
         value = "nan"
     return value
 
@@ -367,8 +368,8 @@ def cache_table(project, path, y_var, x_var, recalc_table=None, recalc="off"):
     # If characterization, use modal category
     if x_var in config.characterization_cols:
         ncol = x_var + "_mode"
-        cdata = data[~data[x_var].isnull()]
-        odata = data[data[x_var].isnull()]
+        cdata = data[(~data[y_var].isnull()) & (data[y_var] != "{}")]
+        odata = data[(data[y_var].isnull()) | (data[y_var] == "{}")]
         odata[ncol] = "nan"
         cdata[ncol] = cdata[x_var].map(json.loads)
         cdata[ncol] = cdata[ncol].apply(key_mode)
@@ -380,8 +381,8 @@ def cache_table(project, path, y_var, x_var, recalc_table=None, recalc="off"):
     # If characterization, use modal category
     if y_var in config.characterization_cols:
         ncol = y_var + "_mode"
-        cdata = data[~data[y_var].isnull()]
-        odata = data[data[y_var].isnull()]
+        cdata = data[(~data[y_var].isnull()) & (data[y_var] != "{}")]
+        odata = data[(data[y_var].isnull()) | (data[y_var] == "{}")]
         odata[ncol] = "nan"
         cdata[ncol] = cdata[x_var].map(json.loads)
         cdata[ncol] = cdata[ncol].apply(key_mode)
