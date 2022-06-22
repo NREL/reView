@@ -24,7 +24,7 @@ pyproj.network.set_network_enabled(False)
 
 SPLIT_COLS = ["capacity", "annual_energy-means"]
 
-
+#pylint: disable=invalid-name,unpacking-non-sequence
 class BespokeUnpacker:
     """Methods for manipulating Bespoke reV outputs."""
 
@@ -75,8 +75,8 @@ class BespokeUnpacker:
 
     def to_wgs(self, rdf):
         """Convert x, y coordinates in unpacked dataframe to WGS84."""
-        lats = rdf["x"].values
-        lons = rdf["y"].values
+        xs = rdf["x"].values
+        ys = rdf["y"].values
         transformer = pyproj.Transformer.from_crs(
             self.trgt_crs,
             self.src_crs,
