@@ -796,7 +796,6 @@ def figure_chart(
             ) for k, df in dfs.items()
         }
 
-
     # Build Title
     title_builder = Title(dfs, signal_dict, y_var, project,
                           chart_selection=chart_selection)

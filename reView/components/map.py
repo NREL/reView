@@ -339,11 +339,8 @@ class Map:
         layout = self.layout
         figure.update_layout(**layout)
         figure.update_traces(
-            # selectedpoints=dict(
             unselected=dict(marker=dict(opacity=1)),
-            selected=dict(marker=dict(opacity=1)),
-            # ),
-            # selector=dict(type="scattermapbox")            
+            selected=dict(marker=dict(opacity=1)), 
         )
 
         return figure
