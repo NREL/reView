@@ -155,7 +155,7 @@ class Title:
             extra = self._add_total_info("MW", extra)
 
         title = self.delimiter.join([title, extra])
-        title = self._add_map_selection_to_title(title)
+        # title = self._add_map_selection_to_title(title)
 
         return title
 
@@ -291,7 +291,7 @@ class Map:
                     lon="longitude",
                     lat="latitude",
                     color_discrete_map=colormap,
-                    custom_data=["sc_point_gid", "print_capacity"],
+                    custom_data=["sc_point_gid", "capacity"],
                     hover_name="text",
                 )
             else:
@@ -301,7 +301,7 @@ class Map:
                     lon="longitude",
                     lat="latitude",
                     color_discrete_sequence=px.colors.qualitative.Safe,
-                    custom_data=["sc_point_gid", "print_capacity"],
+                    custom_data=["sc_point_gid", "capacity"],
                     hover_name="text",
                 )
             figure.update_traces(marker=self.marker(point_size, reverse_color))
@@ -311,7 +311,7 @@ class Map:
                 data_frame=self.df,
                 lon="longitude",
                 lat="latitude",
-                custom_data=["sc_point_gid", "print_capacity"],
+                custom_data=["sc_point_gid", "capacity"],
                 hover_name="text",
             )
             figure.update_traces(marker=self.marker(point_size, reverse_color))
@@ -338,6 +338,13 @@ class Map:
         # Update the layout
         layout = self.layout
         figure.update_layout(**layout)
+        figure.update_traces(
+            # selectedpoints=dict(
+            unselected=dict(marker=dict(opacity=1)),
+            selected=dict(marker=dict(opacity=1)),
+            # ),
+            # selector=dict(type="scattermapbox")            
+        )
 
         return figure
 
@@ -424,7 +431,6 @@ class Map:
         """Return marker dictionary."""
         if self.units == "category":
             marker = dict(
-                opacity=1.0,
                 reversescale=reverse_color,
                 size=point_size,
             )
@@ -434,7 +440,6 @@ class Map:
                 colorscale=COLORS[self.colorscale],
                 cmin=None if self.cmin is None else float(self.cmin),
                 cmax=None if self.cmax is None else float(self.cmax),
-                opacity=1.0,
                 reversescale=reverse_color,
                 size=point_size,
                 colorbar=dict(

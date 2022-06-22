@@ -286,31 +286,27 @@ def download_chart(chart_info):
     State("project", "value"),
     State("rev_map", "selectedData"),
     State("rev_chart", "selectedData"),
-    State("rev_map", "clickData"),
-    State("map_function", "value"),
     State("variable", "value"),
     State("rev_chart_x_var_options", "value"),
     State("rev_chart_options", "value"),
     prevent_initial_call=True
 )
 @calls.log
-def download_map(__, signal, project, map_selection, chart_selection,
-                 click_selection, map_function, y_var, x_var, chart_type):
+def download_map(__, signal, project, map_selection, chart_selection, y_var,
+                 x_var, chart_type):
     """Download geopackage file from map."""
     # Retrieve the data frame
     signal_dict = json.loads(signal)
     df = cache_map_data(signal_dict)
     df, _ = apply_all_selections(
-        df,
-        signal_dict,
-        map_function,
-        project,
-        chart_selection,
-        map_selection,
-        click_selection,
-        y_var,
-        x_var,
-        chart_type
+        df=df,
+        signal_dict=signal_dict,
+        project=project,
+        chart_selection=chart_selection,
+        map_selection=map_selection,
+        y_var=y_var,
+        x_var=x_var,
+        chart_type=chart_type
     )
 
     # Create the table name
@@ -899,7 +895,7 @@ def figure_map(
         signal_dict=signal_dict,
         project=project,
         chart_selection=chart_selection,
-        map_selection=None,
+        map_selection=map_selection,
         y_var=y_var,
         x_var=x_var,
         chart_type=chart_type

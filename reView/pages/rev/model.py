@@ -117,6 +117,441 @@ def adjust_capacities(df, project, signal_dict, x_var, chart_selection):
     return df
 
 
+# pylint: disable=too-many-locals, too-many-branches, too-many-statements
+def apply_all_selections(df, signal_dict, project, chart_selection,
+                         map_selection, y_var, x_var, chart_type):
+    """_summary_
+
+    Parameters
+    ----------
+    df : _type_
+        _description_
+    map_func : _type_
+        _description_
+    project : _type_
+        _description_
+    chartsel : _type_
+        _description_
+    mapsel : _type_
+        _description_
+    clicksel : _type_
+        _description_
+
+    Returns
+    -------
+    _type_
+        _description_
+    """
+    if chart_type == "char_histogram":
+        if chart_selection and len(chart_selection["points"]) > 0:
+            if y_var.endswith("_mode"):
+                categories = [p["label"] for p in chart_selection["points"]]
+                df = df[df[y_var].isin(categories)]
+            elif not signal_dict["path2"]:
+                df = adjust_capacities(df, project, signal_dict, x_var,
+                                       chart_selection)
+        elif chart_type == "histogram":
+            points = chart_selection["points"]
+            bin_size = points[0]["customdata"][0]
+            sdfs = []
+            for point in points:
+                bottom_bin = point["x"]
+                top_bin = bottom_bin + bin_size
+                sdf = df[(df[y_var] >= bottom_bin) & (df[y_var] < top_bin)]
+                sdfs.append(sdf)
+            df = pd.concat(sdfs)
+            df = point_filter(df, map_selection, chart_selection=None)
+    else:
+        df = point_filter(df, map_selection, chart_selection=chart_selection)
+
+    return df
+
+
+def apply_filters(df, filters):
+    """Apply filters from string entries to dataframe."""
+
+    ops = {
+        ">=": operator.ge,
+        ">": operator.gt,
+        "<=": operator.le,
+        "<": operator.lt,
+        "==": operator.eq,
+    }
+
+    for filter_ in filters:
+        if filter_:
+            var, operator_, value = filter_.split()
+            if var in df.columns:
+                operator_ = ops[operator_]
+                value = float(value)
+                df = df[operator_(df[var], value)]
+
+    return df
+
+
+def build_name(path):
+    """Infer scenario name from path."""
+    file = os.path.basename(path)
+    name = strip_rev_filename_endings(file)
+    name = " ".join([n.capitalize() for n in name.split("_")])
+    return name
+
+
+def calc_least_cost(paths, out_file, bycol="total_lcoe"):
+    """Build the single least cost table from a list of tables."""
+    # Not including an overwrite option for now
+    if not os.path.exists(out_file):
+
+        # Collect all data frames - biggest lift of all
+        paths.sort()
+        dfs = []
+        with mp.Pool(10) as pool:
+            for data in tqdm(
+                pool.imap(read_df_and_store_scenario_name, paths),
+                total=len(paths),
+            ):
+                dfs.append(data)
+
+        # Make one big data frame and save
+        data = least_cost(dfs, bycol=bycol)
+        data.to_csv(out_file, index=False)
+
+
+# pylint: disable=no-member
+# pylint: disable=unsubscriptable-object
+# pylint: disable=unsupported-assignment-operation
+@cache.memoize()
+def cache_table(project, path, y_var, x_var, recalc_table=None, recalc="off"):
+    """Read in just a single table."""
+    # Get config
+    config = Config(project)
+    all_cols = pd.read_csv(path, nrows=0).columns
+
+    # Get the table
+    if recalc == "on":
+        data = ReCalculatedData(config=Config(project)).build(
+            path, recalc_table
+        )
+    else:
+        cols = [y_var, x_var, "mean_cf", "capacity", "area_sq_km",
+                "sc_point_gid", "state", "county", "latitude", "longitude"]
+        if "nrel_region" in all_cols:
+            cols.append("nrel_region")
+        if "turbine_y_coords" in all_cols:
+            cols.append("turbine_y_coords")
+            cols.append("turbine_x_coords")
+        if "lcot" in all_cols:
+            cols.append("lcot")
+        if "total_lcoe" in all_cols:
+            cols.append("total_lcoe")
+
+        data = pd.read_csv(path, usecols=cols, low_memory=False)
+
+    # We want some consistent fields
+    if "capacity" not in data.columns and "hybrid_capacity" in data.columns:
+        data["capacity"] = data["hybrid_capacity"].copy()
+
+    # If characterization, use modal category
+    if x_var in config.characterization_cols:
+        ncol = x_var + "_mode"
+        cdata = data[(~data[y_var].isnull()) & (data[y_var] != "{}")]
+        odata = data[(data[y_var].isnull()) | (data[y_var] == "{}")]
+        odata[ncol] = "nan"
+        cdata[ncol] = cdata[x_var].map(json.loads)
+        cdata[ncol] = cdata[ncol].apply(key_mode)
+        if "lookup" in config.characterization_cols[x_var]:
+            lookup = config.characterization_cols[x_var]["lookup"]
+            cdata[ncol] = cdata[ncol].map(lookup)
+        data = pd.concat([odata, cdata])
+
+    # If characterization, use modal category
+    if y_var in config.characterization_cols:
+        ncol = y_var + "_mode"
+        cdata = data[(~data[y_var].isnull()) & (data[y_var] != "{}")]
+        odata = data[(data[y_var].isnull()) | (data[y_var] == "{}")]
+        odata[ncol] = "nan"
+        cdata[ncol] = cdata[x_var].map(json.loads)
+        cdata[ncol] = cdata[ncol].apply(key_mode)
+        if "lookup" in config.characterization_cols[y_var]:
+            lookup = config.characterization_cols[y_var]["lookup"]
+            cdata[ncol] = cdata[ncol].astype(float).astype(int).astype(str)
+            cdata[ncol] = cdata[ncol].map(lookup)
+        data = pd.concat([odata, cdata])
+
+    return data
+
+
+@cache3.memoize()
+def cache_chart_tables(
+    signal_dict,
+    region="national",
+    # idx=None
+):
+    """Read and store a data frame from the config and options given."""
+    signal_copy = signal_dict.copy()
+
+    # Unpack subsetting information
+    states = signal_copy["states"]
+
+    # If multiple tables selected, make a list of those files
+    if signal_copy["added_scenarios"]:
+        files = [signal_copy["path"]] + signal_copy["added_scenarios"]
+    else:
+        files = [signal_copy["path"]]
+
+    # Remove additional scenarios from signal_dict for the cache's sake
+    del signal_copy["added_scenarios"]
+
+    # Make a signal copy for each file
+    signal_dicts = []
+    for file in files:
+        signal = signal_copy.copy()
+        signal["path"] = file
+        signal_dicts.append(signal)
+
+    # Get the requested data frames
+    dfs = {}
+    for signal in signal_dicts:
+        name = build_name(signal["path"])
+        df = cache_map_data(signal)
+        # first_cols = [x, y, "state", "sc_point_gid"]
+        # rest_of_cols = set(df.columns) - set(first_cols)
+        # all_cols = first_cols + sorted(rest_of_cols)
+        # df = df[all_cols]
+        # TODO: Where to add "nrel_region" col?
+
+        # Subset by index selection
+        # if idx:
+        #     df = df.iloc[idx]
+
+        # Subset by state selection
+        if states:
+            if any(df["state"].isin(states)):
+                df = df[df["state"].isin(states)]
+
+            if "offshore" in states:
+                df = df[df["offshore"] == 1]
+            if "onshore" in states:
+                df = df[df["offshore"] == 0]
+
+        # Divide into regions if one table (cancel otherwise for now)
+        if region != "national" and len(signal_dicts) == 1:
+            regions = df[region].unique()
+            dfs = {r: df[df[region] == r] for r in regions}
+        else:
+            dfs[name] = df
+
+    return dfs
+
+
+@cache2.memoize()
+def cache_map_data(signal_dict):
+    """Read and store a data frame from the config and options given."""
+    # Get signal elements
+    filters = signal_dict["filters"]
+    mask = signal_dict["mask"]
+    path = signal_dict["path"]
+    path2 = signal_dict["path2"]
+    project = signal_dict["project"]
+    recalc_tables = signal_dict["recalc_table"]
+    recalc = signal_dict["recalc"]
+    states = signal_dict["states"]
+    regions = signal_dict["regions"]
+    diff_units = signal_dict["diff_units"]
+    y_var = signal_dict["y"]
+    x_var = signal_dict["x"]
+
+    # Unpack recalc table
+    recalc_a = recalc_tables["scenario_a"]
+    recalc_b = recalc_tables["scenario_b"]
+
+    # Read and cache first table
+    df1 = cache_table(project, path, y_var, x_var, recalc_a, recalc)
+
+    # Apply filters
+    df1 = apply_filters(df1, filters)
+
+    # If there's a second table, read/cache the difference
+    if path2 and os.path.isfile(path2):
+        # Match the format of the first dataframe
+        df2 = cache_table(project, path2, y_var, x_var, recalc_b, recalc)
+        df2 = apply_filters(df2, filters)
+
+        # If the difference option is specified difference
+        calculator = Difference(
+            index_col="sc_point_gid",
+            diff_units=diff_units
+        )
+        df = calculator.calc(df1, df2, y_var)
+
+        # If mask, try that here
+        if mask == "on":
+            df = calc_mask(df1, df)
+    else:
+        df = df1
+
+    # Filter for states
+    if states:
+        if any(df["state"].isin(states)):
+            df = df[df["state"].isin(states)]
+
+        if "offshore" in states:
+            df = df[df["offshore"] == 1]
+        if "onshore" in states:
+            df = df[df["offshore"] == 0]
+
+    # Filter for regions
+    if regions:
+        if any(df["nrel_region"].isin(regions)):
+            df = df[df["nrel_region"].isin(regions)]
+
+    return df
+
+
+def calc_mask(df1, df2, unique_id_col="sc_point_gid"):
+    """Remove the areas in df2 that are in df1."""
+    # How to deal with mismatching grids?
+    df = df2[~df2[unique_id_col].isin(df1[unique_id_col])]
+    return df
+
+
+def closest_demand_to_coords(selection_coords, demand_data):
+    """_summary_
+
+    Parameters
+    ----------
+    selection_coords : _type_
+        _description_
+    demand_data : _type_
+        _description_
+
+    Returns
+    -------
+    _type_
+        _description_
+    """
+    demand_coords = demand_data[["latitude", "longitude"]].values
+    demand_coords_rad = np.radians(demand_coords)
+    out = DIST_METRIC.pairwise(np.r_[selection_coords, demand_coords_rad])
+    load_center_ind = np.argmin(out[0][1:])
+    return load_center_ind
+
+
+def closest_load_center(load_center_ind, demand_data):
+    """_summary_
+
+    Parameters
+    ----------
+    load_center_ind : _type_
+        _description_
+    demand_data : _type_
+        _description_
+
+    Returns
+    -------
+    _type_
+        _description_
+    """
+    demand_coords = demand_data[["latitude", "longitude"]].values
+    demand_coords_rad = np.radians(demand_coords)
+    load_center_info = demand_data.iloc[load_center_ind]
+    load_center_coords = demand_coords_rad[load_center_ind]
+    load = load_center_info[["load"]].values[0]
+    return load_center_coords, load
+
+
+def filter_on_load_selection(df, load_center_ind, demand_data):
+    """_summary_
+
+    Parameters
+    ----------
+    df : _type_
+        _description_
+    load_center_ind : _type_
+        _description_
+    demand_data : _type_
+        _description_
+
+    Returns
+    -------
+    _type_
+        _description_
+    """
+    load_center_coords, load = closest_load_center(
+        load_center_ind, demand_data
+    )
+    demand_data = demand_data.iloc[load_center_ind: load_center_ind + 1]
+    df = filter_points_by_demand(df, load_center_coords, load)
+    return df, demand_data
+
+
+def filter_points_by_demand(df, load_center_coords, load):
+    """_summary_
+
+    Parameters
+    ----------
+    df : _type_
+        _description_
+    load_center_coords : _type_
+        _description_
+    load : _type_
+        _description_
+
+    Returns
+    -------
+    _type_
+        _description_
+    """
+    sc_coords = df[["latitude", "longitude"]].values
+    sc_coords = np.radians(sc_coords)
+    load_center_coords = np.array(load_center_coords).reshape(-1, 2)
+    out = DIST_METRIC.pairwise(load_center_coords, sc_coords)
+    # print(out.shape, df.shape)
+    df["dist_to_selected_load"] = out.reshape(-1) * 6373.0
+    df["selected_load_pipe_lcoh_component"] = (
+        df["pipe_lcoh_component"]
+        / df["dist_to_h2_load_km"]
+        * df["dist_to_selected_load"]
+    )
+    df["selected_lcoh"] = (
+        df["no_pipe_lcoh_fcr"] + df["selected_load_pipe_lcoh_component"]
+    )
+    df = df.sort_values("selected_lcoh")
+    df["h2_supply"] = df["hydrogen_annual_kg"].cumsum()
+    where_inds = np.where(df["h2_supply"] >= load)[0]
+    # print(f'{load=}')
+    # max_supply = df["h2_supply"].max()
+    # print(f'{max_supply=}')
+    # print(f'{where_inds=}')
+    if where_inds.size > 0:
+        final_ind = np.where(df["h2_supply"] >= load)[0].min() + 1
+        df = df.iloc[0:final_ind]
+    # print(f'{df=}')
+    return df
+
+
+def key_mode(dct):
+    """Return the key associated with the modal value in a dictionary."""
+    if dct:
+        value = Counter(dct).most_common()[0][0]
+    else:
+        value = "nan"
+    return value
+
+
+def least_cost(dfs, bycol="total_lcoe", group_col="sc_point_gid"):
+    """Return a single least cost df from a list dfs."""
+    # Make one big data frame
+    bdf = pd.concat(dfs)
+    bdf = bdf.reset_index(drop=True)
+
+    # Group, find minimum, and subset
+    idx = bdf.groupby(group_col)[bycol].idxmin()
+    data = bdf.iloc[idx]
+
+    return data
+
+
 def meet_demand(df, map_function, project, click_selection, map_selection):
     """Demand meeting function."""
     demand_data = None
@@ -190,115 +625,23 @@ def meet_demand(df, map_function, project, click_selection, map_selection):
     return df
 
 
-# pylint: disable=too-many-locals, too-many-branches, too-many-statements
-def apply_all_selections(df, signal_dict, project, chart_selection,
-                         map_selection, y_var, x_var, chart_type):
-    """_summary_
-
-    Parameters
-    ----------
-    df : _type_
-        _description_
-    map_func : _type_
-        _description_
-    project : _type_
-        _description_
-    chartsel : _type_
-        _description_
-    mapsel : _type_
-        _description_
-    clicksel : _type_
-        _description_
-
-    Returns
-    -------
-    _type_
-        _description_
-    """
-    if map_selection:
-        df = point_filter(df, map_selection)
-
-    if chart_selection and len(chart_selection["points"]) > 0:
-        if chart_type == "char_histogram":
-            if y_var.endswith("_mode"):
-                categories = [p["label"] for p in chart_selection["points"]]
-                df = df[df[y_var].isin(categories)]
-            elif not signal_dict["path2"]:
-                df = adjust_capacities(df, project, signal_dict, x_var,
-                                       chart_selection)
-        elif chart_type == "histogram":
-            points = chart_selection["points"]
-            bin_size = points[0]["customdata"][0]
-            sdfs = []
-            for point in points:
-                bottom_bin = point["x"]
-                top_bin = bottom_bin + bin_size
-                sdf = df[(df[y_var] >= bottom_bin) & (df[y_var] < top_bin)]
-                sdfs.append(sdf)
-            df = pd.concat(sdfs)
-        else:
-            df = point_filter(df, chart_selection)
-
-    return df
-
-
-def apply_filters(df, filters):
-    """Apply filters from string entries to dataframe."""
-
-    ops = {
-        ">=": operator.ge,
-        ">": operator.gt,
-        "<=": operator.le,
-        "<": operator.lt,
-        "==": operator.eq,
-    }
-
-    for filter_ in filters:
-        if filter_:
-            var, operator_, value = filter_.split()
-            if var in df.columns:
-                operator_ = ops[operator_]
-                value = float(value)
-                df = df[operator_(df[var], value)]
-
-    return df
-
-
-def build_name(path):
-    """Infer scenario name from path."""
-    file = os.path.basename(path)
-    name = strip_rev_filename_endings(file)
-    name = " ".join([n.capitalize() for n in name.split("_")])
-    return name
-
-
-def point_filter(df, selection):
+def point_filter(df, map_selection=None, chart_selection=None):
     """Filter a dataframe by points selected from the chart."""
-    if selection:
-        points = selection["points"]
-        gids = [p.get("customdata", [None])[0] for p in points]
+    if chart_selection or map_selection:
+        if chart_selection and map_selection:
+            points = chart_selection["points"]
+            chart_gids = [p.get("customdata", [None])[0] for p in points]
+            points = map_selection["points"]
+            map_gids = [p.get("customdata", [None])[0] for p in points]
+            gids = set(chart_gids).intersection(map_gids)
+        elif chart_selection:
+            points = chart_selection["points"]
+            gids = [p.get("customdata", [None])[0] for p in points]
+        elif map_selection:
+            points = map_selection["points"]
+            gids = [p.get("customdata", [None])[0] for p in points]
         df = df[df["sc_point_gid"].isin(gids)]
     return df
-
-
-def calc_mask(df1, df2, unique_id_col="sc_point_gid"):
-    """Remove the areas in df2 that are in df1."""
-    # How to deal with mismatching grids?
-    df = df2[~df2[unique_id_col].isin(df1[unique_id_col])]
-    return df
-
-
-def least_cost(dfs, bycol="total_lcoe", group_col="sc_point_gid"):
-    """Return a single least cost df from a list dfs."""
-    # Make one big data frame
-    bdf = pd.concat(dfs)
-    bdf = bdf.reset_index(drop=True)
-
-    # Group, find minimum, and subset
-    idx = bdf.groupby(group_col)[bycol].idxmin()
-    data = bdf.iloc[idx]
-
-    return data
 
 
 def read_df_and_store_scenario_name(file):
@@ -306,365 +649,6 @@ def read_df_and_store_scenario_name(file):
     data = pd.read_csv(file, low_memory=False)
     data["scenario"] = strip_rev_filename_endings(file.name)
     return data
-
-
-def calc_least_cost(paths, out_file, bycol="total_lcoe"):
-    """Build the single least cost table from a list of tables."""
-    # Not including an overwrite option for now
-    if not os.path.exists(out_file):
-
-        # Collect all data frames - biggest lift of all
-        paths.sort()
-        dfs = []
-        with mp.Pool(10) as pool:
-            for data in tqdm(
-                pool.imap(read_df_and_store_scenario_name, paths),
-                total=len(paths),
-            ):
-                dfs.append(data)
-
-        # Make one big data frame and save
-        data = least_cost(dfs, bycol=bycol)
-        data.to_csv(out_file, index=False)
-
-
-def key_mode(dct):
-    """Return the key associated with the modal value in a dictionary."""
-    if dct:
-        value = Counter(dct).most_common()[0][0]
-    else:
-        value = "nan"
-    return value
-
-
-# pylint: disable=no-member
-# pylint: disable=unsubscriptable-object
-# pylint: disable=unsupported-assignment-operation
-@cache.memoize()
-def cache_table(project, path, y_var, x_var, recalc_table=None, recalc="off"):
-    """Read in just a single table."""
-    # Get config
-    config = Config(project)
-    all_cols = pd.read_csv(path, nrows=0).columns
-
-    # Get the table
-    if recalc == "on":
-        data = ReCalculatedData(config=Config(project)).build(
-            path, recalc_table
-        )
-    else:
-        cols = [y_var, x_var, "mean_cf", "capacity", "area_sq_km",
-                "sc_point_gid", "state", "county", "latitude", "longitude"]
-        if "nrel_region" in all_cols:
-            cols.append("nrel_region")
-        if "turbine_y_coords" in all_cols:
-            cols.append("turbine_y_coords")
-            cols.append("turbine_x_coords")
-        if "lcot" in all_cols:
-            cols.append("lcot")
-        if "total_lcoe" in all_cols:
-            cols.append("total_lcoe")
-
-        data = pd.read_csv(path, usecols=cols, low_memory=False)
-
-    # We want some consistent fields
-    if "capacity" not in data.columns and "hybrid_capacity" in data.columns:
-        data["capacity"] = data["hybrid_capacity"].copy()
-    if "print_capacity" not in data.columns:
-        data["print_capacity"] = data["capacity"].copy()
-
-    # If characterization, use modal category
-    if x_var in config.characterization_cols:
-        ncol = x_var + "_mode"
-        cdata = data[(~data[y_var].isnull()) & (data[y_var] != "{}")]
-        odata = data[(data[y_var].isnull()) | (data[y_var] == "{}")]
-        odata[ncol] = "nan"
-        cdata[ncol] = cdata[x_var].map(json.loads)
-        cdata[ncol] = cdata[ncol].apply(key_mode)
-        if "lookup" in config.characterization_cols[x_var]:
-            lookup = config.characterization_cols[x_var]["lookup"]
-            cdata[ncol] = cdata[ncol].map(lookup)
-        data = pd.concat([odata, cdata])
-
-    # If characterization, use modal category
-    if y_var in config.characterization_cols:
-        ncol = y_var + "_mode"
-        cdata = data[(~data[y_var].isnull()) & (data[y_var] != "{}")]
-        odata = data[(data[y_var].isnull()) | (data[y_var] == "{}")]
-        odata[ncol] = "nan"
-        cdata[ncol] = cdata[x_var].map(json.loads)
-        cdata[ncol] = cdata[ncol].apply(key_mode)
-        if "lookup" in config.characterization_cols[y_var]:
-            lookup = config.characterization_cols[y_var]["lookup"]
-            cdata[ncol] = cdata[ncol].astype(float).astype(int).astype(str)
-            cdata[ncol] = cdata[ncol].map(lookup)
-        data = pd.concat([odata, cdata])
-
-    return data
-
-
-@cache2.memoize()
-def cache_map_data(signal_dict):
-    """Read and store a data frame from the config and options given."""
-    # Get signal elements
-    filters = signal_dict["filters"]
-    mask = signal_dict["mask"]
-    path = signal_dict["path"]
-    path2 = signal_dict["path2"]
-    project = signal_dict["project"]
-    recalc_tables = signal_dict["recalc_table"]
-    recalc = signal_dict["recalc"]
-    states = signal_dict["states"]
-    regions = signal_dict["regions"]
-    diff_units = signal_dict["diff_units"]
-    y_var = signal_dict["y"]
-    x_var = signal_dict["x"]
-
-    # Unpack recalc table
-    recalc_a = recalc_tables["scenario_a"]
-    recalc_b = recalc_tables["scenario_b"]
-
-    # Read and cache first table
-    df1 = cache_table(project, path, y_var, x_var, recalc_a, recalc)
-
-    # Apply filters
-    df1 = apply_filters(df1, filters)
-
-    # If there's a second table, read/cache the difference
-    if path2 and os.path.isfile(path2):
-        # Match the format of the first dataframe
-        df2 = cache_table(project, path2, y_var, x_var, recalc_b, recalc)
-        df2 = apply_filters(df2, filters)
-
-        # If the difference option is specified difference
-        calculator = Difference(
-            index_col="sc_point_gid",
-            diff_units=diff_units
-        )
-        df = calculator.calc(df1, df2, y_var)
-
-        # If mask, try that here
-        if mask == "on":
-            df = calc_mask(df1, df)
-    else:
-        df = df1
-
-    # Filter for states
-    if states:
-        if any(df["state"].isin(states)):
-            df = df[df["state"].isin(states)]
-
-        if "offshore" in states:
-            df = df[df["offshore"] == 1]
-        if "onshore" in states:
-            df = df[df["offshore"] == 0]
-
-    # Filter for regions
-    if regions:
-        if any(df["nrel_region"].isin(regions)):
-            df = df[df["nrel_region"].isin(regions)]
-
-    return df
-
-
-@cache3.memoize()
-def cache_chart_tables(
-    signal_dict,
-    region="national",
-    # idx=None
-):
-    """Read and store a data frame from the config and options given."""
-    signal_copy = signal_dict.copy()
-
-    # Unpack subsetting information
-    states = signal_copy["states"]
-
-    # If multiple tables selected, make a list of those files
-    if signal_copy["added_scenarios"]:
-        files = [signal_copy["path"]] + signal_copy["added_scenarios"]
-    else:
-        files = [signal_copy["path"]]
-
-    # Remove additional scenarios from signal_dict for the cache's sake
-    del signal_copy["added_scenarios"]
-
-    # Make a signal copy for each file
-    signal_dicts = []
-    for file in files:
-        signal = signal_copy.copy()
-        signal["path"] = file
-        signal_dicts.append(signal)
-
-    # Get the requested data frames
-    dfs = {}
-    for signal in signal_dicts:
-        name = build_name(signal["path"])
-        df = cache_map_data(signal)
-        # first_cols = [x, y, "state", "sc_point_gid"]
-        # rest_of_cols = set(df.columns) - set(first_cols)
-        # all_cols = first_cols + sorted(rest_of_cols)
-        # df = df[all_cols]
-        # TODO: Where to add "nrel_region" col?
-
-        # Subset by index selection
-        # if idx:
-        #     df = df.iloc[idx]
-
-        # Subset by state selection
-        if states:
-            if any(df["state"].isin(states)):
-                df = df[df["state"].isin(states)]
-
-            if "offshore" in states:
-                df = df[df["offshore"] == 1]
-            if "onshore" in states:
-                df = df[df["offshore"] == 0]
-
-        # Divide into regions if one table (cancel otherwise for now)
-        if region != "national" and len(signal_dicts) == 1:
-            regions = df[region].unique()
-            dfs = {r: df[df[region] == r] for r in regions}
-        else:
-            dfs[name] = df
-
-    return dfs
-
-
-def filter_on_load_selection(df, load_center_ind, demand_data):
-    """_summary_
-
-    Parameters
-    ----------
-    df : _type_
-        _description_
-    load_center_ind : _type_
-        _description_
-    demand_data : _type_
-        _description_
-
-    Returns
-    -------
-    _type_
-        _description_
-    """
-    load_center_coords, load = closest_load_center(
-        load_center_ind, demand_data
-    )
-    demand_data = demand_data.iloc[load_center_ind: load_center_ind + 1]
-    df = filter_points_by_demand(df, load_center_coords, load)
-    return df, demand_data
-
-
-def closest_load_center(load_center_ind, demand_data):
-    """_summary_
-
-    Parameters
-    ----------
-    load_center_ind : _type_
-        _description_
-    demand_data : _type_
-        _description_
-
-    Returns
-    -------
-    _type_
-        _description_
-    """
-    demand_coords = demand_data[["latitude", "longitude"]].values
-    demand_coords_rad = np.radians(demand_coords)
-    load_center_info = demand_data.iloc[load_center_ind]
-    load_center_coords = demand_coords_rad[load_center_ind]
-    load = load_center_info[["load"]].values[0]
-    return load_center_coords, load
-
-
-def filter_points_by_demand(df, load_center_coords, load):
-    """_summary_
-
-    Parameters
-    ----------
-    df : _type_
-        _description_
-    load_center_coords : _type_
-        _description_
-    load : _type_
-        _description_
-
-    Returns
-    -------
-    _type_
-        _description_
-    """
-    sc_coords = df[["latitude", "longitude"]].values
-    sc_coords = np.radians(sc_coords)
-    load_center_coords = np.array(load_center_coords).reshape(-1, 2)
-    out = DIST_METRIC.pairwise(load_center_coords, sc_coords)
-    # print(out.shape, df.shape)
-    df["dist_to_selected_load"] = out.reshape(-1) * 6373.0
-    df["selected_load_pipe_lcoh_component"] = (
-        df["pipe_lcoh_component"]
-        / df["dist_to_h2_load_km"]
-        * df["dist_to_selected_load"]
-    )
-    df["selected_lcoh"] = (
-        df["no_pipe_lcoh_fcr"] + df["selected_load_pipe_lcoh_component"]
-    )
-    df = df.sort_values("selected_lcoh")
-    df["h2_supply"] = df["hydrogen_annual_kg"].cumsum()
-    where_inds = np.where(df["h2_supply"] >= load)[0]
-    # print(f'{load=}')
-    # max_supply = df["h2_supply"].max()
-    # print(f'{max_supply=}')
-    # print(f'{where_inds=}')
-    if where_inds.size > 0:
-        final_ind = np.where(df["h2_supply"] >= load)[0].min() + 1
-        df = df.iloc[0:final_ind]
-    # print(f'{df=}')
-    return df
-
-
-def closest_demand_to_coords(selection_coords, demand_data):
-    """_summary_
-
-    Parameters
-    ----------
-    selection_coords : _type_
-        _description_
-    demand_data : _type_
-        _description_
-
-    Returns
-    -------
-    _type_
-        _description_
-    """
-    demand_coords = demand_data[["latitude", "longitude"]].values
-    demand_coords_rad = np.radians(demand_coords)
-    out = DIST_METRIC.pairwise(np.r_[selection_coords, demand_coords_rad])
-    load_center_ind = np.argmin(out[0][1:])
-    return load_center_ind
-
-
-# def add_new_option(new_option, options):
-#     """Add a new option to the options list, replacing an old one if needed.
-
-#     Parameters
-#     ----------
-#     new_option : dict
-#         Option dict with 'label' and 'value' keys.
-#     options : list
-#         List of existing option dictionaries, in the same format
-#         as required of `new_option`.
-
-#     Returns
-#     -------
-#     list
-#         List of option dictionaries including the new option,
-#         either appended or replacing an old one.
-#     """
-#     options = [o for o in options if o["label"] != new_option["label"]]
-#     options += [new_option]
-#     return options
 
 
 class Difference:
