@@ -340,7 +340,7 @@ class Map:
         figure.update_layout(**layout)
         figure.update_traces(
             unselected=dict(marker=dict(opacity=1)),
-            selected=dict(marker=dict(opacity=1)), 
+            selected=dict(marker=dict(opacity=1)),
         )
 
         return figure

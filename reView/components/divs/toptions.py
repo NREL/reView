@@ -4,7 +4,7 @@ import dash_bootstrap_components as dbc
 
 from dash import dcc, html
 
-from reView.environment.settings import IS_DEV_ENV
+# from reView.environment.settings import IS_DEV_ENV
 from reView.layout.styles import (
     TAB_BOTTOM_SELECTED_STYLE,
     TAB_STYLE,
