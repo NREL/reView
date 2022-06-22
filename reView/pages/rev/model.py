@@ -42,13 +42,14 @@ def adjust_capacities(df, project, signal_dict, x_var, chart_selection):
     """Adjust capacities and lcoes for given characterization selection."""
     def adjust_capacity(row, x_var, cats, res, density):
         """Keep given categorical capacity, remove the rest."""
-        row[x_var] = json.loads(row[x_var])
-        if row[x_var]:
-            removals = {k: v for k, v in row[x_var].items() if k not in cats}
-            removed_cells = sum(removals.values())
-            removed_km2 = (res * res * removed_cells) / 1_000_000
-            removed_cap = removed_km2 * density
-            row["capacity"] -= removed_cap
+        if not isinstance(row[x_var], float):
+            row[x_var] = json.loads(row[x_var])
+            if row[x_var]:
+                remove = {k: v for k, v in row[x_var].items() if k not in cats}
+                removed_cells = sum(remove.values())
+                removed_km2 = (res * res * removed_cells) / 1_000_000
+                removed_cap = removed_km2 * density
+                row["capacity"] -= removed_cap
         return row
 
     def adjust_lcoe(df, sam, eos):
@@ -103,9 +104,9 @@ def adjust_capacities(df, project, signal_dict, x_var, chart_selection):
             parts = name.split("_")
             sam = {k: v for k, v in config.sam.items() if k in parts}
             eos = {k: v for k, v in config.eos.items() if k in parts}
-            sam = sam[next(iter(sam))]
-            eos = eos[next(iter(eos))]
             if eos and sam:
+                sam = sam[next(iter(sam))]
+                eos = eos[next(iter(eos))]
                 df = adjust_lcoe(df, sam=sam, eos=eos)
 
     # Remove cells with no capacity
@@ -223,7 +224,6 @@ def apply_all_selections(df, signal_dict, map_function, project,
             elif not signal_dict["path2"]:
                 df = adjust_capacities(df, project, signal_dict, x_var,
                                        chart_selection)
-
         elif chart_type == "histogram":
             points = chart_selection["points"]
             bin_size = points[0]["customdata"][0]
@@ -387,6 +387,7 @@ def cache_table(project, path, y_var, x_var, recalc_table=None, recalc="off"):
         cdata[ncol] = cdata[ncol].apply(key_mode)
         if "lookup" in config.characterization_cols[y_var]:
             lookup = config.characterization_cols[y_var]["lookup"]
+            cdata[ncol] = cdata[ncol].astype(float).astype(int).astype(str)
             cdata[ncol] = cdata[ncol].map(lookup)
         data = pd.concat([odata, cdata])
 

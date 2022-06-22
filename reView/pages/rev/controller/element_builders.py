@@ -208,6 +208,7 @@ class Plots:
 
         labels = sorted(counts, key=lambda k: -counts[k])
         counts = [counts[label] for label in labels]
+        labels = [str(int(float(label))) for label in labels]
 
         lookup = None
         if "lookup" in self.config.characterization_cols[x_var]:
