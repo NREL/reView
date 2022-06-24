@@ -25,6 +25,7 @@ pd.set_option("mode.chained_assignment", None)
 
 logger = logging.getLogger(__name__)
 
+
 PROJECT_CONFIGS = load_project_configs()
 PROJECT_NAMES = list(PROJECT_CONFIGS.keys())
 
