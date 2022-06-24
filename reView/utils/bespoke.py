@@ -24,7 +24,8 @@ pyproj.network.set_network_enabled(False)
 
 SPLIT_COLS = ["capacity", "annual_energy-means"]
 
-#pylint: disable=invalid-name,unpacking-non-sequence
+
+# pylint: disable=invalid-name,unpacking-non-sequence
 class BespokeUnpacker:
     """Methods for manipulating Bespoke reV outputs."""
 
