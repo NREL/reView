@@ -102,7 +102,7 @@ def test_properties_of_minimal_config():
     assert config.directory
     assert config.options is None
     assert config.demand_data is None
-    assert config.characterizations_cols == []
+    assert config.characterization_cols == []
     assert config.parameters == {}
     assert config.low_cost_groups == {}
     assert config.groups == {}
