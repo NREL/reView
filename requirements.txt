@@ -6,7 +6,7 @@ Flask_Caching==1.11.1
 h5py==3.6.0
 numpy==1.22.3
 pandas==1.4.2
-pandarallel=1.6.1
+pandarallel==1.6.1
 pint==0.19.2
 plotly==5.6.0
 pygeopkg==0.1.2

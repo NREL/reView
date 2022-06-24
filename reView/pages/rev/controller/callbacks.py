@@ -298,7 +298,7 @@ def download_map(__, signal, project, map_selection, chart_selection, y_var,
     # Retrieve the data frame
     signal_dict = json.loads(signal)
     df = cache_map_data(signal_dict)
-    df, _ = apply_all_selections(
+    df = apply_all_selections(
         df=df,
         signal_dict=signal_dict,
         project=project,
@@ -310,10 +310,10 @@ def download_map(__, signal, project, map_selection, chart_selection, y_var,
     )
 
     # Create the table name
-    name = os.path.splitext(os.path.basename(signal_dict["path"]))[0] + "_diff"
+    name = os.path.splitext(os.path.basename(signal_dict["path"]))[0]
     if signal_dict["path2"]:
         name2 = os.path.splitext(os.path.basename(signal_dict["path2"]))[0]
-        name = f"{name2}_{name}"
+        name = f"{name2}_{name}_diff"
 
     # Build geopackage and send it
     layer = f"review_{name}_{y_var}"
@@ -1436,6 +1436,7 @@ def retrieve_recalc_parameters(
     Input("project", "value"),
     Input("minimizing_scenarios", "style"),
 )
+@calls.log
 def set_minimizing_variable_options(project, minimizing_scenarios_style):
     """Set the minimizing variable options."""
     logger.debug("Setting variable target options")
@@ -1517,43 +1518,47 @@ def toggle_rev_map_below_options(n_clicks, is_open):
 
 
 @app.callback(
-    Output("options", "style"),
-    Output("minimizing_scenarios", "style"),
-    Output("pca_scenarios", "style"),
-    Output("scenario_selection_tabs", "style"),
     Output("toggle_options", "children"),
     Output("options_label", "style"),
     Output("options_div", "is_open"),
     Input("toggle_options", "n_clicks"),
-    Input("scenario_selection_tabs", "value"),
-    State("options", "is_open"),
+    State("options_div", "is_open"),
 )
 @calls.log
-def toggle_options(click, selection_ind, is_open):
+def toggle_options(click, is_open):
     """Toggle options on/off."""
-    options_label = {
-        "float": "left",
-        "margin-left": "20px",
-        "margin-bottom": "-25px",
-    }
-    scenario_styles = [{"display": "none"} for _ in range(3)]
-    tabs_style = {"display": "none"}
-    button_children = "Show"
-    scenario_styles[int(selection_ind)] = {"margin-bottom": "1px"}
-    tabs_style = {"height": "50px"}
     click = click or 0
-    if click % 2 == 0:
+
+    is_open = not is_open
+    if is_open:
         options_label = {"display": "none"}
         button_children = "Hide"
-        is_open = not is_open
+    else:
+        options_label = {
+            "float": "left",
+            "margin-left": "20px",
+            "margin-bottom": "-25px",
+        }
+        button_children = "Show"
 
-    return (
-        *scenario_styles,
-        tabs_style,
-        button_children,
-        options_label,
-        is_open,
-    )
+    return button_children, options_label, is_open
+
+
+# @app.callback(
+#     Output("options", "style"),
+#     Output("minimizing_scenarios", "style"),
+#     Output("scenario_selection_tabs", "style"),
+#     Input("scenario_selection_tabs", "value"),
+
+# )
+# @calls.log
+# def toggle_options_tabs(selection_ind):
+#     """Toggle toptions tab style."""
+#     scenario_styles = [{"display": "none"} for _ in range(2)]
+#     scenario_styles[int(selection_ind)] = {"margin-bottom": "1px"}
+#     tabs_style = {"height": "50px"}
+
+#     return *scenario_styles, tabs_style
 
 
 @app.callback(

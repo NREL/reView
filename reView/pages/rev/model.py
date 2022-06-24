@@ -150,7 +150,8 @@ def apply_all_selections(df, signal_dict, project, chart_selection,
             elif not signal_dict["path2"]:
                 df = adjust_capacities(df, project, signal_dict, x_var,
                                        chart_selection)
-        elif chart_type == "histogram":
+    elif chart_type == "histogram":
+        if chart_selection and len(chart_selection["points"]) > 0:
             points = chart_selection["points"]
             bin_size = points[0]["customdata"][0]
             sdfs = []
@@ -160,7 +161,7 @@ def apply_all_selections(df, signal_dict, project, chart_selection,
                 sdf = df[(df[y_var] >= bottom_bin) & (df[y_var] < top_bin)]
                 sdfs.append(sdf)
             df = pd.concat(sdfs)
-            df = point_filter(df, map_selection, chart_selection=None)
+        df = point_filter(df, map_selection, chart_selection=None)
     else:
         df = point_filter(df, map_selection, chart_selection=chart_selection)
 

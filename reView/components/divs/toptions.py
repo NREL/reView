@@ -4,7 +4,7 @@ import dash_bootstrap_components as dbc
 
 from dash import dcc, html
 
-# from reView.environment.settings import IS_DEV_ENV
+from reView.environment.settings import IS_DEV_ENV
 from reView.layout.styles import (
     TAB_BOTTOM_SELECTED_STYLE,
     TAB_STYLE,
@@ -31,13 +31,13 @@ TOPTIONS = [
                 style=TABLET_STYLE,
                 selected_style=TABLET_STYLE,
             ),
-            # dcc.Tab(
-            #     label="PCA" if IS_DEV_ENV else "Under construction",
-            #     value="2",
-            #     disabled=not IS_DEV_ENV,
-            #     style=TABLET_STYLE,
-            #     selected_style=TABLET_STYLE,
-            # ),
+            dcc.Tab(
+                label="PCA" if IS_DEV_ENV else "Under construction",
+                value="2",
+                disabled=not IS_DEV_ENV,
+                style=TABLET_STYLE,
+                selected_style=TABLET_STYLE,
+            ),
         ],
         style={"display": "none"},
     ),
@@ -643,7 +643,7 @@ REV_TOPTIONS_DIV = html.Div(
         dbc.Collapse(
             className="twelve columns",
             id="options_div",
-            is_open=False,
+            is_open=True,
             children=TOPTIONS,
         ),
         html.Div(
@@ -685,7 +685,7 @@ REV_TOPTIONS_DIV = html.Div(
                     id="toggle_options",
                     children="Hide",
                     color="white",
-                    n_clicks=1,
+                    n_clicks=0,
                     size="lg",
                     title=("Click to display options"),
                     className="mb-1",
