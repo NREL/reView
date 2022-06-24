@@ -10,7 +10,6 @@ import json
 from dash import dcc
 from dash import html
 
-from reView.utils.config import Config
 from reView.components import (
     capacity_header,
     map_div,
@@ -34,33 +33,10 @@ layout = html.Div(
         # Path Name
         dcc.Location(id="/scenario_page", refresh=False),
 
-        # Constant info block
+        # Constant info block and options
         html.Div(
-            [
-                # Project Selection
-                html.Div(
-                    [
-                        html.H4("Project"),
-                        dcc.Dropdown(
-                            id="project",
-                            options=[
-                                # pylint: disable=not-an-iterable
-                                {"label": project, "value": project}
-                                for project in Config.sorted_projects
-                            ],
-                        ),
-                    ],
-                    className="three columns",
-                    style={"margin-right": "125px"}
-                ),
-                capacity_header(id_prefix="rev", class_name="four columns"),
-            ],
-            className="ten columns",
-            style={
-                "margin-top": "30px",
-                "margin-bottom": "35px",
-                "margin-left": "150px"
-            },
+            capacity_header(id_prefix="rev", class_name="four columns"),
+            style={"margin-left": "300px"}
         ),
         REV_TOPTIONS_DIV,
         REV_PCA_DIV,

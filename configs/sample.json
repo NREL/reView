@@ -1,6 +1,56 @@
 {
     "project_name": "Sample - Wind - Colorado",
     "directory": "REVIEW_DATA_DIR/samples",
+    "characterization_cols": {
+        "usa_mrlc_nlcd2011": {
+            "lookup": {
+                "11": "Open Water",
+                "12": "Perennial Ice/Snow",
+                "21": "Developed, Open Space",
+                "22": "Developed, Low Intensity",
+                "23": "Developed, Medium Intensity",
+                "24": "Developed, High Intensity",
+                "31": "Barren Land (Rock/Sand/Clay)",
+                "41": "Deciduous Forest",
+                "42": "Evergreen Forest",
+                "43": "Mixed Forest",
+                "51": "Dwarf Scrub",
+                "52": "Shrub/Scrub",
+                "71": "Grassland/Herbaceous",
+                "72": "Sedge/Herbaceous",
+                "73": "Lichens",
+                "74": "Moss",
+                "81": "Pasture/Hay",
+                "82": "Cultivated Crops",
+                "90": "Woody Wetlands",
+                "95": "Emergent Herbaceous Wetlands"
+            },
+            "colormap": {
+                "11": "#5B74A5",
+                "12": "#FFFFFF",
+                "21": "#E4D2D1",
+                "22": "#D8A28E",
+                "23": "#E93B1C",
+                "24": "#A52710",
+                "31": "#D1CDC1",
+                "41": "#94C483",
+                "42": "#4C7F51",
+                "43": "#D8E6B4",
+                "51": "#AB9746",
+                "52": "#D9CB94",
+                "71": "#F9EAAF",
+                "72": "#D1D188",
+                "73": "#ABCA5E",
+                "74": "#8EB89F",
+                "81": "#FAF66F",
+                "82": "#C1944F",
+                "90": "#CEE5F7",
+                "95": "#78B1D3"
+            }
+        },
+        "nlcd_2016_treecanopy_2019_08_31_rev90m": {},
+        "2016_30m_cdls_rev90m": {}
+    },
     "groups": {
         "null": {}
     },
@@ -171,7 +221,7 @@
         }
     },
     "titles": {
-        "2016_30m_cdls_rev90m": "2016_30m_cdls_rev90m",
+        "2016_30m_cdls_rev90m": "Cropland Data Layer - 2016",
         "capital_cost_scalar": "Capital Cost Scalar",
         "cnty_fips": "County FIPS",
         "dist_km": "dist_km",

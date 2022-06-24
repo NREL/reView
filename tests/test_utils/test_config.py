@@ -34,7 +34,6 @@ def reset_configs():
 
 def test_invalid_project_input():
     """Test invalid project name input (None)"""
-
     with pytest.raises(ValueError) as exc_info:
         Config(None)
 
@@ -43,7 +42,6 @@ def test_invalid_project_input():
 
 def test_dne_project_name():
     """Test project name that does not exist."""
-
     with pytest.raises(ValueError) as exc_info:
         Config("Project Name DNE")
 
@@ -52,7 +50,6 @@ def test_dne_project_name():
 
 def test_project_no_directory():
     """Test that error si thrown for project with no directory key."""
-
     with pytest.raises(ValueError) as exc_info:
         Config("Test No Dir")
 
@@ -61,7 +58,6 @@ def test_project_no_directory():
 
 def test_config_path_resolves_correctly():
     """Test that relative directory is resolved correctly."""
-
     config = Config("Hydrogen Relative")
     correct_path = (Path.home() / "hydrogen").resolve()
 
@@ -70,7 +66,6 @@ def test_config_path_resolves_correctly():
 
 def test_config_no_var():
     """Test that files are checked if var file is not provided."""
-
     config = Config("Hydrogen No Var No Demand")
 
     files_1 = list(config._all_files)
@@ -86,7 +81,6 @@ def test_config_no_var():
 
 def test_config_no_var_but_default_file_exists():
     """Test that config looks for default var file."""
-
     config = Config("Hydrogen No Var But With Default")
 
     assert config.files
@@ -96,13 +90,12 @@ def test_config_no_var_but_default_file_exists():
 # pylint: disable=use-implicit-booleaness-not-comparison
 def test_properties_of_minimal_config():
     """Test default values for minimal config."""
-
     config = Config("Hydrogen Minimal")
 
     assert config.directory
     assert config.options is None
     assert config.demand_data is None
-    assert config.characterizations_cols == []
+    assert config.characterization_cols == []
     assert config.parameters == {}
     assert config.low_cost_groups == {}
     assert config.groups == {}
@@ -121,7 +114,6 @@ def test_properties_of_minimal_config():
 
 def test_config_is_singleton():
     """Test that config object is singleton."""
-
     config1 = Config("Hydrogen Minimal")
     config2 = Config("Hydrogen Minimal")
 

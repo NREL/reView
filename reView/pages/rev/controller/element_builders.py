@@ -108,7 +108,7 @@ class Plots:
             main_df,
             x="xbin",
             y="yagg",  # Plot all y's so we can share selections with map
-            custom_data=["sc_point_gid", "print_capacity"],
+            custom_data=["sc_point_gid", "capacity"],
             labels={x_var: xtitle, y_var: ytitle},
             color=self.GROUP,
             color_discrete_sequence=px.colors.qualitative.Safe,
@@ -176,7 +176,7 @@ class Plots:
             main_df,
             x=self.GROUP,
             y=y_var,
-            custom_data=["sc_point_gid", "print_capacity"],
+            custom_data=["sc_point_gid", "capacity"],
             labels={y_var: y_title},
             color=self.GROUP,
             color_discrete_sequence=px.colors.qualitative.Safe,
@@ -207,23 +207,57 @@ class Plots:
                 counts[label] = counts.get(label, 0) + count
 
         labels = sorted(counts, key=lambda k: -counts[k])
-        counts = [counts[label] for label in labels]
+        areas = [(counts[label] * 90 * 90) / 1_000_000 for label in labels]
+        labels = [str(int(float(label))) for label in labels]
 
-        data = pd.DataFrame({"Category": labels, "Counts": counts})
+        lookup = None
+        if "lookup" in self.config.characterization_cols[x_var]:
+            lookup = self.config.characterization_cols[x_var]["lookup"]
+            new_labels = []
+            for label in labels:
+                if label in lookup:
+                    new_labels.append(lookup[label])
+                else:
+                    new_labels.append(label)
+            labels = new_labels
 
-        fig = px.bar(
-            data,
-            x="Category",
-            y="Counts",
-            labels={
-                "Category": self.config.titles.get(
-                    x_var, convert_to_title(x_var)
-                )
-            },
-            opacity=self.alpha,
-            color_discrete_sequence=px.colors.qualitative.Safe,
-            barmode="overlay",
-        )
+        colormap = None
+        if "colormap" in self.config.characterization_cols[x_var]:
+            colormap = self.config.characterization_cols[x_var]["colormap"]
+            if lookup:
+                colormap = {lookup[k]: color for k, color in colormap.items()}
+
+        data = pd.DataFrame({"Category": labels, "Area sq km": areas})
+
+        if colormap:
+            fig = px.bar(
+                data,
+                x="Category",
+                y="Area sq km",
+                color="Category",
+                labels={
+                    "Category": self.config.titles.get(
+                        x_var, convert_to_title(x_var)
+                    )
+                },
+                opacity=self.alpha,
+                color_discrete_map=colormap,
+                barmode="overlay",
+            )
+        else:
+            fig = px.bar(
+                data,
+                x="Category",
+                y="Area sq km",
+                labels={
+                    "Category": self.config.titles.get(
+                        x_var, convert_to_title(x_var)
+                    )
+                },
+                opacity=self.alpha,
+                color_discrete_sequence=px.colors.qualitative.Safe,
+                barmode="overlay",
+            )
 
         return self._update_fig_layout(fig)
 
@@ -249,7 +283,7 @@ class Plots:
             main_df,
             x="cumsum",
             y=y_var,
-            custom_data=["sc_point_gid", "print_capacity"],
+            custom_data=["sc_point_gid", "capacity"],
             labels={
                 "cumsum": f"Cumulative {x_title}",
                 y_var: y_title,
@@ -306,9 +340,10 @@ class Plots:
             y="count",
             labels={y_var: y_title},
             color="group",
+            custom_data=["bin_size"],
             opacity=self.alpha,
             color_discrete_sequence=px.colors.qualitative.Safe,
-            barmode="group",
+            barmode="group"
         )
 
         fig.update_traces(
@@ -338,7 +373,7 @@ class Plots:
             x=x_var,
             y=y_var,
             opacity=self.alpha,
-            custom_data=["sc_point_gid", "print_capacity"],
+            custom_data=["sc_point_gid", "capacity"],
             labels={x_var: x_title, y_var: y_title},
             color=self.GROUP,
             color_discrete_sequence=px.colors.qualitative.Safe,
@@ -394,6 +429,7 @@ class Plots:
         # Get bin ranges for full value range
         main_df = main_df.dropna(subset=y_var)
         _, xbins = np.histogram(main_df[y_var], bins=bins)
+        bin_size = np.diff(xbins)[0]
 
         # Build grouped binned counts
         df = pd.DataFrame(columns=["count", y_var, "group"])
@@ -406,6 +442,9 @@ class Plots:
             sdf = sdf[[y_var, "count"]].drop_duplicates()
             sdf["group"] = group
             df = pd.concat([df, sdf])
+
+        # Add bin size for chart selection filtering later
+        df["bin_size"] = bin_size
 
         return df
 

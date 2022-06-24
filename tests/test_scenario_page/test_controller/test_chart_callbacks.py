@@ -13,9 +13,6 @@ def test_options_chart_type():
     labels = {opt["label"] for opt in options_chart_type("Hydrogen")}
     assert "Characterizations" in labels
 
-    labels = {opt["label"] for opt in options_chart_type("Hydrogen Minimal")}
-    assert "Characterizations" not in labels
-
 
 @pytest.mark.parametrize(
     "chart_choice, num_expected_tabs, should_be_missing",

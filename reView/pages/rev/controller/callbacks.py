@@ -48,6 +48,7 @@ from reView.pages.rev.controller.selection import (
 )
 from reView.pages.rev.model import (
     apply_all_selections,
+    apply_filters,
     calc_least_cost,
     cache_map_data,
     cache_table,
@@ -84,7 +85,7 @@ def build_specs(scenario, project):
 
 def build_spec_split(path, project):
     """Calculate the percentage of each scenario present."""
-    df = cache_table(project, path)
+    df = cache_table(project, y_var="capacity", x_var="mean_lcoe", path=path)
     scenarios, counts = np.unique(df["scenario"], return_counts=True)
     total = df.shape[0]
     percentages = [counts[i] / total for i in range(len(counts))]
@@ -174,11 +175,15 @@ def fig_to_df(fig):
 
 
 @calls.log
-def options_chart_type(project):
+def options_chart_type(project, y_var=None):
     """Add characterization plot option, if necessary."""
-    if Config(project).characterizations_cols:
-        return CHART_OPTIONS
-    return CHART_OPTIONS[:-1]
+    options = CHART_OPTIONS
+    if project:
+        config = Config(project)
+        if config.characterization_cols:
+            if y_var in config.characterization_cols:
+                options = [CHART_OPTIONS[-1]]
+    return options
 
 
 def scenario_dropdowns(groups, dropid=None):
@@ -281,35 +286,34 @@ def download_chart(chart_info):
     State("project", "value"),
     State("rev_map", "selectedData"),
     State("rev_chart", "selectedData"),
-    State("rev_map", "clickData"),
-    State("map_function", "value"),
     State("variable", "value"),
+    State("rev_chart_x_var_options", "value"),
+    State("rev_chart_options", "value"),
     prevent_initial_call=True
 )
 @calls.log
-def download_map(__, signal, project, map_selection, chart_selection,
-                 click_selection, map_function, y_var):
+def download_map(__, signal, project, map_selection, chart_selection, y_var,
+                 x_var, chart_type):
     """Download geopackage file from map."""
     # Retrieve the data frame
     signal_dict = json.loads(signal)
     df = cache_map_data(signal_dict)
-    df, _ = apply_all_selections(
-        df,
-        map_function,
-        project,
-        chart_selection,
-        map_selection,
-        click_selection,
+    df = apply_all_selections(
+        df=df,
+        signal_dict=signal_dict,
+        project=project,
+        chart_selection=chart_selection,
+        map_selection=map_selection,
+        y_var=y_var,
+        x_var=x_var,
+        chart_type=chart_type
     )
 
-    # Reduce table size to speed up process
-    # df = df[["sc_point_gid", "latitude", "longitude", y_var]]
-
     # Create the table name
-    name = os.path.splitext(os.path.basename(signal_dict["path"]))[0] + "_diff"
+    name = os.path.splitext(os.path.basename(signal_dict["path"]))[0]
     if signal_dict["path2"]:
         name2 = os.path.splitext(os.path.basename(signal_dict["path2"]))[0]
-        name = f"{name2}_{name}"
+        name = f"{name2}_{name}_diff"
 
     # Build geopackage and send it
     layer = f"review_{name}_{y_var}"
@@ -323,12 +327,21 @@ def download_map(__, signal, project, map_selection, chart_selection,
 
 @app.callback(
     Output("rev_chart_options", "options"),
-    Input("project", "value"),
+    Output("rev_chart_options", "value"),
+    Input("submit", "n_clicks"),
+    State("project", "value"),
+    State("variable", "value"),
+    State("rev_chart_options", "value")
 )
 @calls.log
-def dropdown_chart_types(project):
+def dropdown_chart_types(_, project, y_var, current_option):
     """Add characterization plot option, if necessary."""
-    return options_chart_type(project)
+    options = options_chart_type(project, y_var)
+    if len(options) == 1:
+        value = options[0]["value"]
+    else:
+        value = current_option
+    return options, value
 
 
 @app.callback(
@@ -582,6 +595,7 @@ def dropdown_scenarios(url, project, __):
     Input("scenario_b_options", "children"),
     Input("project", "value"),
     State("scenario_b_div", "style"),
+    State("variable", "value")
 )
 @calls.log
 def dropdown_variables(
@@ -591,21 +605,28 @@ def dropdown_variables(
         scenario_a_options,
         scenario_b_options,
         project,
-        b_div
+        b_div,
+        old_variable
 ):
     """Update variable dropdown options."""
-
+    # Scrape variable options from entire div
     variable_options = scrape_variable_options(
         project, scenario_a_options, scenario_b_options, b_div
     )
-
     if not variable_options:
         print("NO VARIABLE OPTIONS FOUND!")
         variable_options = [{"label": "None", "value": "None"}]
 
+    # If the old choice is available, use that
+    values = [o["value"] for o in variable_options]
+    if old_variable in values:
+        value = old_variable
+    else:
+        value = "capacity"
+
     return (
         variable_options,
-        "capacity",
+        value,
         variable_options,
         variable_options,
         variable_options,
@@ -616,22 +637,23 @@ def dropdown_variables(
 @app.callback(
     Output("rev_chart_x_var_options", "options"),
     Output("rev_chart_x_var_options", "value"),
-    Input("scenario_a_options", "children"),
-    Input("scenario_b_options", "children"),
+    Input("submit", "n_clicks"),
     Input("rev_chart_options", "value"),
+    Input("scenario_a_options", "children"),
+    State("scenario_b_options", "children"),
     State("scenario_b_div", "style"),
     State("project", "value"),
 )
-def dropdown_x_variables(
-    scenario_a_options, scenario_b_options, chart_type, b_div, project
-):
+@calls.log
+def dropdown_x_variables(_, chart_type, scenario_a_options, scenario_b_options,
+                         b_div, project):
     """Return dropdown options for x variable."""
     logger.debug("Setting X variable options")
     if chart_type == "char_histogram":
         config = Config(project)
         variable_options = [
             {"label": config.titles.get(x, convert_to_title(x)), "value": x}
-            for x in config.characterizations_cols
+            for x in config.characterization_cols
         ]
         val = variable_options[0]["value"]
     else:
@@ -737,17 +759,11 @@ def figure_chart(
     x_var = signal_dict["x"]
     y_var = signal_dict["y"]
     project = signal_dict["project"]
-    config = Config(project)
-
-    # Don't fail when variable not available for characterization
-    if (
-        chart_type == "char_histogram"
-        and x_var not in config.characterizations_cols
-    ):
-        raise PreventUpdate  # @IgnoreException
 
     # Get the data frames
     dfs = cache_chart_tables(signal_dict, region)
+
+    # Return empty alert
     if all(df.empty for df in dfs.values()):
         figure = go.Figure()
         figure.update_layout(
@@ -769,24 +785,21 @@ def figure_chart(
     if map_selection:
         dfs = {
             k: apply_all_selections(
-                df,
-                map_func,
-                project,
-                chart_selection,
-                map_selection,
-                clicksel=None,
-            )[0]
-            for k, df in dfs.items()
+                df=df,
+                signal_dict=signal_dict,
+                project=project,
+                chart_selection=None,
+                map_selection=map_selection,
+                y_var=y_var,
+                x_var=x_var,
+                chart_type=chart_type
+            ) for k, df in dfs.items()
         }
 
     # Build Title
-    title_builder = Title(dfs, signal_dict, y_var, project)
-    scenario = title_builder.scenario
-    var_title = config.titles.get(y_var, convert_to_title(y_var))
-    title = f"{scenario}<br>{var_title}"
-    if chart_selection:
-        n_points_selected = len(chart_selection["points"])
-        title = f"{title}  |  Selected point count: {n_points_selected:,}"
+    title_builder = Title(dfs, signal_dict, y_var, project,
+                          chart_selection=chart_selection)
+    title = title_builder.chart_title
 
     # This might be a difference
     if signal_dict["path2"] and os.path.isfile(signal_dict["path2"]):
@@ -840,6 +853,8 @@ def figure_chart(
     Input("rev_map", "clickData"),
     State("project", "value"),
     State("map_function", "value"),
+    State("rev_chart_x_var_options", "value"),
+    State("rev_chart_options", "value"),
 )
 @calls.log
 def figure_map(
@@ -855,6 +870,8 @@ def figure_map(
     click_selection,
     project,
     map_function,
+    x_var,
+    chart_type
 ):
     """Make the scatter plot map."""
     # Unpack signal and retrieve data frame
@@ -867,15 +884,25 @@ def figure_map(
     else:
         y_var = signal_dict["y"]
 
+    # This could also be a modal category
+    if y_var in Config(project).characterization_cols:
+        y_var += "_mode"
+
     # Apply user selections
-    df, demand_data = apply_all_selections(
-        df,
-        map_function,
-        project,
-        chart_selection,
-        map_selection,
-        click_selection,
+    df = apply_all_selections(
+        df=df,
+        signal_dict=signal_dict,
+        project=project,
+        chart_selection=chart_selection,
+        map_selection=map_selection,
+        y_var=y_var,
+        x_var=x_var,
+        chart_type=chart_type
     )
+
+    # Apply filters again for characterizations
+    filters = signal_dict["filters"]
+    df = apply_filters(df, filters)
 
     if "clickData" in callback_trigger() and "turbine_y_coords" in df:
         unpacker = BespokeUnpacker(df, click_selection)
@@ -901,13 +928,13 @@ def figure_map(
         colorscale=color,
         color_min=color_ymin,
         color_max=color_ymax,
-        demand_data=demand_data,
+        demand_data=None
     )
     figure = map_builder.figure(
         point_size=point_size,
         reverse_color=reverse_color_clicks % 2 == 1,
     )
-    mapcap = df[["sc_point_gid", "print_capacity"]].to_dict()
+    mapcap = df[["sc_point_gid", "capacity"]].to_dict()
 
     # Package returns
     mapcap = json.dumps(mapcap)
@@ -1149,6 +1176,7 @@ def retrieve_chart_tables(y_var, x_var, state):
 @app.callback(
     Output("filter_store", "children"),
     Input("submit", "n_clicks"),
+    Input("project", "value"),
     State("filter_variables_1", "value"),
     State("filter_variables_2", "value"),
     State("filter_variables_3", "value"),
@@ -1159,7 +1187,7 @@ def retrieve_chart_tables(y_var, x_var, state):
     State("filter_4", "value"),
 )
 @calls.log
-def retrieve_filters(__, var1, var2, var3, var4, q1, q2, q3, q4):
+def retrieve_filters(__, ___, var1, var2, var3, var4, q1, q2, q3, q4):
     """Retrieve filter variable names and queries."""
 
     variables = [var1, var2, var3, var4]
@@ -1408,6 +1436,7 @@ def retrieve_recalc_parameters(
     Input("project", "value"),
     Input("minimizing_scenarios", "style"),
 )
+@calls.log
 def set_minimizing_variable_options(project, minimizing_scenarios_style):
     """Set the minimizing variable options."""
     logger.debug("Setting variable target options")
@@ -1457,7 +1486,7 @@ def tabs_chart(tab_choice, chart_choice):
 def toggle_bins(chart_type):
     """Show the bin size option under the chart."""
 
-    if chart_type in {"binned", "histogram"}:
+    if chart_type in {"binned", "histogram", "char_histogram"}:
         return {}
     return {"display": "none"}
 
@@ -1489,43 +1518,47 @@ def toggle_rev_map_below_options(n_clicks, is_open):
 
 
 @app.callback(
-    Output("options", "style"),
-    Output("minimizing_scenarios", "style"),
-    Output("pca_scenarios", "style"),
-    Output("scenario_selection_tabs", "style"),
     Output("toggle_options", "children"),
     Output("options_label", "style"),
     Output("options_div", "is_open"),
     Input("toggle_options", "n_clicks"),
-    Input("scenario_selection_tabs", "value"),
-    State("options", "is_open"),
+    State("options_div", "is_open"),
 )
 @calls.log
-def toggle_options(click, selection_ind, is_open):
+def toggle_options(click, is_open):
     """Toggle options on/off."""
-    options_label = {
-        "float": "left",
-        "margin-left": "20px",
-        "margin-bottom": "-25px",
-    }
-    scenario_styles = [{"display": "none"} for _ in range(3)]
-    tabs_style = {"display": "none"}
-    button_children = "Show"
-    scenario_styles[int(selection_ind)] = {"margin-bottom": "1px"}
-    tabs_style = {"height": "50px"}
     click = click or 0
-    if click % 2 == 0:
+
+    is_open = not is_open
+    if is_open:
         options_label = {"display": "none"}
         button_children = "Hide"
-        is_open = not is_open
+    else:
+        options_label = {
+            "float": "left",
+            "margin-left": "20px",
+            "margin-bottom": "-25px",
+        }
+        button_children = "Show"
 
-    return (
-        *scenario_styles,
-        tabs_style,
-        button_children,
-        options_label,
-        is_open,
-    )
+    return button_children, options_label, is_open
+
+
+# @app.callback(
+#     Output("options", "style"),
+#     Output("minimizing_scenarios", "style"),
+#     Output("scenario_selection_tabs", "style"),
+#     Input("scenario_selection_tabs", "value"),
+
+# )
+# @calls.log
+# def toggle_options_tabs(selection_ind):
+#     """Toggle toptions tab style."""
+#     scenario_styles = [{"display": "none"} for _ in range(2)]
+#     scenario_styles[int(selection_ind)] = {"margin-bottom": "1px"}
+#     tabs_style = {"height": "50px"}
+
+#     return *scenario_styles, tabs_style
 
 
 @app.callback(

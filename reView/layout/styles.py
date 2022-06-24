@@ -28,14 +28,13 @@ BUTTON_STYLES = {
         "margin-top": "-2px",
     },
     "navbar": {
-        "height": "55px",
-        "width": "190px",
-        "background-color": "#FCCD34",
+        "height": "45px",
+        "width": "140px",
         "border-radius": "4px",
         "border-color": "#1663b5",
         "font-family": "Times New Roman",
         "font-size": "18px",
-        "textTransform": "none"
+        "textTransform": "none",
     },
 }
 BOTTOM_DIV_STYLE = {

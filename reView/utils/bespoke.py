@@ -15,15 +15,17 @@ import json
 
 import numpy as np
 import pandas as pd
-
-from pyproj import Transformer
+import pyproj
 
 from reView.utils.classes import CountyCode
+
+pyproj.network.set_network_enabled(False)
 
 
 SPLIT_COLS = ["capacity", "annual_energy-means"]
 
 
+# pylint: disable=invalid-name,unpacking-non-sequence
 class BespokeUnpacker:
     """Methods for manipulating Bespoke reV outputs."""
 
@@ -46,13 +48,13 @@ class BespokeUnpacker:
     def __repr__(self):
         """Return representation string for Layout object."""
         attrs = ["index", "lat", "lon", "text"]
-        attrs = ", ".join([f"{a}={self.__getattribute__(a)}" for a in attrs])
+        attrs = ", ".join([f"{a}={attr}" for a, attr in self.__dict__.items()])
         return f"<BespokeUnpacker object: {attrs}>"
 
     def get_xy(self, row):
         """Project row to an equal area crs."""
         lat, lon = row["latitude"], row["longitude"]
-        transformer = Transformer.from_crs(
+        transformer = pyproj.Transformer.from_crs(
             self.src_crs,
             self.trgt_crs,
             always_xy=True
@@ -68,7 +70,7 @@ class BespokeUnpacker:
     @property
     def spacing(self):
         """Infer the spacing between points."""
-        # Assuming a 128 agg factor for now  # <------------------------------- How to best infer this?
+        # Assuming a 128 agg factor for now
         spacing = 11_520
         return spacing
 
@@ -76,7 +78,7 @@ class BespokeUnpacker:
         """Convert x, y coordinates in unpacked dataframe to WGS84."""
         xs = rdf["x"].values
         ys = rdf["y"].values
-        transformer = Transformer.from_crs(
+        transformer = pyproj.Transformer.from_crs(
             self.trgt_crs,
             self.src_crs,
             always_xy=True
@@ -98,12 +100,11 @@ class BespokeUnpacker:
             A reV supply curve data frame containing all original farm points
             except one that is replaced with individual turbine entries.
         """
-
         # Separate target row
         df = self.df.iloc[self.df.index != self.index]
         row = self.df.iloc[self.index]
 
-        # Get coordinates from equal area projection <------------------------- How to best do this? regionally?
+        # Get coordinates from equal area projection
         x, y = self.get_xy(row)
         del row["longitude"]
         del row["latitude"]
@@ -118,10 +119,6 @@ class BespokeUnpacker:
         xs = [x + blx for x in xs]
         ys = [y + bly for y in ys]
 
-        # Update row
-        # for col in SPLIT_COLS:
-        #     row[col] /= len(xs)
-
         # Build new data frame
         nrows = []
         for i, x in enumerate(xs):
@@ -129,6 +126,7 @@ class BespokeUnpacker:
             nrow["x"] = x
             nrow["y"] = ys[i]
             nrows.append(nrow)
+
         rdf = pd.DataFrame(nrows)
         nindex = np.arange(
             self.df.index[-1],

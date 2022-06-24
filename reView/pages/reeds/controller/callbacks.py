@@ -132,7 +132,7 @@ for i in [1, 2]:
             raise AssertionError("Could not find capacity column in "
                                  f"{project}.")
         capacity = capacity[0]
-        df["print_capacity"] = df[capacity]
+        df["capacity"] = df[capacity]
 
         # Build Title
         agg = str(round(df[capacity].mean(), 2))
@@ -153,7 +153,7 @@ for i in [1, 2]:
             reverse_color=reverse_color_clicks % 2 == 1,
         )
 
-        mapcap = df[["sc_point_gid", "print_capacity"]].to_dict()
+        mapcap = df[["sc_point_gid", "capacity"]].to_dict()
 
         return figure, json.dumps(mapcap)
 

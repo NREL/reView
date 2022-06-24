@@ -15,6 +15,7 @@ from reView.utils.classes import DiffUnitOptions
 from reView.utils.config import Config
 from reView.utils.constants import COLORS, DEFAULT_LAYOUT
 from reView.utils.functions import convert_to_title
+from reView.pages.rev.model import point_filter
 
 
 MAP_LAYOUT = copy.deepcopy(DEFAULT_LAYOUT)
@@ -41,7 +42,7 @@ class Title:
     """Methods for building map and chart titles."""
 
     def __init__(self, df, signal_dict, color_var, project, map_selection=None,
-                 delimiter="  |  "):
+                 chart_selection=None, x_var=None, delimiter="  |  "):
         """Initialize Title object."""
         self.config = Config(project)
         self.df = df
@@ -49,7 +50,9 @@ class Title:
         self.color_var = color_var
         self.project = project
         self.map_selection = map_selection
+        self.chart_selection = chart_selection
         self.delimiter = delimiter
+        self.x_var = x_var
 
     @property
     def scenario(self):
@@ -90,11 +93,18 @@ class Title:
     def chart_title(self):
         """Create chart title."""
         scenario = self.scenario
-        variable = self.config.titles.get(
+        var_title = self.config.titles.get(
             self.color_var,
             convert_to_title(self.color_var)
         )
-        return f"{scenario}<br>{variable}"
+        title = f"{scenario}<br>{var_title}"
+        if self.chart_selection:
+            if self.x_var not in self.config.characterization_cols:
+                n_points_selected = len(self.chart_selection["points"])
+                title = (f"{title}  |  Selected point count: "
+                         f"{n_points_selected:,}")
+
+        return title
 
     @property
     def map_title(self):
@@ -104,6 +114,10 @@ class Title:
             units = "percent"
         else:
             units = self.config.units.get(self.no_diff_suffix)
+
+        # Y variable can now have "_mode" in it, nixing the above
+        if self.color_var.endswith("_mode"):
+            units = "category"
 
         # Get variable title
         title = self.config.titles.get(
@@ -141,14 +155,20 @@ class Title:
             extra = self._add_total_info("MW", extra)
 
         title = self.delimiter.join([title, extra])
-        title = self._add_map_selection_to_title(title)
+        # title = self._add_map_selection_to_title(title)
 
         return title
 
     def _apply_aggregation(self, units, agg_type):
         """Return the result of aggregation of the variable."""
+        # Apply map filter
+        if self.map_selection and len(self.map_selection["points"]) > 0:
+            df = point_filter(self.df, self.map_selection)
+        else:
+            df = self.df
+
         # Drop nan values in variable
-        df = self.df.dropna(subset=self.color_var)
+        df = df.dropna(subset=self.color_var)
         df = df[df[self.color_var] != -np.inf]
 
         # If mean, use weights
@@ -176,7 +196,7 @@ class Title:
         if self.map_selection:
             n_points = len(self.map_selection["points"])
             map_selection_print = f"Selected point count: {n_points:,}"
-            title = self.delimiter.join([self.map_title, map_selection_print])
+            title = self.delimiter.join([title, map_selection_print])
         return title
 
     def _add_total_info(self, units, title, description=None):
@@ -213,11 +233,16 @@ class Map:
             df, color_var, project, color_min, color_max
         )
         self.demand_data = demand_data
+        if project:
+            self.config = Config(project)
 
         if project:
             self.units = Config(self.project).units.get(self.color_var, "")
         else:
             self.units = ""
+
+        if color_var.endswith("_mode"):
+            self.units = "category"
 
     def __repr__(self):
         """Return representation string."""
@@ -246,16 +271,39 @@ class Map:
                     }
                 ],
             )
+
         elif self.units == "category":
             # Create data object
-            figure = px.scatter_mapbox(
-                data_frame=self.df,
-                color=self.color_var,
-                lon="longitude",
-                lat="latitude",
-                custom_data=["sc_point_gid", "print_capacity"],
-                hover_name="text",
-            )
+            self.df[self.color_var][self.df[self.color_var].isnull()] = "nan"
+
+            # Check for color mapping
+            var = self.color_var.replace("_mode", "")
+            if "colormap" in self.config.characterization_cols[var]:
+                charcols = self.config.characterization_cols[var]
+                colormap = charcols["colormap"]
+                if "lookup" in self.config.characterization_cols[var]:
+                    lookup = self.config.characterization_cols[var]["lookup"]
+                    colormap = {lookup[k]: c for k, c in colormap.items()}
+
+                figure = px.scatter_mapbox(
+                    data_frame=self.df,
+                    color=self.color_var,
+                    lon="longitude",
+                    lat="latitude",
+                    color_discrete_map=colormap,
+                    custom_data=["sc_point_gid", "capacity"],
+                    hover_name="text",
+                )
+            else:
+                figure = px.scatter_mapbox(
+                    data_frame=self.df,
+                    color=self.color_var,
+                    lon="longitude",
+                    lat="latitude",
+                    color_discrete_sequence=px.colors.qualitative.Safe,
+                    custom_data=["sc_point_gid", "capacity"],
+                    hover_name="text",
+                )
             figure.update_traces(marker=self.marker(point_size, reverse_color))
         else:
             # Create data object
@@ -263,7 +311,7 @@ class Map:
                 data_frame=self.df,
                 lon="longitude",
                 lat="latitude",
-                custom_data=["sc_point_gid", "print_capacity"],
+                custom_data=["sc_point_gid", "capacity"],
                 hover_name="text",
             )
             figure.update_traces(marker=self.marker(point_size, reverse_color))
@@ -290,6 +338,10 @@ class Map:
         # Update the layout
         layout = self.layout
         figure.update_layout(**layout)
+        figure.update_traces(
+            unselected=dict(marker=dict(opacity=1)),
+            selected=dict(marker=dict(opacity=1)),
+        )
 
         return figure
 
@@ -376,7 +428,6 @@ class Map:
         """Return marker dictionary."""
         if self.units == "category":
             marker = dict(
-                opacity=1.0,
                 reversescale=reverse_color,
                 size=point_size,
             )
@@ -386,7 +437,6 @@ class Map:
                 colorscale=COLORS[self.colorscale],
                 cmin=None if self.cmin is None else float(self.cmin),
                 cmax=None if self.cmax is None else float(self.cmax),
-                opacity=1.0,
                 reversescale=reverse_color,
                 size=point_size,
                 colorbar=dict(

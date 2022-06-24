@@ -105,6 +105,7 @@ DEFAULT_LAYOUT = {
     "font_color": "white",
     "margin": {"l": 70, "r": 20, "t": 70, "b": 20},
     "paper_bgcolor": "#1663B5",
+    "uirevision": True,
     "titlefont": {"color": "white", "size": 18, "family": "Times New Roman"},
     "title": {
         "yref": "container",
