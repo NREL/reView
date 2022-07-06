@@ -6,6 +6,7 @@ Created on Sat Aug 15 15:47:40 2020
 @author: travis
 """
 import ast
+import json
 import logging
 
 from functools import cached_property, lru_cache
@@ -13,7 +14,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from reView import REVIEW_DATA_DIR
+from reView import paths, REVIEW_DATA_DIR
 from reView.utils.constants import COMMON_REV_COLUMN_UNITS, SCALE_OVERRIDES
 from reView.utils.functions import (
     deep_replace,
@@ -33,6 +34,7 @@ PROJECT_NAMES = list(PROJECT_CONFIGS.keys())
 class Config:
     """Class for handling configuration variables."""
 
+    common = paths.paths["common_configs"]
     _all_configs = {}
     REQUIREMENTS = {"directory"}
 
@@ -62,13 +64,39 @@ class Config:
         """Return capacity-dependent scaling information if available."""
         density = self._config.get("capacity_density", None)
         if density:
-            density = float(density)
+            if isinstance(density, str):
+                density = float(density)
         return density
 
     @property
     def characterization_cols(self):
         """list: List of column names with characterization info."""
-        return self._config.get("characterization_cols", [])
+        # Get common fields available in this project
+        common = {}
+        allcols = self._all_columns
+        for path in self.common.rglob("characterizations/*"):
+            with open(path, "r") as file:
+                config = json.load(file)
+            common_fields = config["possible_fields"]
+            del config["possible_fields"]
+            del config["title"]
+            fields = [field for field in common_fields if field in allcols]
+            if fields:
+                for field in fields:
+                    common[field] = config
+
+        # Update common fields with specific project configuration
+        project = self._config.get("characterization_cols", {})
+        new = {}
+        for key, value in common.items():
+            if key not in project:
+                new[key] = value
+            elif not project[key]:
+                new[key] = value
+                del project[key]
+        cols = {**new, **project}
+
+        return cols
 
     @property
     def directory(self):
@@ -100,7 +128,7 @@ class Config:
 
     @property
     def groups(self):
-        """dict: Groups dictionary."""
+        """Groups dictionary."""
         return self._config.get("groups", {})
 
     @property
@@ -115,13 +143,13 @@ class Config:
 
     @cached_property
     def options(self):
-        """:obj:`pandas.DataFrame` or `None`: DataFrame containing
-        variables as column names and values as rows, or `None` if the
-        "var_file" key was not specified in the config.
+        """Return data frame containing variables as column names and values
+        as rows, or `None` if the "var_file" key was not specified in the
+        config.
         """
-        return self._safe_read(
-            "var_file", default_fp=self.directory / "variable_options.csv"
-        )
+        default_fp = self.directory.joinpath("variable_options.csv")
+        options =  self._safe_read("var_file", default_fp)
+        return options
 
     @property
     def parameters(self):
@@ -132,12 +160,11 @@ class Config:
     @property
     def projects(cls):
         """Return names of available projects."""
+        projects = []
         for name in PROJECT_CONFIGS:
-            try:
-                if any(cls(name)._project_files):
-                    yield name
-            except ValueError:
-                continue
+            if any(cls(name)._project_files):
+                projects.append(name)
+        return sorted(projects)
 
     @property
     def resolution(self):
@@ -146,12 +173,6 @@ class Config:
         if resolution:
             resolution = int(resolution)
         return resolution
-
-    @classmethod
-    @property
-    def sorted_projects(cls):
-        """Return the sorted names of available projects."""
-        return sorted(cls.projects)
 
     @property
     def sam(self):
@@ -186,12 +207,23 @@ class Config:
 
     @property
     def _all_files(self):
-        """:obj:`generator`: Generator of raw project files."""
+        """Return a generator of all project files."""
         if self.options is not None and "file" in self.options:
             for file in self.options.file:
                 yield Path(file).expanduser().resolve()
         else:
             yield from self.directory.rglob("*.csv")
+
+    @property
+    def _all_columns(self):
+        """Return all unique columns in a project."""
+        allcols = []
+        for file in self._all_files:
+            cols = pd.read_csv(file, nrows=0).columns
+            for col in cols:
+                if col not in allcols:
+                    allcols.append(col)
+        return allcols
 
     def _check_required_keys_exist(self):
         """Ensure all required keys are present in config file."""

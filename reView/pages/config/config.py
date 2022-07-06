@@ -40,8 +40,7 @@ from tqdm import tqdm
 
 
 # pylint: disable=not-an-iterable
-PROJECTS = [{"label": p, "value": p} for p in Config.sorted_projects]
-
+PROJECTS = [{"label": p, "value": p} for p in Config.projects]
 REGIONS = {
     "Pacific": ["Oregon", "Washington"],
     "Mountain": ["Colorado", "Idaho", "Montana", "Wyoming"],

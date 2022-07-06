@@ -44,13 +44,12 @@ def adjust_capacities(df, project, signal_dict, x_var, chart_selection):
         """Keep given categorical capacity, remove the rest."""
         if not isinstance(row[x_var], float):
             row[x_var] = json.loads(row[x_var])
-            if row[x_var]:
-                remove = {k: v for k, v in row[x_var].items() if k not in cats}
-                removed_cells = sum(remove.values())
-                removed_km2 = (res * res * removed_cells) / 1_000_000
-                removed_cap = removed_km2 * density
-                row["capacity"] -= removed_cap
-                row["area_sq_km"] -= removed_km2
+            keep = {k: v for k, v in row[x_var].items() if k in cats}
+            kept_cells = sum(keep.values())
+            kept_km2 = (res * res * kept_cells) / 1_000_000
+            kept_cap = kept_km2 * density
+            row["capacity"] = kept_cap
+            row["area_sq_km"] = kept_km2
         return row
 
     def adjust_lcoe(df, sam, eos):
@@ -87,7 +86,12 @@ def adjust_capacities(df, project, signal_dict, x_var, chart_selection):
         cats = [ilookup[cat] for cat in cats if cat in ilookup]
 
     # It needs to have capacity density for this
+    path = signal_dict["path"]
+    name = config.name_lookup[path]
     density = config.capacity_density
+    if density:
+        if not isinstance(density, int) or not isinstance(density, float):
+            density = density[name]
     res = config.resolution
 
     # Adjust capacities for each row
@@ -102,7 +106,7 @@ def adjust_capacities(df, project, signal_dict, x_var, chart_selection):
         # Adjust LCOEs if possible
         if config.sam and config.eos:
             # Using pattern recognition for now, in a hurry
-            name = config.name_lookup[signal_dict["path"]]
+            name = config.name_lookup[path]
             parts = name.split("_")
             sam = {k: v for k, v in config.sam.items() if k in parts}
             eos = {k: v for k, v in config.eos.items() if k in parts}
@@ -226,7 +230,6 @@ def cache_table(project, path, y_var, x_var, recalc_table=None, recalc="off"):
     """Read in just a single table."""
     # Get config
     config = Config(project)
-    all_cols = pd.read_csv(path, nrows=0).columns
 
     # Get the table
     if recalc == "on":
@@ -234,19 +237,7 @@ def cache_table(project, path, y_var, x_var, recalc_table=None, recalc="off"):
             path, recalc_table
         )
     else:
-        cols = [y_var, x_var, "mean_cf", "capacity", "area_sq_km",
-                "sc_point_gid", "state", "county", "latitude", "longitude"]
-        if "nrel_region" in all_cols:
-            cols.append("nrel_region")
-        if "turbine_y_coords" in all_cols:
-            cols.append("turbine_y_coords")
-            cols.append("turbine_x_coords")
-        if "lcot" in all_cols:
-            cols.append("lcot")
-        if "total_lcoe" in all_cols:
-            cols.append("total_lcoe")
-
-        data = pd.read_csv(path, usecols=cols, low_memory=False)
+        data = pd.read_csv(path, low_memory=False)
 
     # We want some consistent fields
     if "capacity" not in data.columns and "hybrid_capacity" in data.columns:

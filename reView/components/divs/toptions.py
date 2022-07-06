@@ -58,7 +58,7 @@ TOPTIONS = [
                                 options=[
                                     # pylint: disable=not-an-iterable
                                     {"label": project, "value": project}
-                                    for project in Config.sorted_projects
+                                    for project in Config.projects
                                 ],
                             ),
                         ],
@@ -83,7 +83,7 @@ TOPTIONS = [
                                 id="scenario_a_specs",
                                 style={
                                     "overflow-y": "auto",
-                                    "height": "300px",
+                                    # "height": "300px",
                                     "width": "95%"
                                 }
                             ),
@@ -113,7 +113,7 @@ TOPTIONS = [
                                         id="scenario_b_specs",
                                         style={
                                             "overflow-y": "auto",
-                                            "height": "300px",
+                                            # "height": "300px",
                                             "width": "95%"
                                         }
                                     ),

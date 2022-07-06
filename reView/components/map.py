@@ -55,20 +55,6 @@ class Title:
         self.x_var = x_var
 
     @property
-    def scenario(self):
-        """Build Scenario Title Portion."""
-        lookup = {str(value): key for key, value in self.config.files.items()}
-        path1 = self.signal_dict["path"]
-        label = lookup[path1]
-        label = " ".join([s.capitalize() for s in label.split("_")])
-        path2 = self.signal_dict["path2"]
-        if path2 and os.path.isfile(path2):
-            label2 = lookup[path2]
-            label2 = " ".join([s.capitalize() for s in label2.split("_")])
-            label = f"{label} vs {label2}"
-        return label
-
-    @property
     def is_diff(self):
         """Check if the color variable indicates a difference variable."""
         check = False
@@ -139,10 +125,52 @@ class Title:
         if var_exists and not_category:
             title = self._add_extras_to_title(title, units)
 
-        # Add dataset name to title
+        # Add dataset name to title            
         title = "<br>".join([self.scenario, title])
 
         return title
+
+    def options_label(self, label):
+        """Generate a name from the scenario name if options are given.
+
+        Parameters
+        ----------
+        label : str
+            The scenario name.
+
+        Returns
+        -------
+        str : A label derived from the combination of scenario options for that
+              scenario.
+        """
+        options = self.config.options
+        row = options[options["name"] == label].iloc[0]
+        del row["file"]
+        del row["name"]
+        parts = []
+        for part in row.values:
+            parts.append(part.capitalize())
+        return " - ".join(parts)
+
+    @property
+    def scenario(self):
+        """Build Scenario Title Portion."""
+        lookup = {str(value): key for key, value in self.config.files.items()}
+        path1 = self.signal_dict["path"]
+        label = lookup[path1]
+        if self.config.options is not None:
+            label = self.options_label(label)
+        else:
+            label = " ".join([s.capitalize() for s in label.split("_")])
+        path2 = self.signal_dict["path2"]
+        if path2 and os.path.isfile(path2):
+            label2 = lookup[path2]
+            if self.config.options is not None:
+                label2 = self.options_label(label2)
+            else:
+                label2 = " ".join([s.capitalize() for s in label2.split("_")])
+            label = f"{label} vs {label2}"
+        return label
 
     def _add_extras_to_title(self, title, units):
         """Add extra info to map title."""

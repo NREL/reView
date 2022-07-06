@@ -57,7 +57,12 @@ from reView.pages.rev.model import (
 )
 from reView.utils.bespoke import BespokeUnpacker
 from reView.utils.constants import SKIP_VARS
-from reView.utils.functions import convert_to_title, callback_trigger, to_geo
+from reView.utils.functions import (
+    convert_to_title,
+    callback_trigger,
+    strip_rev_filename_endings,
+    to_geo
+)    
 from reView.utils.config import Config
 from reView.utils import calls
 
@@ -485,7 +490,7 @@ def dropdown_projects(__, ___):
     project_options = [
         {"label": project, "value": project}
         # pylint: disable=not-an-iterable
-        for project in Config.sorted_projects
+        for project in Config.projects
     ]
     return project_options, project_options[0]["value"]
 
@@ -527,12 +532,15 @@ def dropdown_scenarios(url, project, __):
     logger.debug("URL: %s", url)
     config = Config(project)
 
+    # If there is a variable table for each scenario, give list of dropdowns
     if config.options is not None:
         groups = {}
 
+        # Get all possible dropdown combinations
         for col in config.options.columns:
             if col in {"name", "file"}:
                 continue
+    
             # pylint: disable=unsubscriptable-object
             options = config.options[col].unique()
             dropdown_options = []
@@ -557,8 +565,12 @@ def dropdown_scenarios(url, project, __):
         scenario_originals.sort()
         files = scenario_originals + scenario_outputs
         files.sort()
-        names = [os.path.basename(f).replace("_sc.csv", "") for f in files]
-        names = [convert_to_title(name) for name in names]
+        names = []
+        for file in files:
+            name = os.path.basename(file)
+            name = strip_rev_filename_endings(name)
+            name = convert_to_title(name)
+            names.append(name)
         file_list = dict(zip(names, files))
 
         scenario_options = [
@@ -691,10 +703,12 @@ def dropdowns_additional_scenarios(url, project, __):
     scenario_outputs = []
     scenario_originals = [str(file) for file in config.files.values()]
     files = scenario_originals + scenario_outputs
-    names = [os.path.basename(f).replace("_sc.csv", "") for f in files]
-    names = [
-        " ".join([n.capitalize() for n in name.split("_")]) for name in names
-    ]
+    names = []
+    for file in files:
+        name = os.path.basename(file)
+        name = strip_rev_filename_endings(name)
+        name = convert_to_title(name)
+        names.append(name)
     file_list = dict(zip(names, files))
 
     scenario_options = [
@@ -956,7 +970,7 @@ def options_recalc_a(project, scenario, recalc_table):
     config = Config(project)
     data = ReCalculatedData(config)
     recalc_table = json.loads(recalc_table)
-    scenario = os.path.basename(scenario).replace("_sc.csv", "")
+    scenario = strip_rev_filename_endings(os.path.basename(scenario))
 
     if scenario not in config.scenarios:
         raise PreventUpdate
@@ -1065,7 +1079,7 @@ def options_recalc_b(project, scenario, recalc_table):
     config = Config(project)
     data = ReCalculatedData(config)
     recalc_table = json.loads(recalc_table)
-    scenario = os.path.basename(scenario).replace("_sc.csv", "")
+    scenario = strip_rev_filename_endings(os.path.basename(scenario))
 
     if scenario not in config.scenarios:
         raise PreventUpdate
