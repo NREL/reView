@@ -1,0 +1,102 @@
+{
+    "project_name": "Standard Scenarios - FY22",
+    "directory": "~/review_datasets/standard_scenarios_fy22",
+    "resolution": 90,
+    "capacity_density": {
+        "solar_moderate_open": 32,
+        "solar_moderate_limited": 32,
+        "solar_moderate_open_high_setbacks": 32,
+        "solar_moderate_open_mid_setbacks": 32,
+        "wind_onshore_reference_advanced": 3,
+        "wind_onshore_reference_conservative": 3,
+        "wind_onshore_reference_moderate": 3,
+        "wind_onshore_open_moderate": 3,
+        "wind_onshore_limited_moderate": 3,
+        "wind_offshore_open_moderate": 5.3146,
+        "wind_offshore_limited_moderate": 3.5210,
+        "wind_offshore_open_advanced": 5.3110,
+        "wind_offshore_limited_advanced": 3.5186
+    },
+    "scales": {
+        "slope": {
+            "min": 0.32204598,
+            "max": 4.8868704
+        },
+        "area_sq_km": {
+            "min": 0.0081,
+            "max": 33.1776
+        },
+        "elevation": {
+            "min": -61.0,
+            "max": 2933.333333333333
+        },
+        "capacity": {
+            "min": 0.2592,
+            "max": 1061.6832
+        },
+        "dist_mi": {
+            "min": "na",
+            "max": "na"
+        },
+        "lcot": {
+            "min": "na",
+            "max": "na"
+        },
+        "mean_cf": {
+            "min": 0.17629123,
+            "max": 0.25839967
+        },
+        "mean_lcoe": {
+            "min": 28.96156,
+            "max": 42.464893
+        },
+        "mean_res": {
+            "min": "na",
+            "max": "na"
+        },
+        "total_lcoe": {
+            "min": "na",
+            "max": "na"
+        },
+        "trans_capacity": {
+            "min": "na",
+            "max": "na"
+        },
+        "trans_cap_cost": {
+            "min": "na",
+            "max": "na"
+        },
+        "transmission_multiplier": {
+            "min": "na",
+            "max": "na"
+        },
+        "trans_type": {
+            "min": "na",
+            "max": "na"
+        },
+        "windspeed_class": {
+            "min": "na",
+            "max": "na"
+        }
+    },
+    "titles": {
+        "slope": "Slope",
+        "area_sq_km": "Supply Curve Point Area",
+        "capacity": "Total Capacity",
+        "elevation": "Elevation",
+        "dist_mi": "Distance to Transmission",
+        "lcot": "LCOT",
+        "mean_cf": "Mean Capacity Factor",
+        "mean_lcoe": "Mean Site-Based LCOE",
+        "mean_res": "Mean Windspeed",
+        "total_lcoe": "Total LCOE",
+        "trans_capacity": "Total Transmission Capacity",
+        "trans_cap_cost": "Transmission Capital Costs",
+        "transmission_multiplier": "Transmission Cost Multiplier",
+        "trans_type": "Transmission Feature Type",
+        "windspeed_class": "Windspeed Class"
+    },
+    "units": {
+        "slope": "degrees"
+    }
+}
