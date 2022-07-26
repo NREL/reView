@@ -12,8 +12,8 @@ from reView.environment.settings import (
     LOG_LEVEL,
 )
 from reView.routes import render_page_content
-from reView.utils.log import init_logger, log_versions
 from reView.utils import calls
+from reView.utils.log import init_logger, log_versions
 
 
 def main():

@@ -196,7 +196,7 @@ class Title:
             df = self.df
 
         # Drop nan values in variable
-        df = df.dropna(subset=self.color_var)
+        df = df.dropna(subset=[self.color_var], axis=0)
         df = df[df[self.color_var] != -np.inf]
 
         # If mean, use weights

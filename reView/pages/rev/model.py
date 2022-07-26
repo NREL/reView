@@ -237,7 +237,10 @@ def cache_table(project, path, y_var, x_var, recalc_table=None, recalc="off"):
             path, recalc_table
         )
     else:
-        data = pd.read_csv(path, low_memory=False)
+        if path.endswith(".parquet"):
+            data = pd.read_parquet(path)
+        else:
+            data = pd.read_csv(path, low_memory=False)
 
     # We want some consistent fields
     if "capacity" not in data.columns and "hybrid_capacity" in data.columns:

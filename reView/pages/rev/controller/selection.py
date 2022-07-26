@@ -139,7 +139,10 @@ def scrape_variable_options(
     path = choose_scenario(scenario_a_options, config)
     variable_options = []
     if path and os.path.exists(path):
-        columns = pd.read_csv(path, nrows=1).columns
+        if path.endswith(".parquet"):
+            columns = pd.read_parquet(path).columns
+        else:
+            columns = pd.read_csv(path, nrows=1).columns
         if b_div.get("display") != "none":
             path2 = choose_scenario(scenario_b_options, config)
             if path2 and os.path.exists(path2):

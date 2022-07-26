@@ -8,6 +8,7 @@ Created on Sat Aug 15 15:47:40 2020
 import ast
 import json
 import logging
+import os
 
 from functools import cached_property, lru_cache
 from pathlib import Path
@@ -212,7 +213,7 @@ class Config:
             for file in self.options.file:
                 yield Path(file).expanduser().resolve()
         else:
-            yield from self.directory.rglob("*.csv")
+            yield from self.directory.glob("*.[cp][sa][vr]*")
 
     @property
     def _all_columns(self):
@@ -254,17 +255,20 @@ class Config:
 
     @property
     def _project_files(self):
-        """:obj:`generator`: Generator of project-related files only."""
+        """Generator of project-related files only."""
         for file in self._all_files:
             scenario = strip_rev_filename_endings(file.name)
-            if scenario.endswith(".csv"):
+            if file.name.endswith(".csv"):
+                if os.path.exists(str(file).replace(".csv", ".parquet")):
+                    continue
+            if scenario.endswith(".csv") or scenario.endswith(".parquet"):
                 continue
             yield scenario, file
 
     def _safe_read(self, fp_key, default_fp=None):
         """Read the data corresponding to the config key."""
         path = self._extract_fp_from_config(fp_key) or default_fp
-        return _safe_read_csv(path)
+        return _safe_read(path)
 
     def _set_config(self):
         """Set the config, raise error is project not found."""
@@ -280,10 +284,17 @@ class Config:
 
 
 @lru_cache(maxsize=16)
-def _safe_read_csv(path):
+def _safe_read(path):
     """Read the csv from path without throwing error if it DNE."""
+    # Incorporating parquet format as an option
+    if os.path.splitext(path)[-1] == "parquet":
+        read_func = pd.read_parquet
+    else:
+        read_func = pd.read_csv
+
+    # Try and read file
     try:
-        data = pd.read_csv(path)
+        data = read_func(path)
     except (ValueError, FileNotFoundError):
         data = None
     return data
