@@ -8,6 +8,7 @@ import os
 import platform
 
 from collections import Counter
+from multiprocessing.pool import ThreadPool
 
 import numpy as np
 import pandas as pd
@@ -283,9 +284,8 @@ def cache_chart_tables(
     # idx=None
 ):
     """Read and store a data frame from the config and options given."""
-    signal_copy = signal_dict.copy()
-
     # Unpack subsetting information
+    signal_copy = signal_dict.copy()
     states = signal_copy["states"]
 
     # If multiple tables selected, make a list of those files
@@ -306,35 +306,18 @@ def cache_chart_tables(
 
     # Get the requested data frames
     dfs = {}
-    for signal in signal_dicts:
-        name = build_name(signal["path"])
-        df = cache_map_data(signal)
-        # first_cols = [x, y, "state", "sc_point_gid"]
-        # rest_of_cols = set(df.columns) - set(first_cols)
-        # all_cols = first_cols + sorted(rest_of_cols)
-        # df = df[all_cols]
-        # TODO: Where to add "nrel_region" col?
-
-        # Subset by index selection
-        # if idx:
-        #     df = df.iloc[idx]
-
-        # Subset by state selection
-        if states:
-            if any(df["state"].isin(states)):
-                df = df[df["state"].isin(states)]
-
-            if "offshore" in states:
-                df = df[df["offshore"] == 1]
-            if "onshore" in states:
-                df = df[df["offshore"] == 0]
-
-        # Divide into regions if one table (cancel otherwise for now)
-        if region != "national" and len(signal_dicts) == 1:
+    if len(signal_dicts) == 1:
+        df, name = read_signal(signal)
+        dfs[name] = df
+        if region != "national":
             regions = df[region].unique()
             dfs = {r: df[df[region] == r] for r in regions}
-        else:
-            dfs[name] = df
+            
+    else:
+        args = [(sd, states) for sd in signal_dicts]
+        with ThreadPool(mp.cpu_count() -1) as pool:
+            for df, name in pool.starmap(read_signal, args):
+                dfs[name] = df
 
     return dfs
 
@@ -644,6 +627,23 @@ def read_df_and_store_scenario_name(file):
     data = pd.read_csv(file, low_memory=False)
     data["scenario"] = strip_rev_filename_endings(file.name)
     return data
+
+
+def read_signal(signal, states=None):
+    # Get name and dataframe
+    name = build_name(signal["path"])
+    df = cache_map_data(signal)
+
+    # Subset by state selection
+    if states:
+        if any(df["state"].isin(states)):
+            df = df[df["state"].isin(states)]
+        if "offshore" in states:
+            df = df[df["offshore"] == 1]
+        if "onshore" in states:
+            df = df[df["offshore"] == 0]
+
+    return df, name
 
 
 class Difference:

@@ -703,6 +703,7 @@ def dropdowns_additional_scenarios(url, project, __):
     scenario_outputs = []
     scenario_originals = [str(file) for file in config.files.values()]
     files = scenario_originals + scenario_outputs
+    files.sort()
     names = []
     for file in files:
         name = os.path.basename(file)
@@ -715,6 +716,8 @@ def dropdowns_additional_scenarios(url, project, __):
         {"label": key, "value": os.path.expanduser(file)}
         for key, file in file_list.items()
     ]
+
+    scenario_options.insert(0, {"label": "All", "value": "all"})
 
     if not scenario_options:
         scenario_options = [{"label": "None", "value": None}]
@@ -1254,7 +1257,7 @@ def retrieve_signal(
     regions,
     ___,
     x,
-    scenarios,
+    added_scenarios,
     filter_store,
     pca1_click_selection,
     pca2_click_selection,
@@ -1365,8 +1368,14 @@ def retrieve_signal(
         logger.debug("path = %s", path)
         logger.debug("path2 = %s", path2)
 
-        if scenarios:
-            scenarios = [os.path.expanduser(path) for path in scenarios]
+        if added_scenarios:
+            if "all" in added_scenarios: 
+                files = [file[1] for file in config._project_files]
+                added_scenarios = [os.path.expanduser(path) for path in files]
+            else:
+                added_scenarios = [
+                    os.path.expanduser(path) for path in added_scenarios
+                ]
 
         # Pack up the filters
         if filter_store:
@@ -1383,7 +1392,7 @@ def retrieve_signal(
             "project": project,
             "recalc": recalc,
             "recalc_table": recalc_table,
-            "added_scenarios": scenarios,
+            "added_scenarios": added_scenarios,
             "regions": regions,
             "diff_units": diff_units,
             "states": states,
