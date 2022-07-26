@@ -278,11 +278,7 @@ def cache_table(project, path, y_var, x_var, recalc_table=None, recalc="off"):
 
 
 @cache3.memoize()
-def cache_chart_tables(
-    signal_dict,
-    region="national",
-    # idx=None
-):
+def cache_chart_tables(signal_dict, region="national"):
     """Read and store a data frame from the config and options given."""
     # Unpack subsetting information
     signal_copy = signal_dict.copy()
@@ -312,10 +308,9 @@ def cache_chart_tables(
         if region != "national":
             regions = df[region].unique()
             dfs = {r: df[df[region] == r] for r in regions}
-            
     else:
         args = [(sd, states) for sd in signal_dicts]
-        with ThreadPool(mp.cpu_count() -1) as pool:
+        with ThreadPool(mp.cpu_count() - 1) as pool:
             for df, name in pool.starmap(read_signal, args):
                 dfs[name] = df
 
