@@ -283,6 +283,8 @@ def cache_chart_tables(signal_dict, region="national"):
     # Unpack subsetting information
     signal_copy = signal_dict.copy()
     states = signal_copy["states"]
+    y = signal_copy["y"]
+    x = signal_copy["x"]
 
     # If multiple tables selected, make a list of those files
     if signal_copy["added_scenarios"]:
@@ -309,6 +311,10 @@ def cache_chart_tables(signal_dict, region="national"):
             regions = df[region].unique()
             dfs = {r: df[df[region] == r] for r in regions}
     else:
+        # for sd in signal_dicts:
+        #     print(signal_dict["path"])
+        #     df, name = read_signal(sd, states)
+        #     dfs[name] = df
         args = [(sd, states) for sd in signal_dicts]
         with ThreadPool(mp.cpu_count() - 1) as pool:
             for df, name in pool.starmap(read_signal, args):

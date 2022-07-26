@@ -220,7 +220,10 @@ class Config:
         """Return all unique columns in a project."""
         allcols = []
         for file in self._all_files:
-            cols = pd.read_csv(file, nrows=0).columns
+            if str(file).endswith(".parquet"):
+                cols = pd.read_parquet(file).columns
+            else:
+                cols = pd.read_csv(file, nrows=0).columns
             for col in cols:
                 if col not in allcols:
                     allcols.append(col)
