@@ -227,21 +227,25 @@ def calc_least_cost(paths, out_file, bycol="total_lcoe"):
 # pylint: disable=unsubscriptable-object
 # pylint: disable=unsupported-assignment-operation
 @cache.memoize()
-def cache_table(project, path, y_var, x_var, recalc_table=None, recalc="off"):
-    """Read in just a single table."""
-    # Get config
-    config = Config(project)
-
-    # Get the table
+def cache_table(path, project, recalc="off", recalc_table=None):
+    """Read and cache a single table."""
     if recalc == "on":
         data = ReCalculatedData(config=Config(project)).build(
             path, recalc_table
         )
     else:
-        if path.endswith(".parquet"):
-            data = pd.read_parquet(path)
-        else:
-            data = pd.read_csv(path, low_memory=False)
+        data = pd.read_csv(path, low_memory=False)
+
+    return data
+
+
+def get_table(project, path, y_var, x_var, recalc_table=None, recalc="off"):
+    """Read in just a single table."""
+    # Get config
+    config = Config(project)
+
+    # Get the table
+    data = cache_table(path, project, recalc, recalc_table)
 
     # We want some consistent fields
     if "capacity" not in data.columns and "hybrid_capacity" in data.columns:
@@ -283,8 +287,6 @@ def cache_chart_tables(signal_dict, region="national"):
     # Unpack subsetting information
     signal_copy = signal_dict.copy()
     states = signal_copy["states"]
-    y = signal_copy["y"]
-    x = signal_copy["x"]
 
     # If multiple tables selected, make a list of those files
     if signal_copy["added_scenarios"]:
@@ -311,12 +313,8 @@ def cache_chart_tables(signal_dict, region="national"):
             regions = df[region].unique()
             dfs = {r: df[df[region] == r] for r in regions}
     else:
-        # for sd in signal_dicts:
-        #     print(signal_dict["path"])
-        #     df, name = read_signal(sd, states)
-        #     dfs[name] = df
         args = [(sd, states) for sd in signal_dicts]
-        with ThreadPool(mp.cpu_count() - 1) as pool:
+        with mp.Pool(mp.cpu_count() - 1) as pool:
             for df, name in pool.starmap(read_signal, args):
                 dfs[name] = df
 
@@ -345,7 +343,7 @@ def cache_map_data(signal_dict):
     recalc_b = recalc_tables["scenario_b"]
 
     # Read and cache first table
-    df1 = cache_table(project, path, y_var, x_var, recalc_a, recalc)
+    df1 = get_table(project, path, y_var, x_var, recalc_a, recalc)
 
     # Apply filters
     df1 = apply_filters(df1, filters)
@@ -353,7 +351,7 @@ def cache_map_data(signal_dict):
     # If there's a second table, read/cache the difference
     if path2 and os.path.isfile(path2):
         # Match the format of the first dataframe
-        df2 = cache_table(project, path2, y_var, x_var, recalc_b, recalc)
+        df2 = get_table(project, path2, y_var, x_var, recalc_b, recalc)
         df2 = apply_filters(df2, filters)
 
         # If the difference option is specified difference
@@ -664,8 +662,8 @@ class Difference:
         df2 = df2.set_index(self.index_col, drop=False)
 
         # Filter for variable
-        df1 = df1.dropna(subset=y_var)
-        df2 = df2.dropna(subset=y_var)
+        df1 = df1[~pd.isnull(df1[y_var])]
+        df2 = df2[~pd.isnull(df2[y_var])]
         df1 = df1.drop_duplicates(subset="sc_point_gid")
         df2 = df2.drop_duplicates(subset="sc_point_gid")
 

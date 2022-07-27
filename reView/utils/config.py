@@ -213,17 +213,14 @@ class Config:
             for file in self.options.file:
                 yield Path(file).expanduser().resolve()
         else:
-            yield from self.directory.glob("*.[cp][sa][vr]*")
+            yield from self.directory.glob("*.csv")
 
     @property
     def _all_columns(self):
         """Return all unique columns in a project."""
         allcols = []
         for file in self._all_files:
-            if str(file).endswith(".parquet"):
-                cols = pd.read_parquet(file).columns
-            else:
-                cols = pd.read_csv(file, nrows=0).columns
+            cols = pd.read_csv(file, nrows=0).columns
             for col in cols:
                 if col not in allcols:
                     allcols.append(col)
@@ -261,17 +258,14 @@ class Config:
         """Generator of project-related files only."""
         for file in self._all_files:
             scenario = strip_rev_filename_endings(file.name)
-            if file.name.endswith(".csv"):
-                if os.path.exists(str(file).replace(".csv", ".parquet")):
-                    continue
-            if scenario.endswith(".csv") or scenario.endswith(".parquet"):
+            if scenario.endswith(".csv"):
                 continue
             yield scenario, file
 
     def _safe_read(self, fp_key, default_fp=None):
         """Read the data corresponding to the config key."""
         path = self._extract_fp_from_config(fp_key) or default_fp
-        return _safe_read(path)
+        return safe_read(path)
 
     def _set_config(self):
         """Set the config, raise error is project not found."""
@@ -287,17 +281,11 @@ class Config:
 
 
 @lru_cache(maxsize=16)
-def _safe_read(path):
+def safe_read(path):
     """Read the csv from path without throwing error if it DNE."""
-    # Incorporating parquet format as an option
-    if os.path.splitext(path)[-1] == "parquet":
-        read_func = pd.read_parquet
-    else:
-        read_func = pd.read_csv
-
     # Try and read file
     try:
-        data = read_func(path)
+        data = pd.read_csv(path)
     except (ValueError, FileNotFoundError):
         data = None
     return data

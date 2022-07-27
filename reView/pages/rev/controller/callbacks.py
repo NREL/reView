@@ -746,6 +746,7 @@ def dropdowns_additional_scenarios(url, project, __):
     Input("rev_map_color_max", "value"),
     Input("rev_chart_x_bin", "value"),
     Input("rev_chart_alpha", "value"),
+    Input("rev_chart_outliers", "value"),
     Input("rev_chart_download_button", "n_clicks"),
     State("rev_chart", "selectedData"),
     State("project", "value"),
@@ -764,6 +765,7 @@ def figure_chart(
     user_ymax,
     bins,
     alpha,
+    outliers,
     download,
     chart_selection,
     project,
@@ -832,6 +834,7 @@ def figure_chart(
         point_size=point_size,
         user_scale=(user_ymin, user_ymax),
         alpha=alpha,
+        outliers=outliers
     )
     fig = plotter.figure(chart_type, x_var, y_var, bins)
 
@@ -1503,13 +1506,25 @@ def tabs_chart(tab_choice, chart_choice):
 
 
 @app.callback(
-    Output("rev_chart_x_bin_div", "style"), Input("rev_chart_options", "value")
+    Output("rev_chart_x_bin_div", "style"),
+    Input("rev_chart_options", "value")
 )
 @calls.log
 def toggle_bins(chart_type):
     """Show the bin size option under the chart."""
-
     if chart_type in {"binned", "histogram", "char_histogram"}:
+        return {}
+    return {"display": "none"}
+
+
+@app.callback(
+    Output("rev_chart_outliers_div", "style"),
+    Input("rev_chart_options", "value")
+)
+@calls.log
+def toggle_outliers(chart_type):
+    """Show the bin size option under the chart."""
+    if chart_type == "box":
         return {}
     return {"display": "none"}
 

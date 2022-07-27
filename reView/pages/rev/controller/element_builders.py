@@ -62,6 +62,7 @@ class Plots:
         point_size=DEFAULT_POINT_SIZE,
         user_scale=(None, None),
         alpha=1,
+        outliers="off"
     ):
         """Initialize plotting object for a reV project."""
         self.datasets = datasets
@@ -70,6 +71,7 @@ class Plots:
         self.user_scale = user_scale
         self.alpha = alpha
         self.config = Config(project)
+        self.outliers = outliers
 
     def __repr__(self):
         """Print representation string."""
@@ -140,7 +142,6 @@ class Plots:
 
     def box(self, y_var):
         """Return a box plot."""
-
         units = self.config.units.get(
             DiffUnitOptions.remove_from_variable_name(y_var), ""
         )
@@ -172,6 +173,13 @@ class Plots:
         main_df = main_df.sort_values(self.GROUP)
         main_df[self.GROUP] = main_df[self.GROUP].apply(fix_key)
 
+        # Deal with outliers
+        if self.outliers == "off":
+            points = False
+        else:
+            points = "outliers"
+
+        # Make figure
         fig = px.box(
             main_df,
             x=self.GROUP,
@@ -180,6 +188,7 @@ class Plots:
             labels={y_var: y_title},
             color=self.GROUP,
             color_discrete_sequence=px.colors.qualitative.Safe,
+            points=points
         )
 
         fig.update_traces(
@@ -329,7 +338,7 @@ class Plots:
 
         y_title = self._axis_title(y_var)
         main_df = main_df.sort_values(self.GROUP)
-        main_df = main_df.dropna(subset=y_var)
+        main_df = main_df[~pd.isnull(main_df[y_var])]
 
         # Use numpy since plotly calculates counts in browser
         main_df = self._histogram(main_df, y_var, bins)
@@ -427,7 +436,7 @@ class Plots:
     def _histogram(self, main_df, y_var, bins):
         """Build grouped bin count dataframe for histogram."""
         # Get bin ranges for full value range
-        main_df = main_df.dropna(subset=y_var)
+        main_df = main_df[~pd.isnull(main_df[y_var])]
         _, xbins = np.histogram(main_df[y_var], bins=bins)
         bin_size = np.diff(xbins)[0]
 

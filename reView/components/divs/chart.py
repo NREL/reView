@@ -60,7 +60,7 @@ def above_chart_options_div(id_prefix, class_name=None):
     """
     return html.Div(
         [
-            # Chart options
+            # Chart optionsrev_chart_options
             dcc.Tabs(
                 id=f"{id_prefix}_chart_options_tab",
                 value="chart",
@@ -287,7 +287,21 @@ def below_chart_options_div(id_prefix, class_name=None):
                         ),
                     ],
                 ),
-
+                html.Div(
+                    id=f"{id_prefix}_chart_outliers_div",
+                    className="two columns",
+                    children=[
+                        html.P("Outliers", style=OPTION_TITLE_STYLE),
+                        dcc.RadioItems(
+                            options=[{"label": "On", "value": "on"},
+                                     {"label": "Off", "value": "off"}],
+                            id=f"{id_prefix}_chart_outliers",
+                            value="on",
+                            style=OPTION_STYLE,
+                            labelStyle={"display": "inline-block", "padding": "5px"}
+                        ),
+                    ],
+                ),
                 # Download Submission
                 dbc.Button(
                     "DOWNLOAD",

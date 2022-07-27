@@ -146,7 +146,10 @@ def scrape_variable_options(
         if b_div.get("display") != "none":
             path2 = choose_scenario(scenario_b_options, config)
             if path2 and os.path.exists(path2):
-                columns2 = pd.read_csv(path2, nrows=1).columns
+                if path2.endswith(".parquet"):
+                    columns2 = pd.read_parquet(path2).columns
+                else:
+                    columns2 = pd.read_csv(path2, nrows=1).columns
                 columns = [c for c in columns if c in columns2]
         columns = [c for c in columns if c.lower() not in SKIP_VARS]
         titles = {col: convert_to_title(col) for col in columns}
