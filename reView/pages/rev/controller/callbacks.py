@@ -364,6 +364,7 @@ def dropdown_colors(__, variable, project, signal, ___):
     # To figure out if we need to update we need these
     if not signal:
         raise PreventUpdate  # @IgnoreException
+
     old_variable = json.loads(signal)["y"]
     config = Config(project)
     units = config.units.get(variable)

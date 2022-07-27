@@ -203,24 +203,37 @@ def build_name(path):
     return name
 
 
-def calc_least_cost(paths, out_file, bycol="total_lcoe"):
+def calc_least_cost(paths, dst, bycol="total_lcoe", how="min"):
     """Build the single least cost table from a list of tables."""
-    # Not including an overwrite option for now
-    if not os.path.exists(out_file):
+    def read(file):
+        """Retrieve a single data frame."""
+        data = pd.read_csv(file, low_memory=False)
+        data["scenario"] = strip_rev_filename_endings(file.name)
+        return data
 
-        # Collect all data frames - biggest lift of all
+    def least_cost(dfs, bycol="total_lcoe", group_col="sc_point_gid",
+                   how="min"):
+        """Return a single least cost df from a list dfs."""
+        bdf = pd.concat(dfs)
+        bdf = bdf.reset_index(drop=True)
+        if how == "min":
+            idx = bdf.groupby(group_col)[bycol].idxmin()
+        else:
+            idx = bdf.groupby(group_col)[bycol].idxmax()
+        data = bdf.iloc[idx]
+        return data
+
+    # Collect all data frames - biggest lift of all
+    if not os.path.exists(dst):
         paths.sort()
         dfs = []
-        with mp.Pool(10) as pool:
-            for data in tqdm(
-                pool.imap(read_df_and_store_scenario_name, paths),
-                total=len(paths),
-            ):
+        with ThreadPool(mp.cpu_count() - 2) as pool:
+            for data in tqdm(pool.imap(read, paths), total=len(paths)):
                 dfs.append(data)
 
         # Make one big data frame and save
-        data = least_cost(dfs, bycol=bycol)
-        data.to_csv(out_file, index=False)
+        data = least_cost(dfs, bycol=bycol, how=how)
+        data.to_csv(dst, index=False)
 
 
 # pylint: disable=no-member
@@ -516,19 +529,6 @@ def key_mode(dct):
     return value
 
 
-def least_cost(dfs, bycol="total_lcoe", group_col="sc_point_gid"):
-    """Return a single least cost df from a list dfs."""
-    # Make one big data frame
-    bdf = pd.concat(dfs)
-    bdf = bdf.reset_index(drop=True)
-
-    # Group, find minimum, and subset
-    idx = bdf.groupby(group_col)[bycol].idxmin()
-    data = bdf.iloc[idx]
-
-    return data
-
-
 def meet_demand(df, map_function, project, click_selection, map_selection):
     """Demand meeting function."""
     demand_data = None
@@ -619,13 +619,6 @@ def point_filter(df, map_selection=None, chart_selection=None):
             gids = [p.get("customdata", [None])[0] for p in points]
         df = df[df["sc_point_gid"].isin(gids)]
     return df
-
-
-def read_df_and_store_scenario_name(file):
-    """Retrieve a single data frame."""
-    data = pd.read_csv(file, low_memory=False)
-    data["scenario"] = strip_rev_filename_endings(file.name)
-    return data
 
 
 def read_signal(signal, states=None):

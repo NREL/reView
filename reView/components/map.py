@@ -302,16 +302,19 @@ class Map:
 
         elif self.units == "category":
             # Create data object
+            colormap = self.colorscale
             self.df[self.color_var][self.df[self.color_var].isnull()] = "nan"
+            self.df = self.df.sort_values(self.color_var)
 
             # Check for color mapping
             var = self.color_var.replace("_mode", "")
-            if "colormap" in self.config.characterization_cols[var]:
-                charcols = self.config.characterization_cols[var]
-                colormap = charcols["colormap"]
-                if "lookup" in self.config.characterization_cols[var]:
-                    lookup = self.config.characterization_cols[var]["lookup"]
-                    colormap = {lookup[k]: c for k, c in colormap.items()}
+            if var in self.config.characterization_cols:
+                if "colormap" in self.config.characterization_cols[var]:
+                    charcols = self.config.characterization_cols[var]
+                    colormap = charcols["colormap"]
+                    if "lookup" in self.config.characterization_cols[var]:
+                        lookup = self.config.characterization_cols[var]["lookup"]
+                        colormap = {lookup[k]: c for k, c in colormap.items()}
 
                 figure = px.scatter_mapbox(
                     data_frame=self.df,
@@ -328,7 +331,7 @@ class Map:
                     color=self.color_var,
                     lon="longitude",
                     lat="latitude",
-                    color_discrete_sequence=px.colors.qualitative.Safe,
+                    color_discrete_sequence=px.colors.qualitative.__dict__[colormap],
                     custom_data=["sc_point_gid", "capacity"],
                     hover_name="text",
                 )
@@ -365,6 +368,12 @@ class Map:
 
         # Update the layout
         layout = self.layout
+        if self.units == "category":
+            layout["legend"] = {
+                "itemsizing": "constant",
+                "bgcolor": "#e4ecf6",
+                "font_color": "black"
+            }
         figure.update_layout(**layout)
         figure.update_traces(
             unselected=dict(marker=dict(opacity=1)),

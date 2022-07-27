@@ -24,10 +24,17 @@ CHART_OPTIONS = [
 COLOR_OPTIONS = [{"label": k, "value": k} for k, _ in COLORS.items()]
 COLOR_Q_OPTIONS = [{"label": k, "value": k} for k, _ in COLORS_Q.items()]
 REGION_OPTIONS = [
-    {"label": "National", "value": "national"},
-    {"label": "NREL Regions", "value": "nrel_region"},
-    {"label": "States", "value": "state"},
+    {"label": "Pacific", "value": "Pacific"},
+    {"label": "Mountain", "value": "Mountain"},
+    {"label": "Great Plains", "value": "Great Plains"},
+    {"label": "Great Lakes", "value": "Great Lakes"},
+    {"label": "Northeast", "value": "Northeast"},
+    {"label": "California", "value": "California"},
+    {"label": "Southwest", "value": "Southwest"},
+    {"label": "South Central", "value": "South Central"},
+    {"label": "Southeast", "value": "Southeast"}
 ]
+
 # pylint: disable=no-member
 STATE_OPTIONS = [{"label": s.name, "value": s.name} for s in us.STATES] + [
     {"label": "Onshore", "value": "onshore"},

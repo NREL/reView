@@ -31,7 +31,7 @@ cache = Cache(
     config={
         "CACHE_TYPE": "filesystem",
         "CACHE_DIR": "cache-directory/cache",
-        "CACHE_THRESHOLD": 10,
+        "CACHE_THRESHOLD": 25,
     }
 )
 
