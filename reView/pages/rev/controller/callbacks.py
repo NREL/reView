@@ -60,6 +60,7 @@ from reView.utils.constants import SKIP_VARS
 from reView.utils.functions import (
     convert_to_title,
     callback_trigger,
+    isint,
     strip_rev_filename_endings,
     to_geo
 )    
@@ -319,6 +320,27 @@ def download_map(__, signal, project, map_selection, chart_selection, y_var,
     if signal_dict["path2"]:
         name2 = os.path.splitext(os.path.basename(signal_dict["path2"]))[0]
         name = f"{name2}_{name}_diff"
+
+    # No numbers allowed in first position of column name
+    for col in df.columns:
+        if isint(col[0]):
+            col2 = "a_" + col
+            df = df.rename({col: col2}, axis=1)
+            col = col2
+        if "&" in col:
+            col2 = col.replace("&", "")
+            df = df.rename({col: col2}, axis=1)
+            col = col2
+        if col.startswith("Unnamed:"):
+            del df[col]
+        col2 = "_".join(col.split()).lower()
+        df = df.rename({col: col2}, axis=1)
+        col = col2
+
+    # Fix y variable name
+    y_var = "_".join(y_var.split()).lower()
+    if isint(y_var[0]):
+        y_var = "a_" + y_var
 
     # Build geopackage and send it
     layer = f"review_{name}_{y_var}"
@@ -900,7 +922,7 @@ def figure_map(
     df = cache_map_data(signal_dict)
 
     # This might be a difference
-    if signal_dict["path2"] and os.path.isfile(signal_dict["path2"]):
+    if signal_dict["difference"] == "on":
         y_var = df.columns[-1]
     else:
         y_var = signal_dict["y"]
@@ -1399,6 +1421,7 @@ def retrieve_signal(
             "added_scenarios": added_scenarios,
             "regions": regions,
             "diff_units": diff_units,
+            "difference": diff,
             "states": states,
             "x": x,
             "y": y,

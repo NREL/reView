@@ -348,6 +348,7 @@ def cache_map_data(signal_dict):
     states = signal_dict["states"]
     regions = signal_dict["regions"]
     diff_units = signal_dict["diff_units"]
+    diff = signal_dict["difference"]
     y_var = signal_dict["y"]
     x_var = signal_dict["x"]
 
@@ -356,10 +357,10 @@ def cache_map_data(signal_dict):
     recalc_b = recalc_tables["scenario_b"]
 
     # Read and cache first table
-    df1 = get_table(project, path, y_var, x_var, recalc_a, recalc)
+    df = get_table(project, path, y_var, x_var, recalc_a, recalc)
 
     # Apply filters
-    df1 = apply_filters(df1, filters)
+    df = apply_filters(df, filters)
 
     # If there's a second table, read/cache the difference
     if path2 and os.path.isfile(path2):
@@ -367,18 +368,17 @@ def cache_map_data(signal_dict):
         df2 = get_table(project, path2, y_var, x_var, recalc_b, recalc)
         df2 = apply_filters(df2, filters)
 
-        # If the difference option is specified difference
-        calculator = Difference(
-            index_col="sc_point_gid",
-            diff_units=diff_units
-        )
-        df = calculator.calc(df1, df2, y_var)
-
         # If mask, try that here
         if mask == "on":
-            df = calc_mask(df1, df)
-    else:
-        df = df1
+            df = calc_mask(df, df2)
+
+        # If the difference option is specified difference
+        if diff == "on":
+            calculator = Difference(
+                index_col="sc_point_gid",
+                diff_units=diff_units
+            )
+            df = calculator.calc(df, df2, y_var)
 
     # Filter for states
     if states:
@@ -401,7 +401,7 @@ def cache_map_data(signal_dict):
 def calc_mask(df1, df2, unique_id_col="sc_point_gid"):
     """Remove the areas in df2 that are in df1."""
     # How to deal with mismatching grids?
-    df = df2[~df2[unique_id_col].isin(df1[unique_id_col])]
+    df = df1[~df1[unique_id_col].isin(df2[unique_id_col])]
     return df
 
 

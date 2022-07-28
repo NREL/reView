@@ -213,7 +213,7 @@ class Config:
             for file in self.options.file:
                 yield Path(file).expanduser().resolve()
         else:
-            yield from self.directory.glob("*.csv")
+            yield from self.directory.rglob("*.csv")
 
     @property
     def _all_columns(self):

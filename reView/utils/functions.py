@@ -25,6 +25,14 @@ from reView import REVIEW_CONFIG_DIR, REVIEW_DATA_DIR
 logger = logging.getLogger(__name__)
 
 
+def isint(x):
+    """Check if an object is an integer or string of integer."""
+    try:
+        return isinstance(int(x), int)
+    except ValueError:
+        return False
+
+
 def to_geo(df, dst, layer):
     """Convert pandas data frame to geodataframe."""
     # Initialize file
