@@ -366,11 +366,11 @@ def cache_map_data(signal_dict):
     if path2 and os.path.isfile(path2):
         # Match the format of the first dataframe
         df2 = get_table(project, path2, y_var, x_var, recalc_b, recalc)
-        df2 = apply_filters(df2, filters)
 
         # If mask, try that here
         if mask == "on":
-            df = calc_mask(df, df2)
+            df3 = apply_filters(df2, filters)
+            df = calc_mask(df, df3)
 
         # If the difference option is specified difference
         if diff == "on":
@@ -675,7 +675,7 @@ class Difference:
         """Return single dataset with difference between two."""
         diff = df1[y_var] - df2[y_var]
         if self.diff_units == "percent":
-            diff = (diff / df1[y_var]) * 100
+            diff = (diff / df2[y_var]) * 100
             col = f"{y_var}_difference_percent"
         else:
             col = f"{y_var}_difference"

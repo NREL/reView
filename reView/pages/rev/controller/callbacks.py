@@ -91,7 +91,7 @@ def build_specs(scenario, project):
 
 def build_spec_split(path, project):
     """Calculate the percentage of each scenario present."""
-    df = cache_table(project, y_var="capacity", x_var="mean_lcoe", path=path)
+    df = cache_table(path, project)
     scenarios, counts = np.unique(df["scenario"], return_counts=True)
     total = df.shape[0]
     percentages = [counts[i] / total for i in range(len(counts))]
