@@ -172,7 +172,7 @@ class Title:
         df = df[df[self.color_var] != -np.inf]
 
         # If mean, use weights
-        if agg_type == "mean":
+        if agg_type == "mean" and self.color_var not in ["capacity", "area_sq_km"]:
             aggregation = np.average(
                 df[self.color_var],
                 weights=df["capacity"]
