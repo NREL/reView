@@ -313,7 +313,7 @@ def download_map(__, signal, project, map_selection, chart_selection, y_var,
     name = os.path.splitext(os.path.basename(signal_dict["path"]))[0]
     if signal_dict["path2"]:
         name2 = os.path.splitext(os.path.basename(signal_dict["path2"]))[0]
-        name = f"{name2}_{name}_diff"
+        name = f"{name}_vs_{name2}_diff"
 
     # Build geopackage and send it
     layer = f"review_{name}_{y_var}"

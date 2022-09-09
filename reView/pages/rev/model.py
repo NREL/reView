@@ -234,18 +234,16 @@ def cache_table(project, path, y_var, x_var, recalc_table=None, recalc="off"):
             path, recalc_table
         )
     else:
-        cols = [y_var, x_var, "mean_cf", "capacity", "area_sq_km",
-                "sc_point_gid", "state", "county", "latitude", "longitude"]
-        if "nrel_region" in all_cols:
-            cols.append("nrel_region")
-        if "turbine_y_coords" in all_cols:
-            cols.append("turbine_y_coords")
-            cols.append("turbine_x_coords")
-        if "lcot" in all_cols:
-            cols.append("lcot")
-        if "total_lcoe" in all_cols:
-            cols.append("total_lcoe")
-
+        # Keep standard set of fields
+        cols = [y_var, x_var, "sc_point_gid", "state", "county",
+                "latitude", "longitude"]
+        optional_cols = ["capacity", "area_sq_km", "mean_cf", "capacity",
+                         "total_lcoe", "mean_lcoe", "bespoke_aep",
+                         "hub_height", "turbine_y_coords", "turbine_x_coords",
+                         "nrel_region", "lcot"]
+        for col in optional_cols:
+            if col in all_cols and col not in cols:
+                cols.append(col)
         data = pd.read_csv(path, usecols=cols, low_memory=False)
 
     # We want some consistent fields

@@ -56,6 +56,7 @@ def to_geo(df, dst, layer):
         fields.append(Field(col, ftype))
 
     # Create feature class
+    layer = layer.replace("-", "_")
     features = gpkg.create_feature_class(name=layer, srs=srs, fields=fields,
                                          shape_type=GeometryType.point)
 
