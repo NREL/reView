@@ -278,7 +278,8 @@ class Map:
 
             # Check for color mapping
             var = self.color_var.replace("_mode", "")
-            if "colormap" in self.config.characterization_cols[var]:
+            char_cols = self.config.characterization_cols
+            if char_cols and "colormap" in char_cols:
                 charcols = self.config.characterization_cols[var]
                 colormap = charcols["colormap"]
                 if "lookup" in self.config.characterization_cols[var]:

@@ -235,16 +235,16 @@ def cache_table(project, path, y_var, x_var, recalc_table=None, recalc="off"):
         )
     else:
         # Keep standard set of fields
-        cols = [y_var, x_var, "sc_point_gid", "state", "county",
-                "latitude", "longitude"]
-        optional_cols = ["capacity", "area_sq_km", "mean_cf", "capacity",
-                         "total_lcoe", "mean_lcoe", "bespoke_aep",
-                         "hub_height", "turbine_y_coords", "turbine_x_coords",
-                         "nrel_region", "lcot"]
-        for col in optional_cols:
-            if col in all_cols and col not in cols:
-                cols.append(col)
-        data = pd.read_csv(path, usecols=cols, low_memory=False)
+        # cols = [y_var, x_var, "sc_point_gid", "state", "county",
+        #         "latitude", "longitude"]
+        # optional_cols = ["capacity", "area_sq_km", "mean_cf", "capacity",
+        #                  "total_lcoe", "mean_lcoe", "bespoke_aep",
+        #                  "hub_height", "turbine_y_coords", "turbine_x_coords",
+        #                  "nrel_region", "lcot", "mean_ws", "mean_res"]
+        # for col in optional_cols:
+        #     if col in all_cols and col not in cols:
+        #         cols.append(col)
+        data = pd.read_csv(path, usecols=all_cols, low_memory=False)
 
     # We want some consistent fields
     if "capacity" not in data.columns and "hybrid_capacity" in data.columns:
