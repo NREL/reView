@@ -38,6 +38,13 @@ def to_geo(df, dst, layer):
     if "index" in df:
         del df["index"]
 
+    # Remove stupid Unnamed columns
+    for col in df.columns:
+        if "Unnamed:" in col:
+            del df[col]
+        if "-" in col:
+            df = df.rename({col: col.replace("-", "_")}, axis=1)
+
     # Create fields and set types
     fields = []
     for col, values in df.iteritems():
