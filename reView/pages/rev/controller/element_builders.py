@@ -302,6 +302,7 @@ class Plots:
     def figure(self, chart_type="cumsum", x_var=None, y_var=None, bins=None):
         """Return plotly figure for requested chart type."""
         if chart_type == "cumsum":
+            print(x_var)
             fig = self.cumulative_sum(x_var, y_var)
         elif chart_type == "scatter":
             fig = self.scatter(x_var, y_var)

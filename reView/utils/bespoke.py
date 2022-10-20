@@ -29,7 +29,7 @@ SPLIT_COLS = ["capacity", "annual_energy-means"]
 class BespokeUnpacker:
     """Methods for manipulating Bespoke reV outputs."""
 
-    def __init__(self, df, clicksel):
+    def __init__(self, df, clicksel=None, sc_point_gid=None):
         """Initialize BespokeUnpacker object.
 
         Parameters
@@ -38,10 +38,16 @@ class BespokeUnpacker:
             A reV supply curve pandas data frame.
         clicksel : dict
             Dictionary containing plotly point attributes from a
-            scattermapbox point selection.
+            scattermapbox point selection. If not provided an sc_point_gid
+            is required. Defaults to None.
+        sc_point_gid : int
+            Supply curve grid id. An ID indicating a specific site within a
+            full supply curve grid. If not provided, a clicksel dictionary
+            is required. Defaults to None.
         """
         self.df = df
         self.clicksel = clicksel
+        self.sc_point_gid = sc_point_gid
         self.src_crs = "epsg:4326"
         self._declick(clicksel)
 
@@ -145,8 +151,13 @@ class BespokeUnpacker:
 
     def _declick(self, clicksel):
         """Set needed values from click selection as attributes."""
-        point = clicksel["points"][0]
-        self.index = point["pointIndex"]
+        if self.clicksel:
+            point = clicksel["points"][0]
+            self.index = point["pointIndex"]
+            self.text = point["hovertext"].replace("<br>", "")
+        elif self.sc_point_gid:
+            query = self.df["sc_point_gid"] == self.sc_point_gid
+            self.index = self.df.index[query].values[0]
         self.county = self.df.loc[self.index, "county"]
         self.state = self.df.loc[self.index, "state"]
-        self.text = point["hovertext"].replace("<br>", "")
+            

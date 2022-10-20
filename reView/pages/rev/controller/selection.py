@@ -42,12 +42,12 @@ def parse_selection(scenario_options):
     return selected_options
 
 
-def all_files_from_selection(selected_options, config):
+def all_files_from_selection(options, config):
     """_summary_
 
     Parameters
     ----------
-    selected_options : _type_
+    options : _type_
         _description_
     config : _type_
         _description_
@@ -67,7 +67,7 @@ def all_files_from_selection(selected_options, config):
     except AttributeError:
         raise ValueError("Missing project options csv!") from None
 
-    for key, val in selected_options.items():
+    for key, val in options.items():
         df = df[df[key] == val["value"]]
     return df
 
@@ -128,24 +128,21 @@ def choose_scenario(scenario_options, config):
     return file_for_selections(selected_options, config)
 
 
-def scrape_variable_options(
+def get_variable_options(
     project,
-    scenario_a_options,
-    scenario_b_options,
-    b_div
+    scenario_a,
+    scenario_b,
+    b_div={"display": "none"}
 ):
     """Retrieve appropriate variable list."""
     config = Config(project)
-    path = choose_scenario(scenario_a_options, config)
     variable_options = []
-    if path and os.path.exists(path):
-        columns = pd.read_csv(path, nrows=1).columns
-        if b_div.get("display") != "none":
-            path2 = choose_scenario(scenario_b_options, config)
-            if path2 and os.path.exists(path2):
-                columns2 = pd.read_csv(path2, nrows=1).columns
-                columns = [c for c in columns if c in columns2]
-        columns = [c for c in columns if c.lower() not in SKIP_VARS]
+    if scenario_a and os.path.exists(scenario_a):
+        columns = pd.read_csv(scenario_a, nrows=1).columns
+        if "display" in b_div and b_div["display"] == "none":
+            if scenario_b and os.path.exists(scenario_b):
+                b_columns = pd.read_csv(scenario_b, nrows=1).columns
+                columns = [c for c in columns if c in b_columns]
         titles = {col: convert_to_title(col) for col in columns}
         config_titles = {k: v for k, v in config.titles.items() if k in titles}
         titles.update(config_titles)

@@ -7,8 +7,9 @@ import copy
 import os
 
 import numpy as np
-import plotly.graph_objects as go
 import plotly.express as px
+import plotly.figure_factory as ff
+import plotly.graph_objects as go
 
 from reView import Q_
 from reView.utils.classes import DiffUnitOptions
@@ -315,7 +316,10 @@ class Map:
                 custom_data=["sc_point_gid", "capacity"],
                 hover_name="text",
             )
-            figure.update_traces(marker=self.marker(point_size, reverse_color))
+
+            figure.update_traces(
+                marker=self.marker(point_size, reverse_color)
+            )
 
             if self.demand_data is not None:
                 self.demand_data["text"] = (
@@ -430,7 +434,7 @@ class Map:
         if self.units == "category":
             marker = dict(
                 reversescale=reverse_color,
-                size=point_size,
+                size=point_size
             )
         else:
             marker = dict(
@@ -444,7 +448,9 @@ class Map:
                     title=dict(
                         text=self.units,
                         font=dict(
-                            size=15, color="white", family="New Times Roman"
+                            size=15,
+                            color="white",
+                            family="New Times Roman"
                         ),
                     ),
                     tickfont=dict(color="white", family="New Times Roman"),

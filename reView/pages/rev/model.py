@@ -8,6 +8,7 @@ import os
 import platform
 
 from collections import Counter
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -198,24 +199,24 @@ def build_name(path):
     return name
 
 
-def calc_least_cost(paths, out_file, bycol="total_lcoe"):
+def calc_least_cost(paths, dst, composite_function="min",
+                    composite_variable="total_lcoe"):
     """Build the single least cost table from a list of tables."""
     # Not including an overwrite option for now
-    if not os.path.exists(out_file):
+    if not os.path.exists(dst):
 
         # Collect all data frames - biggest lift of all
-        paths.sort()
+        paths = [Path(path) for path in paths]
         dfs = []
-        with mp.Pool(10) as pool:
-            for data in tqdm(
-                pool.imap(read_df_and_store_scenario_name, paths),
-                total=len(paths),
-            ):
+        ncpu = min([len(paths), mp.cpu_count() - 1])
+        with mp.pool.ThreadPool(ncpu) as pool:
+            for data in tqdm(pool.imap(read_scenario, paths), total=ncpu):
                 dfs.append(data)
 
         # Make one big data frame and save
-        data = least_cost(dfs, bycol=bycol)
-        data.to_csv(out_file, index=False)
+        data = composite(dfs, composite_function=composite_function,
+                          composite_variable=composite_variable)
+        data.to_csv(dst, index=False)
 
 
 # pylint: disable=no-member
@@ -226,7 +227,6 @@ def cache_table(project, path, y_var, x_var, recalc_table=None, recalc="off"):
     """Read in just a single table."""
     # Get config
     config = Config(project)
-    all_cols = pd.read_csv(path, nrows=0).columns
 
     # Get the table
     if recalc == "on":
@@ -234,17 +234,7 @@ def cache_table(project, path, y_var, x_var, recalc_table=None, recalc="off"):
             path, recalc_table
         )
     else:
-        # Keep standard set of fields
-        # cols = [y_var, x_var, "sc_point_gid", "state", "county",
-        #         "latitude", "longitude"]
-        # optional_cols = ["capacity", "area_sq_km", "mean_cf", "capacity",
-        #                  "total_lcoe", "mean_lcoe", "bespoke_aep",
-        #                  "hub_height", "turbine_y_coords", "turbine_x_coords",
-        #                  "nrel_region", "lcot", "mean_ws", "mean_res"]
-        # for col in optional_cols:
-        #     if col in all_cols and col not in cols:
-        #         cols.append(col)
-        data = pd.read_csv(path, usecols=all_cols, low_memory=False)
+        data = pd.read_csv(path, low_memory=False)
 
     # We want some consistent fields
     if "capacity" not in data.columns and "hybrid_capacity" in data.columns:
@@ -538,14 +528,18 @@ def key_mode(dct):
     return value
 
 
-def least_cost(dfs, bycol="total_lcoe", group_col="sc_point_gid"):
+def composite(dfs, composite_variable="total_lcoe",
+              composite_function="min", group_col="sc_point_gid"):
     """Return a single least cost df from a list dfs."""
     # Make one big data frame
     bdf = pd.concat(dfs)
     bdf = bdf.reset_index(drop=True)
 
     # Group, find minimum, and subset
-    idx = bdf.groupby(group_col)[bycol].idxmin()
+    if composite_function == "min":
+        idx = bdf.groupby(group_col)[composite_variable].idxmin()
+    else:
+        idx = bdf.groupby(group_col)[composite_variable].idxmax()
     data = bdf.iloc[idx]
 
     return data
@@ -643,7 +637,7 @@ def point_filter(df, map_selection=None, chart_selection=None):
     return df
 
 
-def read_df_and_store_scenario_name(file):
+def read_scenario(file):
     """Retrieve a single data frame."""
     data = pd.read_csv(file, low_memory=False)
     data["scenario"] = strip_rev_filename_endings(file.name)
@@ -687,7 +681,8 @@ class Difference:
         """Return single dataset with difference between two."""
         diff = df1[y_var] - df2[y_var]
         if self.diff_units == "percent":
-            diff = (diff / df1[y_var]) * 100
+            df2[y_var][df2[y_var] == 0] = 0.0001  # Any difference from 0 is 100% different?
+            diff = (diff / df2[y_var]) * 100
             col = f"{y_var}_difference_percent"
         else:
             col = f"{y_var}_difference"

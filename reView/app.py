@@ -5,6 +5,8 @@ Created on Sun Aug 23 16:39:45 2020
 
 @author: travis
 """
+import os
+
 import dash
 import dash_bootstrap_components as dbc
 
@@ -30,7 +32,7 @@ for handler in app.logger.handlers:
 cache = Cache(
     config={
         "CACHE_TYPE": "filesystem",
-        "CACHE_DIR": "cache-directory/cache",
+        "CACHE_DIR": os.path.expanduser("~/.review/cache-directory/cache"),
         "CACHE_THRESHOLD": 10,
     }
 )
@@ -39,7 +41,7 @@ cache = Cache(
 cache2 = Cache(
     config={
         "CACHE_TYPE": "filesystem",
-        "CACHE_DIR": "cache-directory/cache2",
+        "CACHE_DIR": os.path.expanduser("~/.review/cache-directory/cache2"),
         "CACHE_THRESHOLD": 10,
     }
 )
@@ -48,7 +50,7 @@ cache2 = Cache(
 cache3 = Cache(
     config={
         "CACHE_TYPE": "filesystem",
-        "CACHE_DIR": "cache-directory/cache3",
+        "CACHE_DIR": os.path.expanduser("~/.review/cache-directory/cache3"),
         "CACHE_THRESHOLD": 10,
     }
 )
@@ -57,7 +59,7 @@ cache3 = Cache(
 cache4 = Cache(
     config={
         "CACHE_TYPE": "filesystem",
-        "CACHE_DIR": "cache-directory/cache3",
+        "CACHE_DIR": os.path.expanduser("~/.review/cache-directory/cache4"),
         "CACHE_THRESHOLD": 10,
     }
 )

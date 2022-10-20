@@ -17,7 +17,38 @@ from reView.components import (
     REV_PCA_DIV,
     REV_TOPTIONS_DIV,
 )
+from reView.utils.config import Config
 
+
+DEFAULT_CONFIG = Config(sorted(Config.projects)[0])
+DEFAULT_SIGNAL = {
+    "filters": [],
+    "mask": "off",
+    "path": str(sorted(DEFAULT_CONFIG._all_files)[0]),
+    "path2": None,
+    "project": DEFAULT_CONFIG.project,
+    "recalc": "off",
+    "recalc_table": {
+        "scenario_a": {
+            "fcr": None,
+            "capex": None,
+            "opex": None,
+            "losses": None
+        },
+        "scenario_b": {
+            "fcr": None,
+            "capex": None,
+            "opex": None,
+            "losses": None
+        }
+    },
+    "added_scenarios": [],
+    "regions": None,
+    "diff_units": "original",
+    "states": None,
+    "x": "capacity",
+    "y": "mean_lcoe",
+}
 
 layout = html.Div(
     className="eleven columns",
@@ -64,7 +95,8 @@ layout = html.Div(
         html.Div(id="chart_data_signal", style={"display": "none"}),
 
         # Interim way to share data between map and chart
-        html.Div(id="map_signal", style={"display": "none"}),
+        html.Div(id="map_signal", children=json.dumps(DEFAULT_SIGNAL),
+                 style={"display": "none"}),
 
         # This table of recalc parameters
         html.Div(

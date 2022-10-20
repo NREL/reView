@@ -14,39 +14,125 @@ from reView.layout.styles import (
 from reView.utils.config import Config
 
 
+TOP_TABS = html.Div(
+    id="options_tab",
+    children=[
+        dcc.Tabs(
+            id="options_tabs",
+            value="0",
+            style=TAB_STYLE,
+            children=[
+                dcc.Tab(
+                    value="0",
+                    label="Main",
+                    style=TABLET_STYLE,
+                    selected_style=TABLET_STYLE,
+                ),
+                dcc.Tab(
+                    value="1",
+                    label="Composite",
+                    style=TABLET_STYLE,
+                    selected_style=TABLET_STYLE,
+                ),
+                # dcc.Tab(
+                #     label="PCA" if IS_DEV_ENV else "Under construction",
+                #     value="2",
+                #     disabled=not IS_DEV_ENV,
+                #     style=TABLET_STYLE,
+                #     selected_style=TABLET_STYLE,
+                # ),
+            ],
+        ),  
+    ]
+)
+
+COMPOSITE_DIV = html.Div(
+    id="composite_div",
+    className="row",
+    style={"display": "none"},
+    children=[
+        # First Scenario
+        html.Div(
+            [
+                html.H5("Scenarios"),
+                html.Div(
+                    id="composite_options",
+                    children=dcc.Dropdown(id="composite_scenarios")
+                ),
+            ],
+            className="four columns",
+            style={"margin-left": "25px"},
+        ),
+
+        # Function options
+        html.Div(
+            [
+                html.H5("Function"),
+                dcc.Dropdown(
+                    id="composite_function",
+                    options=[
+                        {"label": "Minimum", "value": "min"},
+                        {"label": "Maximum", "value": "max"}
+                    ],
+                    value="min",
+                ),
+            ],
+            className="two columns",
+        ),
+
+        # Variable options
+        html.Div(
+            [
+                html.H5("Variable"),
+                dcc.Dropdown(
+                    id="composite_variable",
+                    options=[{"label": "None", "value": "None"}],
+                    value="mean_lcoe",
+                ),
+            ],
+            className="two columns",
+        ),
+
+        # Target options
+        html.Div(
+            [
+                html.H5("Composite Target"),
+                dcc.Dropdown(
+                    id="composite_target",
+                    options=[{"label": "None", "value": "None"}],
+                    value="None",
+                ),
+            ],
+            className="three columns",
+            style={"display": "none"}
+        ),
+
+        # Plot options
+        html.Div(
+            [
+                html.H5("Plot Value"),
+                dcc.Dropdown(
+                    id="composite_plot_value",
+                    options=[
+                        {"label": "Variable",  "value": "variable"},
+                        {"label": "Scenario",  "value": "scenario"},
+                    ],
+                    value="scenario",
+                ),
+            ],
+            className="two columns",
+        ),
+    ],
+)
+
 TOPTIONS = [
-    dcc.Tabs(
-        id="scenario_selection_tabs",
-        value="0",
-        children=[
-            dcc.Tab(
-                label="Default Scenario",
-                value="0",
-                style=TABLET_STYLE,
-                selected_style=TABLET_STYLE,
-            ),
-            dcc.Tab(
-                label="Lowest Scenario",
-                value="1",
-                style=TABLET_STYLE,
-                selected_style=TABLET_STYLE,
-            ),
-            dcc.Tab(
-                label="PCA" if IS_DEV_ENV else "Under construction",
-                value="2",
-                disabled=not IS_DEV_ENV,
-                style=TABLET_STYLE,
-                selected_style=TABLET_STYLE,
-            ),
-        ],
-        style={"display": "none"},
-    ),
+    # Composite Options
+    COMPOSITE_DIV,
 
     # Data Options
     html.Div(
         [
             html.Div(
-                # className="six columns",
                 style={"margin-bottom": "10px"},
                 children=[
                     # Project Selection
@@ -561,68 +647,6 @@ TOPTIONS = [
         id="options",
         className="row",
     ),
-    html.Div(
-        [
-            # First Scenario
-            html.Div(
-                [
-                    html.H5("Scenario"),
-                    html.Div(
-                        id="minimizing_scenario_options",
-                    ),
-                ],
-                className="four columns",
-                style={"margin-left": "25px"},
-            ),
-
-            # Variable options
-            html.Div(
-                [
-                    html.H5("Variable"),
-                    dcc.Dropdown(
-                        id="minimizing_variable",
-                        options=[{"label": "None", "value": "None"}],
-                        value="None",
-                    ),
-                ],
-                className="two columns",
-            ),
-
-            # Target options
-            html.Div(
-                [
-                    html.H5("Minimization Target"),
-                    dcc.Dropdown(
-                        id="minimizing_target",
-                        options=[{"label": "None", "value": "None"}],
-                        value="None",
-                    ),
-                ],
-                className="three columns",
-            ),
-
-            # Plot options
-            html.Div(
-                [
-                    html.H5("Plot Value"),
-                    dcc.Dropdown(
-                        id="minimizing_plot_value",
-                        options=[
-                            {
-                                "label": "Variable",
-                                "value": "Variable",
-                            },
-                        ],
-                        value="Variable",
-                    ),
-                ],
-                className="two columns",
-            ),
-        ],
-        id="minimizing_scenarios",
-        className="row",
-        style={"display": "none"},
-    ),
 ]
 
 
@@ -639,7 +663,10 @@ REV_TOPTIONS_DIV = html.Div(
         "margin-left": "0px",
     },
     children=[
-        # Scenario selection tabs - Tabs for selection options
+        # Options options
+        TOP_TABS,
+
+        # Scenario selection tabs - Tabs for selection options      
         dbc.Collapse(
             className="twelve columns",
             id="options_div",

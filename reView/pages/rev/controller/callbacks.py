@@ -44,7 +44,7 @@ from reView.pages.rev.controller.selection import (
     all_files_from_selection,
     choose_scenario,
     parse_selection,
-    scrape_variable_options,
+    get_variable_options,
 )
 from reView.pages.rev.model import (
     apply_all_selections,
@@ -186,7 +186,7 @@ def options_chart_type(project, y_var=None):
     return options
 
 
-def scenario_dropdowns(groups, dropid=None):
+def scenario_dropdowns(groups, dropid=None, multi=False):
     """Return list of dropdown options for a project's file selection."""
     dropdowns = []
     colors = ["#b4c9e0", "#e3effc"]
@@ -211,6 +211,7 @@ def scenario_dropdowns(groups, dropid=None):
                             options=options,
                             value=options[0]["value"],
                             optionHeight=75,
+                            multi=multi
                         )
                     ],
                     className="nine columns",
@@ -357,9 +358,10 @@ def dropdown_chart_types(_, project, y_var, current_option):
 def dropdown_colors(__, variable, project, signal, ___):
     """Provide qualitative color options for categorical data."""
     # To figure out if we need to update we need these
-    if not signal:
-        raise PreventUpdate  # @IgnoreException
-    old_variable = json.loads(signal)["y"]
+    signal_dict = json.loads(signal)
+    if not project:
+        project = signal_dict["project"]
+    old_variable = signal_dict["y"]
     config = Config(project)
     units = config.units.get(variable)
     old_units = config.units.get(old_variable)
@@ -385,14 +387,14 @@ def dropdown_colors(__, variable, project, signal, ___):
 
 # pylint: disable=no-member,too-many-locals
 @app.callback(
-    Output("minimizing_scenario_options", "children"),
+    Output("composite_options", "children"),
     Input("url", "pathname"),
     Input("project", "value"),
-    Input("minimizing_variable", "value"),
+    Input("composite_variable", "value"),
     State("submit", "n_clicks"),
 )
 @calls.log
-def dropdown_minimizing_scenarios(url, project, minimizing_variable, __):
+def dropdown_composite_options(url, project, composite_variable, __):
     """Update the options given a project."""
     logger.debug("URL: %s", url)
     config = Config(project)
@@ -400,7 +402,7 @@ def dropdown_minimizing_scenarios(url, project, minimizing_variable, __):
     if config.options is not None:
         groups = {}
         for col in config.options.columns:
-            if col in {"name", "file"} or col == minimizing_variable:
+            if col in {"name", "file"} or col == composite_variable:
                 continue
 
             # pylint: disable=unsubscriptable-object
@@ -439,19 +441,20 @@ def dropdown_minimizing_scenarios(url, project, minimizing_variable, __):
 
         dropdown = scenario_dropdowns(
             {"Scenario": scenario_options},
-            dropid="minimizing_scenario"
+            dropid="composite_scenarios",
+            multi=True
         )
 
     return dropdown
 
 
 @app.callback(
-    Output("minimizing_target", "options"),
-    Output("minimizing_target", "value"),
-    Input("minimizing_scenario_options", "children"),
+    Output("composite_target", "options"),
+    Output("composite_target", "value"),
+    Input("composite_options", "children"),
     State("project", "value"),
 )
-def dropdown_minimizing_targets(scenario_options, project):
+def dropdown_composite_targets(scenario_options, project):
     """Set the minimizing target options."""
     logger.debug("Setting minimizing target options")
     config = Config(project)
@@ -491,16 +494,19 @@ def dropdown_projects(__, ___):
 
 
 @app.callback(
-    Output("minimizing_plot_value", "options"),
-    Input("minimizing_scenario_options", "children"),
+    Output("composite_plot_value", "options"),
+    Input("composite_options", "children"),
     State("project", "value"),
 )
-def dropdown_minimizing_plot_options(scenario_options, project):
+def dropdown_composite_plot_options(scenario_options, project):
     """Set the minimizing plot options."""
     logger.debug("Setting minimizing plot options")
     config = Config(project)
     path = choose_scenario(scenario_options, config)
-    plot_options = [{"label": "Variable", "value": "Variable"}]
+    plot_options = [
+        {"label": "Variable", "value": "variable"},
+        {"label": "Scenario", "value": "scenario"}
+    ]
     if path and os.path.exists(path):
         data = pd.read_csv(path, nrows=1)
         columns = [c for c in data.columns if c.lower() not in SKIP_VARS]
@@ -581,6 +587,30 @@ def dropdown_scenarios(url, project, __):
     return group_a, group_b
 
 
+
+@app.callback(
+    Output("composite_variable", "options"),
+    Input("project", "value")
+)
+@calls.log
+def dropdown_composite_variables(project):
+    """Set the minimizing variable options."""
+    logger.debug("Setting variable target options")
+    config = Config(project)
+    scenario_a = config.files[next(iter(config.files))]
+    variable_options = get_variable_options(project, scenario_a, None, {})
+    if config.options is not None:
+        variable_options += [
+            {"label": col, "value": col}
+            for col in config.options.columns
+            if col not in {"name", "file"}
+        ]
+    low_cost_group_options = [
+        {"label": g, "value": g} for g in config.low_cost_groups
+    ]
+    return variable_options + low_cost_group_options
+
+
 @app.callback(
     Output("variable", "options"),
     Output("variable", "value"),
@@ -591,8 +621,6 @@ def dropdown_scenarios(url, project, __):
     Input("url", "href"),
     Input("scenario_dropdown_a", "value"),
     Input("scenario_dropdown_b", "value"),
-    Input("scenario_a_options", "children"),
-    Input("scenario_b_options", "children"),
     Input("project", "value"),
     State("scenario_b_div", "style"),
     State("variable", "value")
@@ -600,18 +628,16 @@ def dropdown_scenarios(url, project, __):
 @calls.log
 def dropdown_variables(
         __,
-        ___,
-        ____,
-        scenario_a_options,
-        scenario_b_options,
+        scenario_a,
+        scenario_b,
         project,
         b_div,
         old_variable
 ):
     """Update variable dropdown options."""
     # Scrape variable options from entire div
-    variable_options = scrape_variable_options(
-        project, scenario_a_options, scenario_b_options, b_div
+    variable_options = get_variable_options(
+        project, scenario_a, scenario_b, b_div
     )
     if not variable_options:
         print("NO VARIABLE OPTIONS FOUND!")
@@ -639,14 +665,13 @@ def dropdown_variables(
     Output("rev_chart_x_var_options", "value"),
     Input("submit", "n_clicks"),
     Input("rev_chart_options", "value"),
-    Input("scenario_a_options", "children"),
-    State("scenario_b_options", "children"),
+    Input("scenario_dropdown_a", "value"),
+    Input("scenario_dropdown_b", "value"),
     State("scenario_b_div", "style"),
     State("project", "value"),
 )
 @calls.log
-def dropdown_x_variables(_, chart_type, scenario_a_options, scenario_b_options,
-                         b_div, project):
+def dropdown_x_variables(_, chart_type, scenario_a, scenario_b, b_div, project):
     """Return dropdown options for x variable."""
     logger.debug("Setting X variable options")
     if chart_type == "char_histogram":
@@ -657,8 +682,8 @@ def dropdown_x_variables(_, chart_type, scenario_a_options, scenario_b_options,
         ]
         val = variable_options[0]["value"]
     else:
-        variable_options = scrape_variable_options(
-            project, scenario_a_options, scenario_b_options, b_div
+        variable_options = get_variable_options(
+            project, scenario_a, scenario_b, b_div
         )
         val = "capacity"
 
@@ -719,7 +744,6 @@ def dropdowns_additional_scenarios(url, project, __):
     Output("rev_chart", "figure"),
     Output("rev_chart_loading", "style"),
     Output("download_info_chart", "children"),
-    Input("map_signal", "children"),
     Input("rev_chart_options", "value"),
     Input("rev_map", "selectedData"),
     Input("rev_chart_point_size", "value"),
@@ -730,6 +754,7 @@ def dropdowns_additional_scenarios(url, project, __):
     Input("rev_chart_x_bin", "value"),
     Input("rev_chart_alpha", "value"),
     Input("rev_chart_download_button", "n_clicks"),
+    State("map_signal", "children"),
     State("rev_chart", "selectedData"),
     State("project", "value"),
     State("rev_chart", "relayoutData"),
@@ -737,7 +762,6 @@ def dropdowns_additional_scenarios(url, project, __):
 )
 @calls.log
 def figure_chart(
-    signal,
     chart_type,
     map_selection,
     point_size,
@@ -748,6 +772,7 @@ def figure_chart(
     bins,
     alpha,
     download,
+    signal,
     chart_selection,
     project,
     chart_view,
@@ -756,7 +781,14 @@ def figure_chart(
     """Make one of a variety of charts."""
     # Unpack the signal
     signal_dict = json.loads(signal)
+
+    # Initial page load project
+    if not project:
+        project = signal_dict["project"]
+
     x_var = signal_dict["x"]
+    if x_var == "None":
+        x_var = "capacity"
     y_var = signal_dict["y"]
     project = signal_dict["project"]
 
@@ -841,7 +873,7 @@ def figure_chart(
     Output("rev_mapcap", "children"),
     Output("rev_map", "clickData"),
     Output("rev_map_loading", "style"),
-    Input("map_signal", "children"),
+    Input("submit", "n_clicks"),
     Input("rev_map_basemap_options", "value"),
     Input("rev_map_color_options", "value"),
     Input("rev_chart", "selectedData"),
@@ -851,6 +883,7 @@ def figure_chart(
     Input("rev_map_color_max", "value"),
     Input("rev_map", "selectedData"),
     Input("rev_map", "clickData"),
+    State("map_signal", "children"),
     State("project", "value"),
     State("map_function", "value"),
     State("rev_chart_x_var_options", "value"),
@@ -858,7 +891,7 @@ def figure_chart(
 )
 @calls.log
 def figure_map(
-    signal,
+    _,
     basemap,
     color,
     chart_selection,
@@ -868,6 +901,7 @@ def figure_map(
     color_ymax,
     map_selection,
     click_selection,
+    signal,
     project,
     map_function,
     x_var,
@@ -877,6 +911,10 @@ def figure_map(
     # Unpack signal and retrieve data frame
     signal_dict = json.loads(signal)
     df = cache_map_data(signal_dict)
+
+    # Initial page load project
+    if not project:
+        project = signal_dict["project"]
 
     # This might be a difference
     if signal_dict["path2"] and os.path.isfile(signal_dict["path2"]):
@@ -1223,13 +1261,13 @@ def retrieve_filters(__, ___, var1, var2, var3, var4, q1, q2, q3, q4):
     State("recalc_table_store", "children"),
     State("recalc_tab", "value"),
     State("difference_units", "value"),
-    State("scenario_a_options", "children"),
-    State("scenario_b_options", "children"),
-    State("minimizing_scenarios", "style"),
-    State("minimizing_scenario_options", "children"),
-    State("minimizing_variable", "value"),
-    State("minimizing_target", "value"),
-    State("minimizing_plot_value", "value"),
+    State("scenario_dropdown_a", "value"),
+    State("scenario_dropdown_b", "value"),
+    State("composite_div", "style"),
+    State("composite_scenarios", "value"),
+    State("composite_variable", "value"),
+    State("composite_function", "value"),
+    State("composite_plot_value", "value"),
     State("pca_plot_map_value", "value"),
     State("pca_plot_region", "value"),
 )
@@ -1251,13 +1289,13 @@ def retrieve_signal(
     recalc_table,
     recalc,
     diff_units,
-    scenario_a_options,
-    scenario_b_options,
-    minimizing_scenarios_style,
-    minimizing_scenario_options,
-    minimizing_variable,
-    minimizing_target,
-    minimizing_plot_value,
+    scenario_a,
+    scenario_b,
+    composite_div_style,
+    composite_scenarios,
+    composite_variable,
+    composite_function,
+    composite_plot_value,
     pca_plot_value,
     pca_plot_region,
 ):
@@ -1265,48 +1303,55 @@ def retrieve_signal(
     trig = callback_trigger()
     config = Config(project)
 
+    if scenario_a == "placeholder":
+        files = list(config.files.values())
+        files.sort()
+        scenario_a = files[0]
+
     # Unpack recalc table
     if recalc_table:
         recalc_table = json.loads(recalc_table)
 
     lowest_scenario_open = (
-        minimizing_scenarios_style
-        and minimizing_scenarios_style.get("display") != "none"
+        composite_div_style
+        and composite_div_style.get("display") != "none"
     )
 
     if lowest_scenario_open:
-        if minimizing_variable in config.low_cost_groups:
+        if composite_variable in config.low_cost_groups:
             paths = [
                 config.directory.joinpath(file)
-                for file in config.low_cost_groups[minimizing_variable]
+                for file in config.low_cost_groups[composite_variable]
             ]
         else:
-            options = parse_selection(minimizing_scenario_options)
-            df = all_files_from_selection(options, config)
-            if "file" in df:
-                paths = [Path(p) for p in df["file"].values]
-            else:
-                paths = [config.files.get(f"{name}") for name in df["name"]]
+            paths = [Path(path) for path in composite_scenarios]
 
-        tag = hashlib.sha1(str.encode(str(paths))).hexdigest()
+        if len(paths) < 12:
+            tag = "".join([p.name[:2] for p in paths])
+        else:
+            tag = hashlib.sha1(str.encode(str(paths))).hexdigest()
         fname = (
-            f"least_{minimizing_target}_by_{minimizing_variable}_{tag}_sc.csv"
+            f"composite_{composite_function}_{composite_variable}_{tag}_sc.csv"
         )
 
         # Build full paths and create the target file
-        lc_path = config.directory.joinpath("review_outputs", fname)
-        lc_path.parent.mkdir(parents=True, exist_ok=True)
-        calc_least_cost(paths, lc_path, bycol=minimizing_target)
+        dst = config.directory.joinpath("review_outputs", fname)
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        calc_least_cost(paths, dst, composite_function=composite_function,
+                        composite_variable=composite_variable)
 
-        if minimizing_plot_value == "Variable":
-            y = "scenario"
+        if composite_plot_value == "Variable":
+            y = composite_variable
         else:
-            y = minimizing_plot_value
+            y = composite_plot_value
+
+        if not x:
+            x = "capacity"
 
         signal = {
             "filters": [],
             "mask": "off",
-            "path": str(lc_path),
+            "path": str(dst),
             "path2": None,
             "project": project,
             "recalc": recalc,
@@ -1340,13 +1385,11 @@ def retrieve_signal(
             y = pca_plot_value
             states = [] if pca_plot_region == "CONUS" else [pca_plot_region]
         else:
-            path = choose_scenario(scenario_a_options, config)
-            path = os.path.expanduser(path)
+            path = os.path.expanduser(scenario_a)
             if diff == "off" and mask == "off":
                 path2 = None
             else:
-                path2 = choose_scenario(scenario_b_options, config)
-                path2 = os.path.expanduser(path2)
+                path2 = os.path.expanduser(scenario_b)
 
         logger.debug("path = %s", path)
         logger.debug("path2 = %s", path2)
@@ -1429,37 +1472,6 @@ def retrieve_recalc_parameters(
             },
         }
     return json.dumps(recalc_table)
-
-
-@app.callback(
-    Output("minimizing_variable", "options"),
-    Input("project", "value"),
-    Input("minimizing_scenarios", "style"),
-)
-@calls.log
-def set_minimizing_variable_options(project, minimizing_scenarios_style):
-    """Set the minimizing variable options."""
-    logger.debug("Setting variable target options")
-    config = Config(project)
-    variable_options = [{"label": "None", "value": "None"}]
-    is_showing = (
-        minimizing_scenarios_style
-        and minimizing_scenarios_style.get("display") != "none"
-    )
-    if not is_showing:
-        return variable_options
-
-    if config.options is not None:
-        variable_options += [
-            {"label": col, "value": col}
-            for col in config.options.columns
-            if col not in {"name", "file"}
-        ]
-    low_cost_group_options = [
-        {"label": g, "value": g} for g in config.low_cost_groups
-    ]
-    return variable_options + low_cost_group_options
-
 
 @app.callback(
     Output("rev_chart_options_tab", "children"),
@@ -1544,21 +1556,21 @@ def toggle_options(click, is_open):
     return button_children, options_label, is_open
 
 
-# @app.callback(
-#     Output("options", "style"),
-#     Output("minimizing_scenarios", "style"),
-#     Output("scenario_selection_tabs", "style"),
-#     Input("scenario_selection_tabs", "value"),
+@app.callback(
+    Output("options", "style"),
+    Output("composite_div", "style"),
+    Input("options_tabs", "value"),
+)
+@calls.log
+def toggle_options_tabs(choice):
+    """Toggle toptions tab style."""
+    options_style = composite_style = {"display": "none"}
+    if choice == "0":
+        options_style = {"margin-bottom": "1px"}
+    else:
+        composite_style = {"margin-bottom": "1px"}
 
-# )
-# @calls.log
-# def toggle_options_tabs(selection_ind):
-#     """Toggle toptions tab style."""
-#     scenario_styles = [{"display": "none"} for _ in range(2)]
-#     scenario_styles[int(selection_ind)] = {"margin-bottom": "1px"}
-#     tabs_style = {"height": "50px"}
-
-#     return *scenario_styles, tabs_style
+    return options_style, composite_style
 
 
 @app.callback(
