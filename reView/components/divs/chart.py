@@ -17,7 +17,7 @@ from reView.layout.styles import (
 )
 
 
-def above_chart_options_div(id_prefix, class_name=None):
+def above_chart_options_div(id_prefix, class_name="row"):
     """Standard "above chart" options div.
 
     Parameters
@@ -59,7 +59,9 @@ def above_chart_options_div(id_prefix, class_name=None):
         interact with.
     """
     return html.Div(
-        [
+        className=class_name,
+        id="graph_options_div",
+        children=[
             # Chart options
             dcc.Tabs(
                 id=f"{id_prefix}_chart_options_tab",
@@ -70,6 +72,7 @@ def above_chart_options_div(id_prefix, class_name=None):
             # Type of chart
             html.Div(
                 id=f"{id_prefix}_chart_options_div",
+                # className="seven columns",
                 children=[
                     dcc.Dropdown(
                         id=f"{id_prefix}_chart_options",
@@ -84,6 +87,7 @@ def above_chart_options_div(id_prefix, class_name=None):
             # X-axis Variable
             html.Div(
                 id=f"{id_prefix}_chart_x_variable_options_div",
+                # className="six columns",
                 children=[
                     dcc.Dropdown(
                         id=f"{id_prefix}_chart_x_var_options",
@@ -103,6 +107,7 @@ def above_chart_options_div(id_prefix, class_name=None):
             # Region grouping
             html.Div(
                 id=f"{id_prefix}_chart_region_div",
+                # className="six columns",
                 children=[
                     dcc.Dropdown(
                         id=f"{id_prefix}_chart_region",
@@ -117,6 +122,7 @@ def above_chart_options_div(id_prefix, class_name=None):
             # Scenario grouping
             html.Div(
                 id=f"{id_prefix}_additional_scenarios_div",
+                # className="six columns",
                 children=[
                     dcc.Dropdown(
                         id=f"{id_prefix}_additional_scenarios",
@@ -130,9 +136,8 @@ def above_chart_options_div(id_prefix, class_name=None):
                         multi=True,
                     )
                 ],
-            ),
-        ],
-        className=class_name,
+            )
+        ]
     )
 
 

@@ -697,16 +697,19 @@ def dropdown_x_variables(_, chart_type, scenario_a, scenario_b, b_div, project):
 @app.callback(
     Output("rev_additional_scenarios", "options"),
     Input("url", "pathname"),
-    Input("project", "value"),
-    State("submit", "n_clicks"),
+    Input("submit", "n_clicks"),
+    State("project", "value"),
 )
 @calls.log
-def dropdowns_additional_scenarios(url, project, __):
+def dropdowns_additional_scenarios(url, __, project):
     """Update the additional scenarios options given a project."""
     logger.debug("URL: %s", url)
 
     # We need the project configuration
-    config = Config(project)
+    if not project:
+        config = Config(sorted(Config.projects)[0])
+    else:
+        config = Config(project)
 
     # Find the files
     scenario_outputs_path = config.directory / "review_outputs"
@@ -754,7 +757,7 @@ def dropdowns_additional_scenarios(url, project, __):
     Input("rev_chart_x_bin", "value"),
     Input("rev_chart_alpha", "value"),
     Input("rev_chart_download_button", "n_clicks"),
-    State("map_signal", "children"),
+    Input("map_signal", "children"),
     State("rev_chart", "selectedData"),
     State("project", "value"),
     State("rev_chart", "relayoutData"),
@@ -873,7 +876,6 @@ def figure_chart(
     Output("rev_mapcap", "children"),
     Output("rev_map", "clickData"),
     Output("rev_map_loading", "style"),
-    Input("submit", "n_clicks"),
     Input("rev_map_basemap_options", "value"),
     Input("rev_map_color_options", "value"),
     Input("rev_chart", "selectedData"),
@@ -883,7 +885,7 @@ def figure_chart(
     Input("rev_map_color_max", "value"),
     Input("rev_map", "selectedData"),
     Input("rev_map", "clickData"),
-    State("map_signal", "children"),
+    Input("map_signal", "children"),
     State("project", "value"),
     State("map_function", "value"),
     State("rev_chart_x_var_options", "value"),
@@ -891,7 +893,6 @@ def figure_chart(
 )
 @calls.log
 def figure_map(
-    _,
     basemap,
     color,
     chart_selection,
@@ -1300,7 +1301,7 @@ def retrieve_signal(
     pca_plot_region,
 ):
     """Create signal for sharing data between map and chart with dependence."""
-    trig = callback_trigger()
+    trigger = callback_trigger()
     config = Config(project)
 
     if scenario_a == "placeholder":
@@ -1367,11 +1368,11 @@ def retrieve_signal(
     else:
 
         # Prevent the first trigger when difference is off
-        if "scenario_b" in trig and diff == "off":
+        if "scenario_b" in trigger and diff == "off":
             raise PreventUpdate
 
         # Prevent the first trigger when mask is off
-        if "mask" in trig and mask == "off":
+        if "mask" in trigger and mask == "off":
             raise PreventUpdate
 
         if pca1_click_selection and pca1_click_selection.get("points"):

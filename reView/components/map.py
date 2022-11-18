@@ -4,12 +4,14 @@
 Used in (at least) the scenario and reeds pages.
 """
 import copy
+import logging
 import os
 
 import numpy as np
 import plotly.express as px
-import plotly.figure_factory as ff
 import plotly.graph_objects as go
+
+from pandas.errors import EmptyDataError
 
 from reView import Q_
 from reView.utils.classes import DiffUnitOptions
@@ -18,11 +20,18 @@ from reView.utils.constants import COLORS, DEFAULT_LAYOUT
 from reView.utils.functions import convert_to_title
 from reView.pages.rev.model import point_filter
 
+logger = logging.getLogger(__name__)
+
 
 MAP_LAYOUT = copy.deepcopy(DEFAULT_LAYOUT)
 MAP_LAYOUT.update(
     {
-        "margin": {"l": 20, "r": 115, "t": 70, "b": 20},
+        "margin": {
+            "l": 20,
+            "r": 115,
+            "t": 70,
+            "b": 20
+        },
         "plot_bgcolor": "#083C04",
         "mapbox": {
             "accesstoken": (
@@ -30,7 +39,10 @@ MAP_LAYOUT.update(
                 "aWlwcHZvdzdoIn0.9pxpgXxyyhM6qEF_dcyjIQ"
             ),
             "style": "satellite-streets",
-            "center": {"lon": -97.5, "lat": 39.5},
+            "center": {
+                "lon": -97.5,
+                "lat": 39.5
+            },
             "zoom": 2.75,
         },
         "uirevision": True,
@@ -171,6 +183,11 @@ class Title:
         # Drop nan values in variable
         df = df.dropna(subset=self.color_var)
         df = df[df[self.color_var] != -np.inf]
+        if all(df[self.color_var].isnull()):
+            logger.error("No %s values found in % in the % project",
+                         self.color_var, self.scenario, self.project)
+            raise EmptyDataError
+
 
         # If mean, use weights
         if agg_type == "mean" and self.color_var not in ["capacity", "area_sq_km"]:

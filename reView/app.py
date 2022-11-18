@@ -7,12 +7,18 @@ Created on Sun Aug 23 16:39:45 2020
 """
 import os
 
+from pathlib import Path
+
 import dash
 import dash_bootstrap_components as dbc
 
 from flask_caching import Cache
 
 from reView.layout.layout import layout
+
+
+DATA_DIR = Path("~/.review/cache-directory").expanduser()
+DATA_DIR.mkdir(exist_ok=True, parents=True)
 
 
 app = dash.Dash(
@@ -32,7 +38,7 @@ for handler in app.logger.handlers:
 cache = Cache(
     config={
         "CACHE_TYPE": "filesystem",
-        "CACHE_DIR": os.path.expanduser("~/.review/cache-directory/cache"),
+        "CACHE_DIR": DATA_DIR.joinpath("cache"),
         "CACHE_THRESHOLD": 10,
     }
 )
@@ -41,7 +47,7 @@ cache = Cache(
 cache2 = Cache(
     config={
         "CACHE_TYPE": "filesystem",
-        "CACHE_DIR": os.path.expanduser("~/.review/cache-directory/cache2"),
+        "CACHE_DIR": DATA_DIR.joinpath("cache2"),
         "CACHE_THRESHOLD": 10,
     }
 )
@@ -50,7 +56,7 @@ cache2 = Cache(
 cache3 = Cache(
     config={
         "CACHE_TYPE": "filesystem",
-        "CACHE_DIR": os.path.expanduser("~/.review/cache-directory/cache3"),
+        "CACHE_DIR": DATA_DIR.joinpath("cache3"),
         "CACHE_THRESHOLD": 10,
     }
 )
@@ -59,10 +65,12 @@ cache3 = Cache(
 cache4 = Cache(
     config={
         "CACHE_TYPE": "filesystem",
-        "CACHE_DIR": os.path.expanduser("~/.review/cache-directory/cache4"),
+        "CACHE_DIR": DATA_DIR.joinpath("cache4"),
         "CACHE_THRESHOLD": 10,
     }
 )
+
+# Should we just toss everything in one big cache?
 
 cache.init_app(server)
 cache2.init_app(server)

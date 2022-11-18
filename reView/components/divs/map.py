@@ -62,7 +62,8 @@ def above_map_options_div(id_prefix, class_name=None):
         interact with.
     """
     return html.Div(
-        [
+        className=class_name,
+        children=[
             dcc.Tabs(
                 id=f"{id_prefix}_map_options_tab",
                 value="state",
@@ -94,6 +95,7 @@ def above_map_options_div(id_prefix, class_name=None):
                     ),
                 ],
             ),
+
             # State options
             html.Div(
                 id=f"{id_prefix}_map_state_options_div",
@@ -107,6 +109,8 @@ def above_map_options_div(id_prefix, class_name=None):
                     )
                 ],
             ),
+
+            # Region options
             html.Div(
                 id=f"{id_prefix}_map_region_options_div",
                 children=[
@@ -119,6 +123,7 @@ def above_map_options_div(id_prefix, class_name=None):
                     )
                 ],
             ),
+
             # Basemap options
             html.Div(
                 id=f"{id_prefix}_map_basemap_options_div",
@@ -132,6 +137,7 @@ def above_map_options_div(id_prefix, class_name=None):
                     )
                 ],
             ),
+
             # Color scale options
             html.Div(
                 id=f"{id_prefix}_map_color_options_div",
@@ -146,7 +152,6 @@ def above_map_options_div(id_prefix, class_name=None):
                 ],
             ),
         ],
-        className=class_name,
     )
 
 
