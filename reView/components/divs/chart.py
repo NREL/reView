@@ -109,6 +109,7 @@ def above_chart_options_div(id_prefix, class_name="row"):
                 id=f"{id_prefix}_chart_region_div",
                 # className="six columns",
                 children=[
+
                     dcc.Dropdown(
                         id=f"{id_prefix}_chart_region",
                         clearable=False,
@@ -122,101 +123,44 @@ def above_chart_options_div(id_prefix, class_name="row"):
             # Scenario grouping
             html.Div(
                 id=f"{id_prefix}_additional_scenarios_div",
-                # className="six columns",
+                className="row",
                 children=[
-                    dcc.Dropdown(
-                        id=f"{id_prefix}_additional_scenarios",
-                        clearable=False,
-                        options=[
-                            {
-                                "label": "None",
-                                "value": "None",
-                            }
-                        ],
-                        multi=True,
-                    )
-                ],
+                    # Submit Button to avoid repeated callbacks
+                    html.Div(
+                        style={
+                            "width": "93%"
+                        },
+                        children=dcc.Dropdown(
+                            id=f"{id_prefix}_additional_scenarios",
+                            clearable=False,
+                            options=[
+                                {
+                                    "label": "None",
+                                    "value": "None",
+                                }
+                            ],
+                            multi=True,
+                        )
+                    ),
+                    html.Div(
+                        style={
+                            "float": "right",
+                            "width": "7%",
+                            "height": "30px",
+                        },
+                        children=dbc.Button(
+                            id=f"{id_prefix}_submit_additional_scenarios",
+                            children="Submit",
+                            color="white",
+                            n_clicks=0,
+                            size="lg",
+                            title=("Click to submit options"),
+                            className="mb-1",
+                        ),
+                    ),
+                ]
             )
         ]
-    )
-
-
-# pylint: disable=redefined-builtin,invalid-name
-def chart_div(id_prefix, class_name=None):
-    """Standard reView chart div.
-
-    Parameters
-    ----------
-    id : str
-        A string representing the prefix of the Graph component that
-        displays the map. The final id will be "<id_prefix>_map".
-    class_name : str, optional
-        The classname of the map div. By default, `None`.
-
-    Returns
-    -------
-    dash.html.Div.Div
-        A div containing the `dcc.Graph` component used to show the map.
-    """
-    return html.Div(
-        children=[
-            above_chart_options_div(id_prefix=id_prefix),
-            dcc.Loading(
-                id="rev_chart_loading",
-                style={"margin-right": "500px"},
-            ),
-            dcc.Graph(
-                id=f"{id_prefix}_chart",
-                style={"height": 750},
-                config={
-                    "showSendToCloud": True,
-                    "toImageButtonOptions": {
-                        "width": 1250,
-                        "height": 750,
-                    },
-                    "plotlyServerURL": "https://chart-studio.plotly.com",
-                },
-                mathjax=True,
-                figure=go.Figure(
-                    layout={
-                        "xaxis": {"visible": False},
-                        "yaxis": {"visible": False},
-                        "annotations": [
-                            {
-                                "text": "No data loaded",
-                                "xref": "paper",
-                                "yref": "paper",
-                                "showarrow": False,
-                                "font": {"size": 28},
-                            }
-                        ],
-                    }
-                ),
-            ),
-            # Button to reveal below options
-            dbc.Button(
-                "Options",
-                id=f"{id_prefix}_chart_below_options_button",
-                className="mb-1",
-                color="white",
-                n_clicks=0,
-                size="s",
-                style={
-                    "float": "left",
-                    "margin-left": "15px",
-                    "height": "50%",
-                },
-            ),
-            below_chart_options_div(id_prefix, class_name="row"),
-        ],
-        className=class_name,
-        style={
-            "box-shadow": (
-                "0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 "
-                "rgba(0, 0, 0, 0.19)"
-            ),
-            "border-radius": "5px",
-        },
     )
 
 
@@ -316,3 +260,83 @@ def below_chart_options_div(id_prefix, class_name=None):
         is_open=False,
         style={"margin-top": "5px", "margin-left": "150px"},
     )
+
+
+# pylint: disable=redefined-builtin,invalid-name
+def chart_div(id_prefix, class_name=None):
+    """Standard reView chart div.
+
+    Parameters
+    ----------
+    id : str
+        A string representing the prefix of the Graph component that
+        displays the map. The final id will be "<id_prefix>_map".
+    class_name : str, optional
+        The classname of the map div. By default, `None`.
+
+    Returns
+    -------
+    dash.html.Div.Div
+        A div containing the `dcc.Graph` component used to show the map.
+    """
+    return html.Div(
+        children=[
+            above_chart_options_div(id_prefix=id_prefix),
+            dcc.Loading(
+                id="rev_chart_loading",
+                style={"margin-right": "500px"},
+            ),
+            dcc.Graph(
+                id=f"{id_prefix}_chart",
+                style={"height": 750},
+                config={
+                    "showSendToCloud": True,
+                    "toImageButtonOptions": {
+                        "width": 1250,
+                        "height": 750,
+                    },
+                    "plotlyServerURL": "https://chart-studio.plotly.com",
+                },
+                mathjax=True,
+                figure=go.Figure(
+                    layout={
+                        "xaxis": {"visible": False},
+                        "yaxis": {"visible": False},
+                        "annotations": [
+                            {
+                                "text": "No data loaded",
+                                "xref": "paper",
+                                "yref": "paper",
+                                "showarrow": False,
+                                "font": {"size": 28},
+                            }
+                        ],
+                    }
+                ),
+            ),
+            # Button to reveal below options
+            dbc.Button(
+                "Options",
+                id=f"{id_prefix}_chart_below_options_button",
+                className="mb-1",
+                color="white",
+                n_clicks=0,
+                size="s",
+                style={
+                    "float": "left",
+                    "margin-left": "15px",
+                    "height": "50%",
+                },
+            ),
+            below_chart_options_div(id_prefix, class_name="row"),
+        ],
+        className=class_name,
+        style={
+            "box-shadow": (
+                "0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 "
+                "rgba(0, 0, 0, 0.19)"
+            ),
+            "border-radius": "5px",
+        },
+    )
+
