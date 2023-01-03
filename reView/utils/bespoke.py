@@ -19,7 +19,7 @@ import pyproj
 
 from reView.utils.classes import CountyCode
 
-pyproj.network.set_network_enabled(False)
+pyproj.network.set_network_enabled(False)  # Resolves VPN issues
 
 
 SPLIT_COLS = ["capacity", "annual_energy-means"]

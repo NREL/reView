@@ -57,7 +57,12 @@ from reView.pages.rev.model import (
 )
 from reView.utils.bespoke import BespokeUnpacker
 from reView.utils.constants import SKIP_VARS
-from reView.utils.functions import convert_to_title, callback_trigger, to_geo
+from reView.utils.functions import (
+    convert_to_title,
+    callback_trigger,
+    to_geo,
+    strip_rev_filename_endings
+)
 from reView.utils.config import Config
 from reView.utils import calls
 
@@ -102,7 +107,6 @@ def build_spec_split(path, project):
 
 def chart_tab_div_children(chart_choice):
     """Choose which chart tabs to display based on the option."""
-
     children = [
         dcc.Tab(
             value="chart",
@@ -712,17 +716,20 @@ def dropdowns_additional_scenarios(url, __, project):
         config = Config(project)
 
     # Find the files
-    scenario_outputs_path = config.directory / "review_outputs"
+    scenario_outputs_path = config.directory.joinpath("review_outputs")
     scenario_outputs = [
         str(f) for f in scenario_outputs_path.glob("least*.csv")
     ]
-    scenario_outputs = []
+    # scenario_outputs = []
     scenario_originals = [str(file) for file in config.files.values()]
     files = scenario_originals + scenario_outputs
-    names = [os.path.basename(f).replace("_sc.csv", "") for f in files]
-    names = [
-        " ".join([n.capitalize() for n in name.split("_")]) for name in names
-    ]
+    files.sort()
+    names = []
+    for file in files:
+        name = os.path.basename(file)
+        name = strip_rev_filename_endings(name)
+        name = " ".join([n.capitalize() for n in name.split("_")])
+        names.append(name)
     file_list = dict(zip(names, files))
 
     scenario_options = [

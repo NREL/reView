@@ -359,6 +359,7 @@ class Map:
 
         # Update the layout
         layout = self.layout
+        # layout["mapbox"]["center"]
         figure.update_layout(**layout)
         figure.update_traces(
             unselected=dict(marker=dict(opacity=1)),
