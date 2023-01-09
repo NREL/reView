@@ -66,12 +66,12 @@ class Config:
 
     @property
     def characterization_cols(self):
-        """list: List of column names with characterization info."""
+        """Return list of column names with characterization info."""
         return self._config.get("characterization_cols", [])
 
     @property
     def directory(self):
-        """:obj:`pathlib.Path`: Project directory path."""
+        """Return posix path for the project directory path."""
         return self._extract_fp_from_config("directory")
 
     @property
@@ -88,7 +88,7 @@ class Config:
             neos[key] = ast.literal_eval(value)
         return neos
 
-    @cached_property
+    @property
     def files(self):
         """Return a dictionary of scenario with full paths to files."""
         # TODO: If we need better performance, we may consider caching the

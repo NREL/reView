@@ -1,6 +1,6 @@
 {
-    "project_name" : "Innovations",
-    "directory": "~/review_datasets/transition",
+    "project_name" : "Innovations - FY21",
+    "directory": "~/review_datasets/innovations_fy21",
     "units": {
         "Erection": "category",
         "Exclusion layer": "category",

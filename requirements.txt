@@ -15,7 +15,7 @@ pytest==7.1.2
 python-dotenv==0.20.0
 requests==2.27.1
 scikit_learn==1.1.1
-scipy==1.8.0
+scipy==1.10.0
 setuptools==65.5.1
 tqdm==4.62.3
 us==2.0.2

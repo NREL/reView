@@ -7,6 +7,8 @@ import copy
 import logging
 import os
 
+from pathlib import Path
+
 import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
@@ -17,7 +19,10 @@ from reView import Q_
 from reView.utils.classes import DiffUnitOptions
 from reView.utils.config import Config
 from reView.utils.constants import COLORS, DEFAULT_LAYOUT
-from reView.utils.functions import convert_to_title
+from reView.utils.functions import (
+    convert_to_title,
+    strip_rev_filename_endings
+)
 from reView.pages.rev.model import point_filter
 
 logger = logging.getLogger(__name__)
@@ -70,14 +75,18 @@ class Title:
     @property
     def scenario(self):
         """Build Scenario Title Portion."""
-        lookup = {str(value): key for key, value in self.config.files.items()}
+        # lookup = {str(value): key for key, value in self.config.files.items()}
         path1 = self.signal_dict["path"]
-        label = lookup[path1]
-        label = " ".join([s.capitalize() for s in label.split("_")])
+        label = strip_rev_filename_endings(Path(path1).name)
+        label = convert_to_title(label)
+        # label = lookup[path1]
+        # label = " ".join([s.capitalize() for s in label.split("_")])
         path2 = self.signal_dict["path2"]
         if path2 and os.path.isfile(path2):
-            label2 = lookup[path2]
-            label2 = " ".join([s.capitalize() for s in label2.split("_")])
+            # label2 = lookup[path2]
+            # label2 = " ".join([s.capitalize() for s in label2.split("_")])
+            label2 = strip_rev_filename_endings(Path(path1).name)
+            label2 = convert_to_title(label)
             label = f"{label} vs {label2}"
         return label
 

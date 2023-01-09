@@ -41,9 +41,7 @@ from reView.layout.options import (
 from reView.layout.styles import TABLET_STYLE
 from reView.pages.rev.controller.element_builders import Plots
 from reView.pages.rev.controller.selection import (
-    all_files_from_selection,
     choose_scenario,
-    parse_selection,
     get_variable_options,
 )
 from reView.pages.rev.model import (
@@ -147,6 +145,39 @@ def chart_tab_div_children(chart_choice):
         ]
 
     return children
+
+
+def composite_fname(paths, composite_function, composite_variable):
+    """Attempt to make an intuitive composite tag."""
+    # Simplify paths to names
+    paths.sort()
+    names = [Path(path).name for path in paths]
+    names = [strip_rev_filename_endings(name) for name in names]
+
+    # If it's less than 12 paths, use words. If not use hash
+    if len(paths) < 12:
+        # Remove any repeating elements in the adjusted names
+        parts = [[part for part in name.split("_")] for name in names]            
+        parts = [sublst for lst in parts for sublst in lst]
+        repeats = [part for part in parts if parts.count(part) > 1]
+        repeats = np.unique(repeats)
+        new_names = []
+        for repeat in repeats:
+            for name in names:
+                new_names.append(name.replace(repeat, ""))
+
+        # Join name parts for the tag
+        tag = "".join(new_names)
+        if tag.startswith("_"):
+            tag = tag[1:]
+    else:
+        tag = hashlib.sha1(str.encode(str(paths))).hexdigest()
+
+    # Build full file name
+    identifier = f"{composite_function}_{composite_variable}_{tag}"
+    fname = f"composite_{identifier}_supply-curve.csv"
+
+    return fname
 
 
 def fig_to_df(fig):
@@ -423,26 +454,27 @@ def dropdown_composite_options(url, project, composite_variable, __):
         dropdown = scenario_dropdowns(groups, dropid="")
 
     else:
-        # Find the files
-        scenario_outputs_path = config.directory.joinpath("review_outputs")
-        scenario_outputs = [
-            str(f) for f in scenario_outputs_path.glob("least*.csv")
-        ]
-        scenario_outputs = []
-        scenario_originals = [str(file) for file in config.files.values()]
-        files = scenario_originals + scenario_outputs
-        names = [os.path.basename(f).replace("_sc.csv", "") for f in files]
-        names = [convert_to_title(name) for name in names]
-        file_list = dict(zip(names, files))
+        # Find the original project files and combine with stored outputs
+        files = [Path(file) for file in config.files.values()]
+        files = [f for f in files if not f.name.startswith("composite")]
+        files.sort()
 
+        # Create a list of names for the list and zip with file paths
+        names = [f.name for f in files]
+        names = [strip_rev_filename_endings(name) for name in names]
+        names = [convert_to_title(name) for name in names]
+        files = [str(f) for f in files]
+        file_dict = dict(zip(names, files))
+
+        # Create the Dash drop options list
         scenario_options = [
             {"label": key, "value": os.path.expanduser(file)}
-            for key, file in file_list.items()
+            for key, file in file_dict.items()
         ]
-
         if not scenario_options:
             scenario_options = [{"label": "None", "value": None}]
 
+        # Create the dropdown itself
         dropdown = scenario_dropdowns(
             {"Scenario": scenario_options},
             dropid="composite_scenarios",
@@ -508,7 +540,6 @@ def dropdown_composite_plot_options(scenario_options, project):
     config = Config(project)
     path = choose_scenario(scenario_options, config)
     plot_options = [
-        {"label": "Variable", "value": "variable"},
         {"label": "Scenario", "value": "scenario"}
     ]
     if path and os.path.exists(path):
@@ -529,10 +560,11 @@ def dropdown_composite_plot_options(scenario_options, project):
     Output("scenario_b_options", "children"),
     Input("url", "pathname"),
     Input("project", "value"),
+    Input("options_tabs", "value"),
     State("submit", "n_clicks"),
 )
 @calls.log
-def dropdown_scenarios(url, project, __):
+def dropdown_scenarios(url, project, __, ___):
     """Update the options given a project."""
     logger.debug("URL: %s", url)
     config = Config(project)
@@ -558,16 +590,21 @@ def dropdown_scenarios(url, project, __):
         group_b = scenario_dropdowns(groups)
 
     else:
-        # Find the files
-        scenario_outputs_path = config.directory.joinpath("review_outputs")
-        scenario_outputs = [
-            str(f) for f in scenario_outputs_path.glob("least*.csv")
-        ]
-        scenario_originals = [str(file) for file in config.files.values()]
-        scenario_originals.sort()
-        files = scenario_originals + scenario_outputs
-        files.sort()
-        names = [os.path.basename(f).replace("_sc.csv", "") for f in files]
+        # Find all available project files
+        files = [str(file) for file in config.files.values()]
+
+        # Separate the output files, let's put those at the end
+        originals = [file for file in files if "review_outputs" not in file]
+        outputs = [file for file in files if "review_outputs" in file]
+        originals.sort()
+        outputs.sort()
+
+        # Recombine orginal and output paths
+        files = originals + outputs
+
+        # Create displayable names for each file
+        names = [Path(file).name for file in files]
+        names = [strip_rev_filename_endings(name) for name in names]
         names = [convert_to_title(name) for name in names]
         file_list = dict(zip(names, files))
 
@@ -1257,8 +1294,8 @@ def retrieve_filters(__, ___, var1, var2, var3, var4, q1, q2, q3, q4):
     Input("rev_map_state_options", "value"),
     Input("rev_map_region_options", "value"),
     Input("rev_chart_options", "value"),
-    Input("rev_chart_x_var_options", "value"),
     Input("rev_submit_additional_scenarios", "n_clicks"),
+    State("rev_chart_x_var_options", "value"),
     State("rev_additional_scenarios", "value"),
     State("filter_store", "children"),
     State("pca_plot_1", "clickData"),
@@ -1286,8 +1323,8 @@ def retrieve_signal(
     states,
     regions,
     ___,
-    x,
     ____,
+    x,
     scenarios,
     filter_store,
     pca1_click_selection,
@@ -1336,13 +1373,7 @@ def retrieve_signal(
         else:
             paths = [Path(path) for path in composite_scenarios]
 
-        if len(paths) < 12:
-            tag = "".join([p.name[:2] for p in paths])
-        else:
-            tag = hashlib.sha1(str.encode(str(paths))).hexdigest()
-        fname = (
-            f"composite_{composite_function}_{composite_variable}_{tag}_sc.csv"
-        )
+        fname = composite_fname(paths, composite_function, composite_variable)
 
         # Build full paths and create the target file
         dst = config.directory.joinpath("review_outputs", fname)

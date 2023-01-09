@@ -109,7 +109,6 @@ def above_chart_options_div(id_prefix, class_name="row"):
                 id=f"{id_prefix}_chart_region_div",
                 # className="six columns",
                 children=[
-
                     dcc.Dropdown(
                         id=f"{id_prefix}_chart_region",
                         clearable=False,
@@ -127,9 +126,7 @@ def above_chart_options_div(id_prefix, class_name="row"):
                 children=[
                     # Submit Button to avoid repeated callbacks
                     html.Div(
-                        style={
-                            "width": "93%"
-                        },
+                        className="ten columns",
                         children=dcc.Dropdown(
                             id=f"{id_prefix}_additional_scenarios",
                             clearable=False,
@@ -140,14 +137,10 @@ def above_chart_options_div(id_prefix, class_name="row"):
                                 }
                             ],
                             multi=True,
-                        )
+                        ),                    
                     ),
                     html.Div(
-                        style={
-                            "float": "right",
-                            "width": "7%",
-                            "height": "30px",
-                        },
+                        className="two columns",
                         children=dbc.Button(
                             id=f"{id_prefix}_submit_additional_scenarios",
                             children="Submit",
@@ -156,8 +149,13 @@ def above_chart_options_div(id_prefix, class_name="row"):
                             size="lg",
                             title=("Click to submit options"),
                             className="mb-1",
-                        ),
-                    ),
+                            style={
+                                "height": "91%",
+                                "width": "135%",
+                                "margin-left": "-50px"
+                            }
+                        )
+                    )
                 ]
             )
         ]
