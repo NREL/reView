@@ -138,17 +138,15 @@ class BespokeUnpacker:
         # Convert back to WGS84
         rdf = self.to_wgs(rdf)
 
-        # Replace the original row with one of the new rows.
-        df.iloc[self.index] = rdf.iloc[-1]
-        rdf = rdf.iloc[:-1]
-
-        # Append to full data frame
-        df = pd.concat([df, rdf])
-
         if drop_sc_points:
             return rdf
+        else:
+            # Replace the original row with one of the new rows.
+            df.iloc[self.index] = rdf.iloc[-1]
+            rdf = rdf.iloc[:-1]
+            df = pd.concat([df, rdf])
 
-        return df
+            return df
 
     def _declick(self, clicksel):
         """Set needed values from click selection as attributes."""
