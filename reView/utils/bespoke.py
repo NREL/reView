@@ -17,8 +17,6 @@ import numpy as np
 import pandas as pd
 import pyproj
 
-from reView.utils.classes import CountyCode
-
 pyproj.network.set_network_enabled(False)  # Resolves VPN issues
 
 
@@ -95,7 +93,7 @@ class BespokeUnpacker:
         rdf = rdf[self.df.columns]
         return rdf
 
-    def unpack_turbines(self):
+    def unpack_turbines(self, drop_sc_points=False):
         """Unpack bespoke turbines if possible.
 
         Returns
@@ -147,6 +145,9 @@ class BespokeUnpacker:
         # Append to full data frame
         df = pd.concat([df, rdf])
 
+        if drop_sc_points:
+            return rdf
+
         return df
 
     def _declick(self, clicksel):
@@ -160,4 +161,3 @@ class BespokeUnpacker:
             self.index = self.df.index[query].values[0]
         self.county = self.df.loc[self.index, "county"]
         self.state = self.df.loc[self.index, "state"]
-            
