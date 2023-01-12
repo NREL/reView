@@ -93,7 +93,7 @@ class BespokeUnpacker:
         rdf["latitude"] = lats
         del rdf["x"]
         del rdf["y"]
-        rdf = rdf[self.df.columns]
+        
         return rdf
 
     def unpack_turbines(self, drop_sc_points=False):
@@ -129,17 +129,19 @@ class BespokeUnpacker:
         
         if 'turbine_capacity' in row:
             # convert units
-            turbine_capacity = row["turbine_capacity"] / 1_000
+            # TODO: this assumes turbine_capacity is in mw
+            turbine_capacity_kw = row["turbine_capacity"] / 1_000
         elif 'capacity' in row:
             # derive from plant capacity and convert units
-            turbine_capacity = row['capacity'] / len(xs) / 1_000
+            # this assumes capacity (plant capacity) is in MW
+            turbine_capacity_kw = row['capacity'] / len(xs) * 1_000
         else:
             # unknown - set to None
-            turbine_capacity = None
+            turbine_capacity_kw = None
 
         for i, x in enumerate(xs):
             nrow = row.copy()
-            nrow["capacity"] = turbine_capacity
+            nrow["turbine_capacity_kw"] = turbine_capacity_kw
             nrow["x"] = x
             nrow["y"] = ys[i]
             nrows.append(nrow)
