@@ -95,7 +95,7 @@ class BespokeUnpacker:
         rdf = rdf[self.df.columns]
         return rdf
 
-    def unpack_turbines(self):
+    def unpack_turbines(self, drop_sc_points=False):
         """Unpack bespoke turbines if possible.
 
         Returns
@@ -144,6 +144,9 @@ class BespokeUnpacker:
         # Append to full data frame
         df = pd.concat([self.df, rdf])
         rdf["index"] = rdf.index
+
+        if drop_sc_points:
+            return rdf
 
         return df
 
