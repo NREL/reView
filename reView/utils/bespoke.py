@@ -29,7 +29,8 @@ SPLIT_COLS = ["capacity", "annual_energy-means"]
 class BespokeUnpacker:
     """Methods for manipulating Bespoke reV outputs."""
 
-    def __init__(self, df, clicksel=None, sc_point_gid=None):
+    def __init__(self, df, clicksel=None, sc_point_gid=None,
+                 trgt_crs="esri:102008"):
         """Initialize BespokeUnpacker object.
 
         Parameters
@@ -44,11 +45,14 @@ class BespokeUnpacker:
             Supply curve grid id. An ID indicating a specific site within a
             full supply curve grid. If not provided, a clicksel dictionary
             is required. Defaults to None.
+        target_crs : str
+            CRS of unpacked turbines.
         """
         self.df = df
         self.clicksel = clicksel
         self.sc_point_gid = sc_point_gid
         self.src_crs = "epsg:4326"
+        self.trgt_crs = trgt_crs
         self._declick(clicksel)
 
     def __repr__(self):
@@ -66,12 +70,6 @@ class BespokeUnpacker:
             always_xy=True
         )
         return transformer.transform(lon, lat, errcheck=True)
-
-    @property
-    def trgt_crs(self):
-        """Find an appropriate coordinate reference system for location."""
-        code = CountyCode.epsg(self.county, self.state)
-        return f"epsg:{code}"
 
     @property
     def spacing(self):

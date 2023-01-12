@@ -147,7 +147,7 @@ def above_chart_options_div(id_prefix, class_name="row"):
                             color="white",
                             n_clicks=0,
                             size="lg",
-                            title=("Click to submit options"),
+                            title="Click to submit options",
                             className="mb-1",
                             style={
                                 "height": "91%",
