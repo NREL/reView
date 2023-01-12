@@ -17,8 +17,6 @@ import numpy as np
 import pandas as pd
 import pyproj
 
-from reView.utils.classes import CountyCode
-
 pyproj.network.set_network_enabled(False)  # Resolves VPN issues
 
 
@@ -161,4 +159,3 @@ class BespokeUnpacker:
             self.index = self.df.index[query].values[0]
         self.county = self.df.loc[self.index, "county"]
         self.state = self.df.loc[self.index, "state"]
-            
