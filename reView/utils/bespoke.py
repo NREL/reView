@@ -16,6 +16,9 @@ import json
 import numpy as np
 import pandas as pd
 import pyproj
+from pandarallel import pandarallel
+from shapely import geometry
+import geopandas as gpd
 
 pyproj.network.set_network_enabled(False)  # Resolves VPN issues
 
@@ -123,9 +126,20 @@ class BespokeUnpacker:
 
         # Build new data frame entries for each turbine
         nrows = []
+        
+        if 'turbine_capacity' in row:
+            # convert units
+            turbine_capacity = row["turbine_capacity"] / 1_000
+        elif 'capacity' in row:
+            # derive from plant capacity and convert units
+            turbine_capacity = row['capacity'] / len(xs) / 1_000
+        else:
+            # unknown - set to None
+            turbine_capacity = None
+
         for i, x in enumerate(xs):
             nrow = row.copy()
-            nrow["capacity"] = nrow["turbine_capacity"] / 1_000
+            nrow["capacity"] = turbine_capacity
             nrow["x"] = x
             nrow["y"] = ys[i]
             nrows.append(nrow)
@@ -159,3 +173,74 @@ class BespokeUnpacker:
             self.index = self.df.index[query].values[0]
         self.county = self.df.loc[self.index, "county"]
         self.state = self.df.loc[self.index, "state"]
+
+
+def batch_unpack_from_supply_curve(
+    sc_df,
+    n_workers=1
+):
+    """Batch functionality to unpack all turbines from a supply curve dataframe.
+
+        Parameters
+        ----------
+        sc_df : pd.core.frame.DataFrame
+            A reV supply curve pandas data frame.
+        n_workers : int
+            Number of workers to use for parallel processing. 
+            Default is 1 which will run in serial (and will be slow).
+            It is recommended to use set n_workers >= 4 for speed.
+
+        Returns
+        -------
+        geopandas.geodataframe.GeoDataFrame
+            A GeoDataFrame containing point locations for all turbines unpacked
+            from the source reV supply curve data frame.
+    """
+
+    if n_workers > 1:
+        # initialize functionality for parallela dataframe.apply
+        # TODO: cap nb_workers to the total CPUs on the machine/node
+        pandarallel.initialize(progress_bar=True, nb_workers=n_workers, use_memory_fs=False)
+
+    # filter out supply curve points with no capacity (these won't have any turbines)
+    sc_developable_df = sc_df[sc_df['capacity'] > 0].copy()
+    # reset the index because otherwise the unpacker will get messed up
+    sc_developable_df.reset_index(drop=True, inplace=True)
+
+    # unpack the turbine coordinates
+    if n_workers > 1:
+        # run in parallel
+        all_turbines = sc_developable_df.parallel_apply(
+            lambda row: 
+                BespokeUnpacker(
+                    sc_developable_df, 
+                    sc_point_gid=row['sc_point_gid']
+                    ).unpack_turbines(drop_sc_points=True),
+            axis=1
+        )
+    else:
+        # run in serial
+        all_turbines = sc_developable_df.apply(
+            lambda row: 
+                BespokeUnpacker(
+                    sc_developable_df, 
+                    sc_point_gid=row['sc_point_gid']
+                    ).unpack_turbines(drop_sc_points=True),
+            axis=1
+        )
+
+    # stack the results back into a single df
+    all_turbines_df = pd.concat(all_turbines.tolist())
+
+    # extract the geometries
+    all_turbines_df['geometry'] = all_turbines_df.apply(
+        lambda row: geometry.Point(
+            row['longitude'], 
+            row['latitude']
+            ),
+        axis=1
+    )
+    # turn into a geodataframe
+    all_turbines_gdf = gpd.GeoDataFrame(all_turbines_df, crs='EPSG:4326')
+
+    return all_turbines_gdf
