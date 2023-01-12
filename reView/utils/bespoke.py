@@ -75,7 +75,7 @@ class BespokeUnpacker:
     def spacing(self):
         """Infer the spacing between points."""
         # Assuming a 128 agg factor for now
-        spacing = 11_520
+        spacing = 11_520  # Make dynamic
         return spacing
 
     def to_wgs(self, rdf):
@@ -105,8 +105,8 @@ class BespokeUnpacker:
             except one that is replaced with individual turbine entries.
         """
         # Separate target row
-        df = self.df.iloc[self.df.index != self.index]
         row = self.df.iloc[self.index]
+        df = self.df.copy()
 
         # Get coordinates from equal area projection
         x, y = self.get_xy(row)
@@ -123,27 +123,29 @@ class BespokeUnpacker:
         xs = [x + blx for x in xs]
         ys = [y + bly for y in ys]
 
-        # Build new data frame
+        # Build new data frame entries for each turbine
         nrows = []
         for i, x in enumerate(xs):
             nrow = row.copy()
+            nrow["capacity"] = nrow["turbine_capacity"] / 1_000
             nrow["x"] = x
             nrow["y"] = ys[i]
             nrows.append(nrow)
 
+        # Build new data frame
         rdf = pd.DataFrame(nrows)
-        nindex = np.arange(
-            self.df.index[-1],
-            self.df.index[-1] + len(rdf.index)
-        )
-        rdf.index = nindex
+        rdf = rdf.reset_index(drop=True)
+        rdf.index = df.index[-1] + rdf.index + 1
 
         # Convert back to WGS84
         rdf = self.to_wgs(rdf)
 
+        # Replace the original row with one of the new rows.
+        df.iloc[self.index] = rdf.iloc[-1]
+        rdf = rdf.iloc[:-1]
+
         # Append to full data frame
-        df = pd.concat([self.df, rdf])
-        rdf["index"] = rdf.index
+        df = pd.concat([df, rdf])
 
         return df
 
