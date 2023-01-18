@@ -14,6 +14,7 @@ from reView.components import (
     capacity_header,
     map_div,
     chart_div,
+    time_div,
     REV_PCA_DIV,
     REV_TOPTIONS_DIV,
 )
@@ -80,8 +81,13 @@ layout = html.Div(
 
                 # The chart
                 chart_div(id_prefix="rev", class_name="six columns"),
-            ]
+            ],
+            # style={"margin-bottom": "250px"}
         ),
+
+        # Time Series Div
+        time_div(id_prefix="rev", class_name="eleven columns"),
+
         # To store option names for the map title
         html.Div(id="chosen_map_options", style={"display": "none"}),
 
