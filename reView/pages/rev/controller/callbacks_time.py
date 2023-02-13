@@ -1,13 +1,17 @@
 # pylint: disable=too-many-lines
-"""View reV results using a configuration file.
+"""This will be the callbacks just for the time component.
 
-Things to do:
-    - Move styling to CSS
-    - Improve caching
-    - Speed up everything
-    - Download option
-    - Automate startup elements
-    - Build categorical variable charts
+Useful things:
+    - Diurnal profiles
+        - Compare sites, compare datasets
+        - Aggregate sites?
+    - Seasonal patterns
+    - Match timeseries periods that ReEDS uses? (34 slices)
+    - Plant level power curve
+        - Power by Windspeed
+        - Compare across sites and datasets
+        - Aggregates sites
+        - We just have the average windspeed
 """
 import hashlib
 import json
