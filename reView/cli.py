@@ -49,11 +49,11 @@ def main(ctx, verbose):
               is_flag=True,
               help='Overwrite output geopackage if it already exists. '
                     'Default is False.')
-def unpack_bespoke_turbines_from_supply_curve(
+def unpack_turbines(
         supply_curve_csv, out_gpkg, n_workers, overwrite
     ):
     """
-    Unpack individual turbines from each reV project site in a reV 
+    Unpack individual turbines from each reV project site in a reV
     supply curve CSV, produced using "bespoke" (i.e., SROM) turbine placement.
     """
 
@@ -72,5 +72,8 @@ def unpack_bespoke_turbines_from_supply_curve(
         raise FileExistsError(
             f"Output geopackage {out_gpkg} already exists. "
             "Use --overwrite to overwrite the existing dataset.")
+
+    if overwrite is True:
+        out_gpkg_path.unlink(missing_ok=True)
 
     turbines_gdf.to_file(out_gpkg_path, driver='GPKG')
