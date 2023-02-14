@@ -173,7 +173,7 @@ class BespokeUnpacker:
 
 
 def batch_unpack_from_supply_curve(sc_df, n_workers=1):
-    """Batch functionality to unpack all turbines from a supply curve 
+    """Batch functionality to unpack all turbines from a supply curve
         dataframe.
 
         Parameters
@@ -181,7 +181,7 @@ def batch_unpack_from_supply_curve(sc_df, n_workers=1):
         sc_df : pd.core.frame.DataFrame
             A reV supply curve pandas data frame.
         n_workers : int
-            Number of workers to use for parallel processing. 
+            Number of workers to use for parallel processing.
             Default is 1 which will run in serial (and will be slow).
             It is recommended to use set n_workers >= 4 for speed.
 
