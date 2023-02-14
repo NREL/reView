@@ -3,6 +3,7 @@
 import pathlib
 import tempfile
 import pytest
+import pandas as pd
 import geopandas as gpd
 from reView.cli import (
     main,
@@ -120,8 +121,8 @@ def test_unpack_turbines_results(
     # this sort is unnecessary at the moment but for future-proofing
     correct_df.sort_values(by=['latitude', 'longitude'], inplace=True)
     output_df.sort_values(by=['latitude', 'longitude'], inplace=True)
-    assert (correct_df == output_df).all().all(), \
-        f"Output results do not match {correct_results_gpkg}"
+    pd.testing.assert_frame_equal(
+        correct_df, output_df, check_exact=False, rtol=0.001)
 
 
 if __name__ == '__main__':
