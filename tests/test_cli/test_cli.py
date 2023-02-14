@@ -79,8 +79,8 @@ def test_unpack_turbines_overwrite(
         overwrites when output geopackage exists
         and overwrite flag is used."""
 
-    with tempfile.TemporaryDirectory() as td:
-        output_gpkg = pathlib.Path(td).joinpath("bespoke.gpkg")
+    with tempfile.TemporaryDirectory() as tempdir:
+        output_gpkg = pathlib.Path(tempdir).joinpath("bespoke.gpkg")
         with open(output_gpkg, 'wb'):
             pass
         result = test_cli_runner.invoke(
