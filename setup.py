@@ -40,6 +40,7 @@ setup(
     entry_points={
         "console_scripts": [
             "reView=reView.index:main",
+            "reView-tools=reView.cli:main",
             "unpack-turbines=reView.cli:unpack_turbines"
         ],
     },

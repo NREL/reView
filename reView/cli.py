@@ -13,8 +13,12 @@ from reView import __version__
 
 logger = logging.getLogger(__name__)
 
+CONTEXT_SETTINGS={
+    "max_content_width": 9999,
+    "terminal_width": 9999
+}
 
-@click.group()
+@click.group(context_settings=CONTEXT_SETTINGS)
 @click.version_option(version=__version__)
 @click.option('-v', '--verbose', is_flag=True,
               help='Flag to turn on debug logging. Default is not verbose.')
