@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
               help='Flag to turn on debug logging. Default is not verbose.')
 @click.pass_context
 def main(ctx, verbose):
-    """reVX command line interface."""
+    """reView command line interface."""
     ctx.ensure_object(dict)
     if verbose:
         logger.setLevel(logging.DEBUG)
