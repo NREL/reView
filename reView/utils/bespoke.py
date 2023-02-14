@@ -214,7 +214,7 @@ def batch_unpack_from_supply_curve(sc_df, n_workers=1):
                 BespokeUnpacker(
                     sc_developable_df,
                     sc_point_gid=row['sc_point_gid']
-                    ).unpack_turbines(drop_sc_points=True),
+                ).unpack_turbines(drop_sc_points=True),
             axis=1
         )
     else:
@@ -224,7 +224,7 @@ def batch_unpack_from_supply_curve(sc_df, n_workers=1):
                 BespokeUnpacker(
                     sc_developable_df,
                     sc_point_gid=row['sc_point_gid']
-                    ).unpack_turbines(drop_sc_points=True),
+                ).unpack_turbines(drop_sc_points=True),
             axis=1
         )
 
@@ -236,7 +236,7 @@ def batch_unpack_from_supply_curve(sc_df, n_workers=1):
         lambda row: geometry.Point(
             row['longitude'],
             row['latitude']
-            ),
+        ),
         axis=1
     )
     # turn into a geodataframe

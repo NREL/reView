@@ -13,6 +13,7 @@ from reView import __version__
 
 logger = logging.getLogger(__name__)
 
+
 @click.group()
 @click.version_option(version=__version__)
 @click.option('-v', '--verbose', is_flag=True,
@@ -40,18 +41,18 @@ def main(ctx, verbose):
               show_default=True,
               required=False,
               help='Number of workers to use for parallel processing.'
-                    'Default is 1 which will unpack turbines from each supply '
-                    'curve grid cell in parallel. This will be slow. It is '
-                    'recommended to use at least 4 workers if possible')
+                   'Default is 1 which will unpack turbines from each supply '
+                   'curve grid cell in parallel. This will be slow. It is '
+                   'recommended to use at least 4 workers if possible')
 @click.option('--overwrite', default=False,
               show_default=True,
               required=False,
               is_flag=True,
               help='Overwrite output geopackage if it already exists. '
-                    'Default is False.')
+                   'Default is False.')
 def unpack_turbines(
         supply_curve_csv, out_gpkg, n_workers, overwrite
-    ):
+):
     """
     Unpack individual turbines from each reV project site in a reV
     supply curve CSV, produced using "bespoke" (i.e., SROM) turbine placement.

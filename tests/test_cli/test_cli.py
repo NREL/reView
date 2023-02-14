@@ -28,7 +28,7 @@ def test_unpack_turbines_happy(
                 '-i', test_bespoke_supply_curve.as_posix(),
                 '-o', output_gpkg,
                 '-n', 1
-                ]
+            ]
         )
         assert result.exit_code == 0
 
@@ -45,9 +45,10 @@ def test_unpack_turbines_parallel(
                 '-i', test_bespoke_supply_curve.as_posix(),
                 '-o', output_gpkg,
                 '-n', 2
-                ]
+            ]
         )
         assert result.exit_code == 0
+
 
 def test_unpack_turbines_no_overwrite(
     test_bespoke_supply_curve, test_cli_runner
@@ -65,7 +66,7 @@ def test_unpack_turbines_no_overwrite(
                 '-i', test_bespoke_supply_curve.as_posix(),
                 '-o', output_gpkg,
                 '-n', 1
-                ]
+            ]
         )
         assert result.exit_code == 1
         assert isinstance(result.exception, FileExistsError)
@@ -88,9 +89,10 @@ def test_unpack_turbines_overwrite(
                 '-o', output_gpkg,
                 '-n', 1,
                 '--overwrite'
-                ]
+            ]
         )
         assert result.exit_code == 0
+
 
 def test_unpack_turbines_results(
     test_bespoke_supply_curve, test_cli_runner, test_data_dir
@@ -98,7 +100,8 @@ def test_unpack_turbines_results(
     """Test that the data produced by unpack_turbines() CLI
         command matches known output file."""
 
-    correct_results_gpkg = test_data_dir.joinpath('bespoke-supply-curve-turbines.gpkg')
+    correct_results_gpkg = test_data_dir.joinpath(
+        'bespoke-supply-curve-turbines.gpkg')
     correct_df = gpd.read_file(correct_results_gpkg)
 
     with tempfile.TemporaryDirectory() as td:
@@ -108,7 +111,7 @@ def test_unpack_turbines_results(
                 '-i', test_bespoke_supply_curve.as_posix(),
                 '-o', output_gpkg,
                 '-n', 1
-                ]
+            ]
         )
         assert result.exit_code == 0
 
@@ -119,6 +122,7 @@ def test_unpack_turbines_results(
     output_df.sort_values(by=['latitude', 'longitude'], inplace=True)
     assert (correct_df == output_df).all().all(), \
         f"Output results do not match {correct_results_gpkg}"
+
 
 if __name__ == '__main__':
     pytest.main([__file__, '-s'])
