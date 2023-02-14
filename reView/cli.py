@@ -33,22 +33,30 @@ def main(ctx, verbose):
               help=('Path to regions shapefile containing labeled geometries'))
 @click.option('--n_workers', '-n', default=1, type=int,
               show_default=True,
+              required=False,
               help=('Number of workers to use for parallel processing.'
                     'Default is 1 which will unpack turbines from each supply curve '
                     'grid cell in parallel. This will be slow. It is recommended to use '
                     'at least 4 workers if possible'
               ))
-def unpack_bespoke_turbines_from_supply_curve(supply_curve_csv, out_gpkg, n_workers):
+@click.option('--overwrite', default=False,
+              show_default=True,
+              required=False,
+              is_flag=True,
+              help=('Overwrite output geopackage if it already exists. Default is False.'))
+def unpack_bespoke_turbines_from_supply_curve(supply_curve_csv, out_gpkg, n_workers, overwrite):
 
     supply_curve_csv_path = pathlib.Path(supply_curve_csv)
     if not supply_curve_csv_path.exists:
-        raise FileExistsError(f"Input --supply_curve_csv {supply_curve_csv} does not exist.")
-    # load the supply curve
+        raise FileExistsError(f"Input supply_curve_csv {supply_curve_csv} does not exist.")
+    
     supply_curve_df = pd.read_csv(supply_curve_csv_path)
 
     turbines_gdf = batch_unpack_from_supply_curve(supply_curve_df, n_workers=n_workers)
-    # TODO: check whether this file already exists before saving out. i.e., add overwrite option
-    turbines_gdf.to_file(out_gpkg, driver='GPKG')    
-
-# TODO: add tests
+    
+    out_gpkg_path = pathlib.Path(out_gpkg)
+    if out_gpkg_path.exists() and overwrite is False:
+        raise FileExistsError(f"Output geopackage {out_gpkg} already exists. Use --overwrite to overwrite the existing dataset.")
+    
+    turbines_gdf.to_file(out_gpkg_path, driver='GPKG')    
 
