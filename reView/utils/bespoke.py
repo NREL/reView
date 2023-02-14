@@ -12,8 +12,7 @@ Created on Wed Apr 13 10:37:14 2022
 @author: twillia2
 """
 import json
-
-import numpy as np
+from multiprocessing import cpu_count
 import pandas as pd
 import pyproj
 from pandarallel import pandarallel
@@ -126,15 +125,17 @@ class BespokeUnpacker:
 
         # Build new data frame entries for each turbine
         nrows = []
-        
-        # note: use len(xs) because nturbines does not appear to be a standard column
+
+        # use len(xs) to determine number of turbines because
+        # nturbines does not appear to be a standard column
         turbine_capacity_mw = row['capacity'] / len(xs)
 
         for i, x in enumerate(xs):
             nrow = row.copy()
-            # overwrite existing capacity column (which is typically system capacity in mw) 
-            # with turbine capacity in kw for this turbine row. This maintains compatibility with how capacity
-            # is summed and displayed in the dashboard
+            # overwrite existing capacity column (which is typically system
+            # capacity in mw) with turbine capacity in kw for this turbine row.
+            # This maintains compatibility with how capacity is summed and
+            # displayed in the dashboard
             nrow["capacity"] = turbine_capacity_mw
             nrow["x"] = x
             nrow["y"] = ys[i]
@@ -150,13 +151,13 @@ class BespokeUnpacker:
 
         if drop_sc_points:
             return rdf
-        else:
-            # Replace the original row with one of the new rows.
-            df.iloc[self.index] = rdf.iloc[-1]
-            rdf = rdf.iloc[:-1]
-            df = pd.concat([df, rdf])
 
-            return df
+        # Replace the original row with one of the new rows.
+        df.iloc[self.index] = rdf.iloc[-1]
+        rdf = rdf.iloc[:-1]
+        df = pd.concat([df, rdf])
+
+        return df
 
     def _declick(self, clicksel):
         """Set needed values from click selection as attributes."""
@@ -171,11 +172,9 @@ class BespokeUnpacker:
         self.state = self.df.loc[self.index, "state"]
 
 
-def batch_unpack_from_supply_curve(
-    sc_df,
-    n_workers=1
-):
-    """Batch functionality to unpack all turbines from a supply curve dataframe.
+def batch_unpack_from_supply_curve(sc_df, n_workers=1):
+    """Batch functionality to unpack all turbines from a supply curve 
+        dataframe.
 
         Parameters
         ----------
@@ -193,12 +192,16 @@ def batch_unpack_from_supply_curve(
             from the source reV supply curve data frame.
     """
 
+    # cap nb_workers to the total CPUs on the machine/node
+    if n_workers > cpu_count():
+        n_workers = cpu_count()
+
     if n_workers > 1:
         # initialize functionality for parallela dataframe.apply
-        # TODO: cap nb_workers to the total CPUs on the machine/node
-        pandarallel.initialize(progress_bar=True, nb_workers=n_workers, use_memory_fs=False)
+        pandarallel.initialize(
+            progress_bar=True, nb_workers=n_workers, use_memory_fs=False)
 
-    # filter out supply curve points with no capacity (these won't have any turbines)
+    # filter out supply curve points with no capacity (i.e., no turbines)
     sc_developable_df = sc_df[sc_df['capacity'] > 0].copy()
     # reset the index because otherwise the unpacker will get messed up
     sc_developable_df.reset_index(drop=True, inplace=True)
@@ -207,9 +210,9 @@ def batch_unpack_from_supply_curve(
     if n_workers > 1:
         # run in parallel
         all_turbines = sc_developable_df.parallel_apply(
-            lambda row: 
+            lambda row:
                 BespokeUnpacker(
-                    sc_developable_df, 
+                    sc_developable_df,
                     sc_point_gid=row['sc_point_gid']
                     ).unpack_turbines(drop_sc_points=True),
             axis=1
@@ -217,9 +220,9 @@ def batch_unpack_from_supply_curve(
     else:
         # run in serial
         all_turbines = sc_developable_df.apply(
-            lambda row: 
+            lambda row:
                 BespokeUnpacker(
-                    sc_developable_df, 
+                    sc_developable_df,
                     sc_point_gid=row['sc_point_gid']
                     ).unpack_turbines(drop_sc_points=True),
             axis=1
@@ -231,7 +234,7 @@ def batch_unpack_from_supply_curve(
     # extract the geometries
     all_turbines_df['geometry'] = all_turbines_df.apply(
         lambda row: geometry.Point(
-            row['longitude'], 
+            row['longitude'],
             row['latitude']
             ),
         axis=1
