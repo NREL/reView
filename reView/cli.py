@@ -1,6 +1,11 @@
-import click
+# -*- coding: utf-8 -*-
+"""
+reView command line interface (CLI).
+"""
+
 import logging
 import pathlib
+import click
 import pandas as pd
 from reView.utils.bespoke import batch_unpack_from_supply_curve
 
@@ -26,37 +31,46 @@ def main(ctx, verbose):
 @click.option('--supply_curve_csv', '-i', required=True,
               prompt='Path to input bespoke wind supply curve CSV file',
               type=click.Path(exists=True),
-              help=('Path to bespoke wind supply curve CSV file created by reV'))
+              help='Path to bespoke wind supply curve CSV file created by reV')
 @click.option('--out_gpkg', '-o', required=True,
               prompt='Path to output geopackage.',
               type=click.Path(),
-              help=('Path to regions shapefile containing labeled geometries'))
+              help='Path to regions shapefile containing labeled geometries')
 @click.option('--n_workers', '-n', default=1, type=int,
               show_default=True,
               required=False,
-              help=('Number of workers to use for parallel processing.'
-                    'Default is 1 which will unpack turbines from each supply curve '
-                    'grid cell in parallel. This will be slow. It is recommended to use '
-                    'at least 4 workers if possible'
-              ))
+              help='Number of workers to use for parallel processing.'
+                    'Default is 1 which will unpack turbines from each supply '
+                    'curve grid cell in parallel. This will be slow. It is '
+                    'recommended to use at least 4 workers if possible')
 @click.option('--overwrite', default=False,
               show_default=True,
               required=False,
               is_flag=True,
-              help=('Overwrite output geopackage if it already exists. Default is False.'))
-def unpack_bespoke_turbines_from_supply_curve(supply_curve_csv, out_gpkg, n_workers, overwrite):
+              help='Overwrite output geopackage if it already exists. '
+                    'Default is False.')
+def unpack_bespoke_turbines_from_supply_curve(
+        supply_curve_csv, out_gpkg, n_workers, overwrite
+    ):
+    """
+    Unpack individual turbines from each reV project site in a reV 
+    supply curve CSV, produced using "bespoke" (i.e., SROM) turbine placement.
+    """
 
     supply_curve_csv_path = pathlib.Path(supply_curve_csv)
     if not supply_curve_csv_path.exists:
-        raise FileExistsError(f"Input supply_curve_csv {supply_curve_csv} does not exist.")
-    
+        raise FileExistsError(
+            f"Input supply_curve_csv {supply_curve_csv} does not exist."
+        )
     supply_curve_df = pd.read_csv(supply_curve_csv_path)
 
-    turbines_gdf = batch_unpack_from_supply_curve(supply_curve_df, n_workers=n_workers)
-    
+    turbines_gdf = batch_unpack_from_supply_curve(
+        supply_curve_df, n_workers=n_workers)
+
     out_gpkg_path = pathlib.Path(out_gpkg)
     if out_gpkg_path.exists() and overwrite is False:
-        raise FileExistsError(f"Output geopackage {out_gpkg} already exists. Use --overwrite to overwrite the existing dataset.")
-    
-    turbines_gdf.to_file(out_gpkg_path, driver='GPKG')    
+        raise FileExistsError(
+            f"Output geopackage {out_gpkg} already exists. "
+            "Use --overwrite to overwrite the existing dataset.")
 
+    turbines_gdf.to_file(out_gpkg_path, driver='GPKG')
