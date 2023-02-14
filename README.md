@@ -71,9 +71,9 @@
     ```
 <br>
 
-## Command Line Tools
+## Command-Line Tools
 
-Additional command line tools are available as part of this package. A list of these tools can be accessed using the command `reView-tools`. The commands currently available include:
+Additional command-line tools are available as part of this package. A list of these tools can be accessed using the command `reView-tools`. The commands currently available include:
 
 - `unpack-turbines`: Unpack individual turbines from each reV project site in a reV supply curve CSV, produced using "bespoke" (i.e., SROM) turbine placement.
 
@@ -84,3 +84,15 @@ Additional command line tools are available as part of this package. A list of t
 This repository uses [pylint](https://pylint.pycqa.org/en/latest/) to lint the code, please follow this guideline if you wish to contribute to this repository. In addition, your code must pass all existing tests. You will need to
 [download the Chrome Driver](https://chromedriver.chromium.org/getting-started) in order to run the integration tests
 included with this repository.
+
+Before pushing code, the following commands should be run to ensure GitHub actions will succeed:
+```cmd
+pylint reView
+pylint tests
+
+flake8 reView
+flake8 tests
+
+pytest
+```
+
