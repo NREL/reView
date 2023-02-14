@@ -13,10 +13,11 @@ from reView import __version__
 
 logger = logging.getLogger(__name__)
 
-CONTEXT_SETTINGS={
+CONTEXT_SETTINGS = {
     "max_content_width": 9999,
     "terminal_width": 9999
 }
+
 
 @click.group(context_settings=CONTEXT_SETTINGS)
 @click.version_option(version=__version__)
