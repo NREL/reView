@@ -21,8 +21,8 @@ def test_unpack_turbines_happy(
 ):
     """Happy-path test for unpack_turbines() CLI command."""
 
-    with tempfile.TemporaryDirectory() as td:
-        output_gpkg = pathlib.Path(td).joinpath("bespoke.gpkg")
+    with tempfile.TemporaryDirectory() as tempdir:
+        output_gpkg = pathlib.Path(tempdir).joinpath("bespoke.gpkg")
         result = test_cli_runner.invoke(
             unpack_turbines, [
                 '-i', test_bespoke_supply_curve.as_posix(),
@@ -38,8 +38,8 @@ def test_unpack_turbines_parallel(
 ):
     """Test unpack_turbines() CLI command with parallel processing."""
 
-    with tempfile.TemporaryDirectory() as td:
-        output_gpkg = pathlib.Path(td).joinpath("bespoke.gpkg")
+    with tempfile.TemporaryDirectory() as tempdir:
+        output_gpkg = pathlib.Path(tempdir).joinpath("bespoke.gpkg")
         result = test_cli_runner.invoke(
             unpack_turbines, [
                 '-i', test_bespoke_supply_curve.as_posix(),
@@ -57,8 +57,8 @@ def test_unpack_turbines_no_overwrite(
         raises FileExistsError when output geopackage exists
         and overwrite flag is not used."""
 
-    with tempfile.TemporaryDirectory() as td:
-        output_gpkg = pathlib.Path(td).joinpath("bespoke.gpkg")
+    with tempfile.TemporaryDirectory() as tempdir:
+        output_gpkg = pathlib.Path(tempdir).joinpath("bespoke.gpkg")
         with open(output_gpkg, 'wb'):
             pass
         result = test_cli_runner.invoke(
@@ -104,8 +104,8 @@ def test_unpack_turbines_results(
         'bespoke-supply-curve-turbines.gpkg')
     correct_df = gpd.read_file(correct_results_gpkg)
 
-    with tempfile.TemporaryDirectory() as td:
-        output_gpkg = pathlib.Path(td).joinpath("bespoke.gpkg")
+    with tempfile.TemporaryDirectory() as tempdir:
+        output_gpkg = pathlib.Path(tempdir).joinpath("bespoke.gpkg")
         result = test_cli_runner.invoke(
             unpack_turbines, [
                 '-i', test_bespoke_supply_curve.as_posix(),
