@@ -5,6 +5,7 @@ import tempfile
 import pytest
 import pandas as pd
 import geopandas as gpd
+from pandas.testing import assert_frame_equal
 from reView.cli import (
     main,
     unpack_turbines
@@ -121,8 +122,15 @@ def test_unpack_turbines_results(
     # this sort is unnecessary at the moment but for future-proofing
     correct_df.sort_values(by=['latitude', 'longitude'], inplace=True)
     output_df.sort_values(by=['latitude', 'longitude'], inplace=True)
-    pd.testing.assert_frame_equal(
-        correct_df, output_df, check_exact=False, rtol=0.001)
+    correct_df_no_geoms = pd.DataFrame(correct_df.drop(columns='geometry'))
+    output_df_no_geoms = pd.DataFrame(output_df.drop(columns='geometry'))
+    assert_frame_equal(
+        correct_df_no_geoms,
+        output_df_no_geoms,
+        check_exact=False,
+        rtol=0.001)
+    assert correct_df.geom_almost_equals(output_df).all(),\
+        "Geometries are not the same."
 
 
 if __name__ == '__main__':
