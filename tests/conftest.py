@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 """Fixtures and setup for use across all tests."""
 from pathlib import Path
+import os
 
 import pytest
 
 from selenium.webdriver.chrome.options import Options
+
+from click.testing import CliRunner
 
 import reView.utils.config
 
@@ -16,6 +19,20 @@ from reView.utils.functions import load_project_configs
 def test_data_dir():
     """Return TEST_DATA_DIR as a `Path` object."""
     return Path(TEST_DATA_DIR)
+
+
+@pytest.fixture
+def test_bespoke_supply_curve():
+    """Return bespoke_supply_curve.csv as a `Path` object."""
+    bespoke_csv = Path(TEST_DATA_DIR).joinpath('bespoke-supply-curve.csv')
+
+    return bespoke_csv
+
+
+@pytest.fixture
+def test_cli_runner():
+    """Return a click CliRunner for testing commands"""
+    return CliRunner()
 
 
 # pylint: disable=redefined-outer-name
