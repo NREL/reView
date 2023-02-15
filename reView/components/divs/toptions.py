@@ -4,7 +4,7 @@ import dash_bootstrap_components as dbc
 
 from dash import dcc, html
 
-from reView.environment.settings import IS_DEV_ENV
+# from reView.environment.settings import IS_DEV_ENV
 from reView.layout.styles import (
     TAB_BOTTOM_SELECTED_STYLE,
     TAB_STYLE,
@@ -42,7 +42,7 @@ TOP_TABS = html.Div(
                 #     selected_style=TABLET_STYLE,
                 # ),
             ],
-        ),  
+        ),
     ]
 )
 
@@ -114,8 +114,8 @@ COMPOSITE_DIV = html.Div(
                 dcc.Dropdown(
                     id="composite_plot_value",
                     options=[
-                        {"label": "Variable",  "value": "variable"},
-                        {"label": "Scenario",  "value": "scenario"},
+                        {"label": "Variable", "value": "variable"},
+                        {"label": "Scenario", "value": "scenario"},
                     ],
                     value="scenario",
                 ),
@@ -666,7 +666,7 @@ REV_TOPTIONS_DIV = html.Div(
         # Options options
         TOP_TABS,
 
-        # Scenario selection tabs - Tabs for selection options      
+        # Scenario selection tabs - Tabs for selection options
         dbc.Collapse(
             className="twelve columns",
             id="options_div",

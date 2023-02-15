@@ -6,7 +6,6 @@ import logging
 import pandas as pd
 
 from reView.utils.config import Config
-from reView.utils.constants import SKIP_VARS
 from reView.utils.functions import convert_to_title
 
 logger = logging.getLogger(__name__)
@@ -133,7 +132,7 @@ def get_variable_options(
     scenario_a,
     scenario_b,
     b_div={"display": "none"}
-):
+):  # pylint: disable=dangerous-default-value
     """Retrieve appropriate variable list."""
     config = Config(project)
     variable_options = []

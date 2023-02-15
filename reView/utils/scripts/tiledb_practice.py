@@ -123,7 +123,8 @@ class ToTiledb:
         # Initialize the database
         tiledb.DenseArray.create(output, schema)
 
-        # Write the data array to the database  <------------------------------ Why does this create such an enormous file?
+        # Write the data array to the database
+        # TODO: Why does this create such an enormous file?
         with tiledb.DenseArray(output, "w") as arr_output:
             array.data.to_tiledb(arr_output)
 
