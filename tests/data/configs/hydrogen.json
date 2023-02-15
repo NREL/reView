@@ -1,8 +1,8 @@
 {
     "project_name": "Hydrogen",
-    "directory": "TEST_DATA_DIR/hydrogen/review_pca/",
-    "var_file": "TEST_DATA_DIR/hydrogen/review_pca/variable_options.csv",
-    "demand_file": "TEST_DATA_DIR/hydrogen/review/h2_demand_600_sites.csv",
+    "directory": "REVIEW_DATA_DIR/hydrogen/review_pca/",
+    "var_file": "REVIEW_DATA_DIR/hydrogen/review_pca/variable_options.csv",
+    "demand_file": "REVIEW_DATA_DIR/hydrogen/review/h2_demand_600_sites.csv",
     "units": {
         "wind_lcoh_component": "USD/kg",
         "solar_lcoh_component": "USD/kg",

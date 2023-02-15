@@ -1,4 +1,4 @@
 {
     "project_name": "Hydrogen No Var But With Default",
-    "directory": "TEST_DATA_DIR/hydrogen/var_but_no_files"
+    "directory": "REVIEW_DATA_DIR/hydrogen/var_but_no_files"
 }
