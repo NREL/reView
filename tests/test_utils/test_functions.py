@@ -143,24 +143,20 @@ def test_shorten():
     assert len(out) == 10
     assert out == 'He...tence'
 
-
     out = shorten('Hello, this is a long sentence', 19)
 
     assert len(out) == 19
     assert out == 'Hello, this...tence'
-
 
     out = shorten('A word', 19)
 
     assert len(out) == 6
     assert out == 'A word'
 
-
     out = shorten('Hello, this is a long sentence', 19, inset=';;;')
 
     assert len(out) == 19
     assert out == 'Hello, this;;;tence'
-
 
     out = shorten('Hello, this is a long sentence', 19, chars_at_end=10)
 
