@@ -75,7 +75,9 @@ class Title:
     @property
     def scenario(self):
         """Build Scenario Title Portion."""
-        # lookup = {str(value): key for key, value in self.config.files.items()}
+        # lookup = {
+        #     str(value): key for key, value in self.config.files.items()
+        #     }
         path1 = self.signal_dict["path"]
         label = strip_rev_filename_endings(Path(path1).name)
         label = convert_to_title(label)
@@ -193,13 +195,14 @@ class Title:
         df = df.dropna(subset=self.color_var)
         df = df[df[self.color_var] != -np.inf]
         if all(df[self.color_var].isnull()):
-            logger.error("No %s values found in % in the % project",
-                         self.color_var, self.scenario, self.project)
+            err = f"No {self.color_var} values found in \
+                {self.scenario} in the {self.project} project"
+            logger.error(err)
             raise EmptyDataError
 
-
         # If mean, use weights
-        if agg_type == "mean" and self.color_var not in ["capacity", "area_sq_km"]:
+        if (agg_type == "mean"
+                and self.color_var not in ["capacity", "area_sq_km"]):
             aggregation = np.average(
                 df[self.color_var],
                 weights=df["capacity"]
@@ -371,8 +374,8 @@ class Map:
         # layout["mapbox"]["center"]
         figure.update_layout(**layout)
         figure.update_traces(
-            unselected=dict(marker=dict(opacity=1)),
-            selected=dict(marker=dict(opacity=1)),
+            unselected={"marker": {"opacity": 1}},
+            selected={"marker": {"opacity": 1}},
         )
 
         return figure
@@ -453,36 +456,39 @@ class Map:
         layout["mapbox"]["style"] = self.basemap
         layout["showlegend"] = self.show_legend
         layout["title"]["text"] = self.plot_title
-        layout["yaxis"] = dict(range=[self.cmin, self.cmax])
+        layout["yaxis"] = {"range": [self.cmin, self.cmax]}
         return layout
 
     def marker(self, point_size, reverse_color=False):
         """Return marker dictionary."""
         if self.units == "category":
-            marker = dict(
-                reversescale=reverse_color,
-                size=point_size
-            )
+            marker = {
+                "reversescale": reverse_color,
+                "size": point_size
+            }
         else:
-            marker = dict(
-                color=self.df[self.color_var],
-                colorscale=COLORS[self.colorscale],
-                cmin=None if self.cmin is None else float(self.cmin),
-                cmax=None if self.cmax is None else float(self.cmax),
-                reversescale=reverse_color,
-                size=point_size,
-                colorbar=dict(
-                    title=dict(
-                        text=self.units,
-                        font=dict(
-                            size=15,
-                            color="white",
-                            family="New Times Roman"
-                        ),
-                    ),
-                    tickfont=dict(color="white", family="New Times Roman"),
-                ),
-            )
+            marker = {
+                "color": self.df[self.color_var],
+                "colorscale": COLORS[self.colorscale],
+                "cmin": None if self.cmin is None else float(self.cmin),
+                "cmax": None if self.cmax is None else float(self.cmax),
+                "reversescale": reverse_color,
+                "size": point_size,
+                "colorbar": {
+                    "title": {
+                        "text": self.units,
+                        "font": {
+                            "size": 15,
+                            "color": "white",
+                            "family": "New Times Roman"
+                        }
+                    },
+                    "tickfont": {
+                        "color": "white",
+                        "family": "New Times Roman"
+                    }
+                }
+            }
 
         return marker
 

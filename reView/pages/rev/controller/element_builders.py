@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=consider-using-generator
 """Element builders.
 
 Methods for building html and core component elements given user inputs in
@@ -132,8 +133,8 @@ class Plots:
         fig.layout["yaxis"]["title"]["text"] = ytitle
 
         fig.update_traces(
-            marker=dict(size=self.point_size, line=dict(width=0)),
-            unselected=dict(marker=dict(color="grey")),
+            marker={"size": self.point_size, "line": {"width": 0}},
+            unselected={"marker": {"color": "grey"}},
         )
 
         return self._update_fig_layout(fig, y_var)
@@ -183,14 +184,12 @@ class Plots:
         )
 
         fig.update_traces(
-            marker=dict(
-                size=self.point_size,
-                opacity=1,
-                line=dict(
-                    width=0,
-                ),
-            ),
-            unselected=dict(marker=dict(color="grey")),
+            marker={
+                "size": self.point_size,
+                "opacity": 1,
+                "line": {'width': 0}
+            },
+            unselected={"marker": {"color": 'grey'}},
         )
 
         return self._update_fig_layout(fig, y_var)
@@ -293,8 +292,8 @@ class Plots:
         )
 
         fig.update_traces(
-            marker=dict(size=self.point_size, line=dict(width=0)),
-            unselected=dict(marker=dict(color="grey")),
+            marker={"size": self.point_size, "line": {"width": 0}},
+            unselected={"marker": {"color": 'grey'}},
         )
 
         return self._update_fig_layout(fig, y_var)
@@ -348,8 +347,8 @@ class Plots:
         )
 
         fig.update_traces(
-            marker=dict(line=dict(width=0)),
-            unselected=dict(marker=dict(color="grey")),
+            marker={"line": {"width": 0}},
+            unselected={"marker": {"color": 'grey'}},
         )
 
         return self._update_fig_layout(fig, y_var)
@@ -381,9 +380,9 @@ class Plots:
         )
 
         fig.update_traces(
-            marker_line=dict(width=0),
-            marker=dict(size=self.point_size, line=dict(width=0)),
-            unselected=dict(marker=dict(color="grey")),
+            marker_line={"width": 0},
+            marker={"size": self.point_size, "line": {"width": 0}},
+            unselected={"marker": {"color": 'grey'}},
         )
 
         return self._update_fig_layout(fig, y_var)
