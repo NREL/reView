@@ -68,8 +68,8 @@ def test_config_no_var():
     """Test that files are checked if var file is not provided."""
     config = Config("Hydrogen No Var No Demand")
 
-    files_1 = list(config._all_files)
-    files_2 = list(config._all_files)
+    files_1 = list(config.all_files)
+    files_2 = list(config.all_files)
     assert files_1 == files_2  # check that generator is re-initialized
 
     assert "empty_data_1" in config.files
