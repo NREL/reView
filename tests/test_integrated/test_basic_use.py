@@ -5,6 +5,7 @@ References
 ----------
 https://dash.plotly.com/testing
 """
+import pytest
 from reView.app import app
 
 
@@ -22,3 +23,6 @@ def test_open_review(dash_duo):
     # assert dash_duo.find_element("#rev_link_button").is_displayed()
     # assert dash_duo.find_element("#reeds_link_button").is_displayed()
     # assert dash_duo.find_element("#top-level-navbar").is_displayed()
+
+if __name__ == '__main__':
+    pytest.main([__file__, '-s'])
