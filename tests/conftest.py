@@ -45,6 +45,7 @@ def test_config_dir(test_data_dir):
 @pytest.fixture(autouse=True)
 def test_configs(test_config_dir):
     """Load test configs."""
+    reView.utils.config.REVIEW_DATA_DIR = TEST_DATA_DIR
     old_configs = reView.utils.config.PROJECT_CONFIGS
     test_configs_ = load_project_configs(test_config_dir)
     reView.utils.config.PROJECT_CONFIGS = test_configs_

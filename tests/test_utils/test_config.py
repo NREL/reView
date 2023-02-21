@@ -17,7 +17,7 @@ def resolve_test_data_dir():
         """Extract the file path from the config dictionary."""
         file_path = self._config.get(fp_key)
         if file_path is not None:
-            file_path = file_path.replace("TEST_DATA_DIR", TEST_DATA_DIR)
+            file_path = file_path.replace("REVIEW_DATA_DIR", TEST_DATA_DIR)
             file_path = Path(file_path).expanduser().resolve()
         return file_path
 

@@ -113,7 +113,6 @@ def test_function_calls_call(add_func):
     assert FUNCTION_CALLS('add') == expected
     assert FUNCTION_CALLS('multiply') == ''
 
-
     assert 'left' not in globals()
     assert 'right' not in globals()
     assert 'trigger' not in globals()
@@ -128,7 +127,7 @@ def test_function_calls_call(add_func):
     assert 'trigger' in globals()
 
     # pyright: reportUndefinedVariable=false
-    assert left  == 1
+    assert left == 1
     assert right == 2
     assert trigger == "Unknown"
 
@@ -148,7 +147,6 @@ def test_function_calls_all(add_func, mult_func):
     out = FUNCTION_CALLS.all.split('; ')
     assert "add={'left': 10, 'right': 20, 'trigger': 'Unknown'}" in out
     assert "multiply={'x_1': 5, 'x_2': 6, 'trigger': 'Unknown'}" in out
-
 
 
 def test_function_calls_print_all(add_func, mult_func):
