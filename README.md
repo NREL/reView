@@ -26,7 +26,7 @@
     3) cd into the repository: ``cd reView``.
     4) prior to running ``pip`` below, make sure the branch is correct (install from main!)
     5) Install ``reView`` and its dependencies by running:
-       ``pip install -e .`` (or ``pip install -e .[dev]`` if running a dev branch or working on the source code)
+       ``pip install -e .`` (or ``pip install -e '.[dev]'`` if running a dev branch or working on the source code)
 
 3. Create a project config pointing to directory containing reV supply curve tables. Save as json dictionary in configs/ (e.g. configs/sample.json). If the user doesn't have reV data, they can get started with supply-curves for NREL's [standard scenarios](https://www.nrel.gov/analysis/standard-scenarios.html) based on the [Electricity Annual Technology Baseline](https://atb.nrel.gov/electricity/2021/data) through NREL's Geospatial Data Science group. Supply curves for wind power are available [here](https://www.nrel.gov/gis/wind-supply-curves.html) and those for solar photovoltaic power are available [here](https://www.nrel.gov/gis/solar-supply-curves.html).
 ```
@@ -52,11 +52,11 @@
 
 1. To run `reView` using `gunicorn` (a Python WSGI HTTP Server for UNIX) for better performance, make sure to follow the installation steps as outlined above, but when you get to the last step of #2, include the `gunicorn` dependency:
     ```
-    pip install -e .[gunicorn]
+    pip install -e '.[gunicorn]'
     ```
     or, for more development tools:
     ```
-    pip install -e .[dev,gunicorn]
+    pip install -e '.[dev,gunicorn]'
     ```
 
 2. Run `reView` using `gunicorn`:
@@ -71,6 +71,12 @@
     ```
 <br>
 
+## Command-Line Tools
+
+Additional command-line tools are available as part of this package. A list of these tools can be accessed using the command `reView-tools`. The commands currently available include:
+
+- `unpack-turbines`: Unpack individual turbines from each reV project site in a reV supply curve CSV, produced using "bespoke" (i.e., SROM) turbine placement.
+
 ----
 
 ## Development
@@ -78,3 +84,15 @@
 This repository uses [pylint](https://pylint.pycqa.org/en/latest/) to lint the code, please follow this guideline if you wish to contribute to this repository. In addition, your code must pass all existing tests. You will need to
 [download the Chrome Driver](https://chromedriver.chromium.org/getting-started) in order to run the integration tests
 included with this repository.
+
+Before pushing code, the following commands should be run to ensure GitHub actions will succeed:
+```cmd
+pylint reView
+pylint tests
+
+flake8 reView
+flake8 tests
+
+pytest
+```
+

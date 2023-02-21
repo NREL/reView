@@ -38,7 +38,11 @@ setup(
     author_email="Travis.Williams@nrel.gov",
     packages=["reView"],
     entry_points={
-        "console_scripts": ["reView=reView.index:main"],
+        "console_scripts": [
+            "reView=reView.index:main",
+            "reView-tools=reView.cli:main",
+            "unpack-turbines=reView.cli:unpack_turbines"
+        ],
     },
     zip_safe=False,
     keywords="reView",
