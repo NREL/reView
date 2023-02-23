@@ -12,8 +12,6 @@ from glob import glob
 import numpy as np
 import pandas as pd
 
-from tqdm import tqdm
-
 SOURCE = os.path.expanduser("~/review_datasets/blm_lease_rates")
 TRGT = SOURCE + "_adjusted"
 KEEPERS = ['sc_gid', 'res_gids', 'gen_gids', 'gid_counts', 'n_gids', 'mean_cf',
@@ -41,7 +39,9 @@ def adjust(file):
     del df["lbnl_upv_1km_buffer"]
     df = pd.merge(df, SOLAR, on="sc_point_gid")
     if "awea" not in file:
-        capfee = int(os.path.basename(file).split("_")[4].replace("capfee", ""))  # noqa: E501
+        capfee = int(
+            os.path.basename(file).split("_")[4].replace("capfee", "")
+        )  # noqa: E50
         density = int(os.path.basename(file).split("_")[3].replace("acmw", ""))
         option = os.path.basename(file).split("_")[2]
         total_charge = capfee + df["rate_usd_ac"]

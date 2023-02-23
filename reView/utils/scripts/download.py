@@ -19,7 +19,7 @@ os.makedirs(DP.folder_path, exist_ok=True)
 
 # Standardized Evapotranspiration Index - 6 months
 URL = "https://wrcc.dri.edu/wwdt/data/PRISM/spei6/"
-URLS = [os.path.join(URL, "spei6_{}_PRISM.nc".format(i)) for i in range(1, 13)]
+URLS = [os.path.join(URL, f"spei6_{i}_PRISM.nc") for i in range(1, 13)]
 
 
 def download(url):
@@ -28,6 +28,7 @@ def download(url):
     if not os.path.exists(nc_file):
         with open(nc_file, "wb") as file:
             try:
+                # pylint: disable=consider-using-with
                 response = urllib.request.urlopen(url).read()
                 file.write(response)
             except urllib.error.URLError as error:

@@ -9,7 +9,7 @@ import json
 from pathlib import Path
 
 from utils.config import Config
-from old.revlogs import find_file, find_files
+from old.revlogs import find_files
 
 
 PROJECT = "ATB Onshore - FY21"
@@ -20,24 +20,24 @@ class Configure(Config):
 
     def __init__(
         self, project=None, pwd=".", pipe_name="config_pipeline.json"
-    ):
+    ):  # pylint: disable=redefined-outer-name
         """Initialize Configure object."""
         super().__init__(project)
         self.pwd = Path(pwd)
         self.pipe_name = pipe_name
 
-    def __repr__(self):
+    def __repr__(self):  # pylint: disable=redefined-outer-name
         """Print representation string."""
         args = ", ".join([f"{k}={v}" for k, v in self.__dict__.items()])
         msg = f"<reView Configure object: {args}>"
         return msg
 
-    def from_pipeline(self, pipe_path):
+    def from_pipeline(self, pipe_path):  # pylint: disable=redefined-outer-name
         """Use the pipeline to locate all needed information for a run."""
         with open(pipe_path, "r") as file:
-            config = json.load(file)
+            config = json.load(file)  # pylint: disable=unused-variable
 
-    def from_pipelines(self):
+    def from_pipelines(self):  # pylint: disable=redefined-outer-name
         """Use a folder containing multiple pipelines to find information."""
         # Find all the pipeline files
         pipes = find_files(self.pwd, self.pipe_name)

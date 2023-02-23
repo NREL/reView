@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# pylint: disable=invalid-name
 """
 Created on Tue Mar 10 20:55:55 2020
 
@@ -7,16 +8,13 @@ Created on Tue Mar 10 20:55:55 2020
 """
 import os
 import shutil
+from pathlib import Path
 
 import gdal
 import tiledb
 import rasterio
 import numpy as np
 import xarray as xr
-from tiledb import sql
-from pathlib import Path
-
-from gdalmethods import gdal_options
 
 
 class ToTiledb:
@@ -38,9 +36,9 @@ class ToTiledb:
 
     def __repr__(self):
 
-        attrs = ["{}='{}'".format(k, v) for k, v in self.__dict__.items()]
+        attrs = [f"{k}='{v}'" for k, v in self.__dict__.items()]
         attrs_str = " ".join(attrs)
-        msg = "<To_Tiledb {}> ".format(attrs_str)
+        msg = f"<To_Tiledb {attrs_str}> "
         return msg
 
     def hdf(self, file):
@@ -135,9 +133,9 @@ class ToTiledb:
         """Generate meta data for a rasterio accessible file."""
 
         # Open file
-        with rasterio.open(file) as nc:
-            profile = nc.profile
-            dtype = np.dtype(nc.dtypes[0])
+        with rasterio.open(file) as f:
+            profile = f.profile
+            dtype = np.dtype(f.dtypes[0])
 
         # Reset the driver to tiledb
         profile["driver"] = "TileDB"
@@ -175,7 +173,7 @@ maker = ToTiledb("test", data_path / "tbdbs")
 path1 = maker.netcdf(nc, overwrite=True)
 
 # Using GDAL
-ops = dict(format="tiledb")
+ops = {"format": 'tiledb'}
 src = gdal.Open(nc)
 path2 = data_path / "tbdbs" / "test2"
 gdal.Translate(destName=path2, srcDS=src, **ops)

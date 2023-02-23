@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=unexpected-keyword-arg
+# pylint: disable=invalid-name
+# pylint: disable=line-too-long
+# pylint: disable=too-many-statements
 """
 Conversion functions for reV outputs.
 
@@ -12,7 +16,6 @@ import os
 
 from glob import glob
 
-import click
 import geopandas as gpd
 import h5py
 import numpy as np
@@ -34,7 +37,7 @@ COORDINATE_SYSTEM_AUTHORITIES = {
 }
 
 
-def convert_h5(src, dst, res=0.0215, overwrite=True):
+def convert_h5(src, dst, res=0.0215):
     """Covert a point data frame into a 3D gridded dataset.
 
     Parameters
@@ -135,7 +138,7 @@ def resamples(src, n=6):
 
         # New file name
         zoom_level = n + 1 - scale
-        dst = src.replace(".nc", "_{}.nc".format(zoom_level))
+        dst = src.replace(".nc", f"_{zoom_level}.nc")
 
         # Create Target Grid
         grid = xr.Dataset({"lat": (["lat"], np.arange(y[0], y[-1], res)),
@@ -246,7 +249,7 @@ def to_grid(df, res):
 
     # Build kdtree
     ktree = cKDTree(grid_points)
-    dist, indices = ktree.query(points)
+    _, indices = ktree.query(points)
 
     # Those indices associate grid point coordinates with the original points
     df["gx"] = grid_points[indices, 1]
@@ -274,6 +277,7 @@ def to_grid(df, res):
 
 
 def to_netcdf(array, dst, time, transform, attributes=None, clobber=True):
+    # pylint: disable=unused-argument
     """
     Convert a 3D numpy time series dataset into a netcdf dataset.
 
@@ -307,8 +311,7 @@ def to_netcdf(array, dst, time, transform, attributes=None, clobber=True):
         time_fmt = "%Y-%m-%d %H:%M:%S"
         trgt_fmt = "%Y-%m-%d %H:%M"
         base = dt.datetime.strptime(time[0], time_fmt)
-        time_units = "hours since {}".format(dt.datetime.strftime(base,
-                                                                  trgt_fmt))
+        time_units = f"hours since {dt.datetime.strftime(base, trgt_fmt)}"
         times = [dt.datetime.strptime(t, time_fmt) for t in time]
         times = [dt.datetime.strftime(t, trgt_fmt) for t in times]
         times = [dt.datetime.strptime(t, trgt_fmt) for t in times]
@@ -325,7 +328,7 @@ def to_netcdf(array, dst, time, transform, attributes=None, clobber=True):
 
     # Get spatial information
     if len(array.shape) == 3:
-        ntime, nlat, nlon = np.shape(array)
+        _, nlat, nlon = np.shape(array)
     else:
         nlat, nlon = np.shape(array)
 
@@ -441,7 +444,7 @@ def main(src, outdir="."):
 
 
 if __name__ == "__main__":
-    src = "/home/travis/github/reViewer/data/ipm_wind_florida/"
+    SRC = "/home/travis/github/reViewer/data/ipm_wind_florida/"
     "ipm_wind_cfp_fl_2012.h5"
-    outdir = "/home/travis/github/reViewer/data/ipm_wind_florida"
-    main(src, outdir)
+    OUTDIR = "/home/travis/github/reViewer/data/ipm_wind_florida"
+    main(SRC, OUTDIR)
