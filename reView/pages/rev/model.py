@@ -214,8 +214,10 @@ def calc_least_cost(paths, dst, composite_function="min",
                 dfs.append(data)
 
         # Make one big data frame and save
-        data = composite(dfs, composite_function=composite_function,
-                          composite_variable=composite_variable)
+        data = composite(
+            dfs,
+            composite_function=composite_function,
+            composite_variable=composite_variable)
         data.to_csv(dst, index=False)
 
 
@@ -681,7 +683,8 @@ class Difference:
         """Return single dataset with difference between two."""
         diff = df1[y_var] - df2[y_var]
         if self.diff_units == "percent":
-            df2[y_var][df2[y_var] == 0] = 0.0001  # Any difference from 0 is 100% different?
+            # Any difference from 0 is 100% different?
+            df2[y_var][df2[y_var] == 0] = 0.0001
             diff = (diff / df2[y_var]) * 100
             col = f"{y_var}_difference_percent"
         else:

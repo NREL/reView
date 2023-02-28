@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+"""reView Layout generator
+    Creates parent DIV for containing page layout
+"""
 from dash import dcc
 from dash import html
 

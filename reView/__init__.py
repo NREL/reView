@@ -4,7 +4,6 @@ import os
 
 from pint import UnitRegistry
 
-from reView.paths import Paths
 from reView.version import __version__
 
 
@@ -24,6 +23,3 @@ UNITS.define("ratio = [] = _ = rat")
 UNITS.define("multiplier = []")
 UNITS.define("cent = [currency]")
 UNITS.define("dollar = 100 * cents = $ = usd = USD")
-
-# Package data paths
-paths = Paths()

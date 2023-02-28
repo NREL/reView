@@ -24,7 +24,7 @@ DEFAULT_CONFIG = Config(sorted(Config.projects)[0])
 DEFAULT_SIGNAL = {
     "filters": [],
     "mask": "off",
-    "path": str(sorted(DEFAULT_CONFIG._all_files)[0]),
+    "path": str(sorted(DEFAULT_CONFIG.all_files)[0]),
     "path2": None,
     "project": DEFAULT_CONFIG.project,
     "recalc": "off",

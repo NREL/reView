@@ -137,7 +137,7 @@ def above_chart_options_div(id_prefix, class_name="row"):
                                 }
                             ],
                             multi=True,
-                        ),                    
+                        ),
                     ),
                     html.Div(
                         className="two columns",
@@ -337,4 +337,3 @@ def chart_div(id_prefix, class_name=None):
             "border-radius": "5px",
         },
     )
-

@@ -122,6 +122,7 @@ RESOURCE_CLASSES = {
     }
 }
 
+
 # Refactoring this guy....class below not implemented
 class Config_Input(Config):
     """Methods for building a project config from user input."""
@@ -206,7 +207,9 @@ class Process:
         self.assign_classes()
 
     def assign_area(self, file):
-        """Assign area to pixel summed characterizations for a file."""  # <-- Some what inefficient, reading and saving twice but covers all cases
+        """Assign area to pixel summed characterizations for a file."""
+        # Note: This is some what inefficient, reading and saving twice
+        # but covers all cases
         cols = self._cols(file)
         area_fields = [f"{f}_sq_km" for f in self.pixel_sum_fields]
         pct_fields = [f"{f}_pct" for f in self.pixel_sum_fields]
@@ -371,7 +374,7 @@ def capex(df):
     return df
 
 
-def get_scales(file_df, field_units):
+def get_scales(file_df, field_units):  # noqa: C901
     """Create a value scale dictionary for each field-unit pair."""
 
     def get_range(args):
@@ -411,14 +414,14 @@ def get_scales(file_df, field_units):
         try:
             m = min([e["min"] for e in x])
             return m
-        except:
+        except Exception as e:
             return np.nan
 
     def maxit(x):
         try:
             m = min([e["max"] for e in x])
             return m
-        except:
+        except Exception as e:
             return np.nan
 
     rdf = pd.DataFrame(ranges).T
@@ -497,7 +500,7 @@ layout = html.Div(
             [
                 html.Button(
                     children="navigate",
-                    title="Navigate the file system for the project directory.",
+                    title="Navigate the file system for the project directory.",  # noqa: E501
                     id="proj_nav",
                     n_clicks=0,
                 ),
@@ -584,7 +587,7 @@ layout = html.Div(
         html.Button(
             id="submit",
             children="submit",
-            title="Submit above values and build the project configuration file.",
+            title="Submit above values and build the project configuration file.",  # noqa: E501
             n_clicks=0,
         ),
         # Storage
@@ -736,7 +739,8 @@ def create_groups(submit, name, group_input, group_values, group_dict, files):
 
     group_dict = json.loads(group_dict)
 
-    field = group_values  # <-------------------------------------------------- Rushing
+    # Rushing
+    field = group_values
 
     if name in group_dict:
         groups = group_dict[name]
@@ -1090,7 +1094,9 @@ def build_config(n_clicks, group_dt, name, directory, fields, groups):
         "data": file_df.to_dict(),
         "directory": directory,
         "groups": groups,
-        "parameters": {},  # <------------------------------------------------- add a config input option and infer everything from the pipeline config (SAM, Gen, maybe there are things in agg we'd need).
+        # TODO: add a config input option and infer everything from the
+        #  pipeline config (SAM, Gen, maybe there are things in agg we'd need).
+        "parameters": {},
         "scales": scales,
         "titles": titles,
         "units": units,

@@ -184,7 +184,7 @@ class Config:
         return units
 
     @property
-    def _all_files(self):
+    def all_files(self):
         """:obj:`generator`: Generator of raw project files."""
         if self.options is not None and "file" in self.options:
             for file in self.options.file:
@@ -222,7 +222,7 @@ class Config:
     @property
     def _project_files(self):
         """:obj:`generator`: Generator of project-related files only."""
-        for file in self._all_files:
+        for file in self.all_files:
             scenario = strip_rev_filename_endings(file.name)
             if scenario.endswith(".csv"):
                 continue

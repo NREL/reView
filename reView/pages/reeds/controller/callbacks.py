@@ -14,7 +14,7 @@ import pandas as pd
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 
-from reView import paths
+from reView.paths import Paths
 from reView.app import app
 from reView.components.callbacks import (
     capacity_print,
@@ -88,7 +88,7 @@ for i in [1, 2]:
     @calls.log
     def dropdown_projects_reeds(__, call):
         """Update reeds project options."""
-        files = list(paths.paths["reeds"].glob("*csv"))
+        files = list(Paths().paths["reeds"].glob("*csv"))
         files.sort()
         options = [
             {"label": to_name(file), "value": str(file)} for file in files

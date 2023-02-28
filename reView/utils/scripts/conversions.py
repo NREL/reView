@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=unexpected-keyword-arg
+# pylint: disable=invalid-name
+# pylint: disable=line-too-long
+# pylint: disable=too-many-statements
 """
 Conversion functions for reV outputs.
 
@@ -12,7 +16,6 @@ import os
 
 from glob import glob
 
-import click
 import geopandas as gpd
 import h5py
 import numpy as np
@@ -34,7 +37,7 @@ COORDINATE_SYSTEM_AUTHORITIES = {
 }
 
 
-def convert_h5(src, dst, res=0.0215, overwrite=True):
+def convert_h5(src, dst, res=0.0215):
     """Covert a point data frame into a 3D gridded dataset.
 
     Parameters
@@ -48,7 +51,7 @@ def convert_h5(src, dst, res=0.0215, overwrite=True):
     src = "/home/travis/github/reViewer/data/ipm_wind_florida/ipm_wind_cfp_fl_2012.h5"
     dst = "/home/travis/github/reViewer/data/netcdfs/ipm_wind_cfp_fl_2012.nc"
     res = 0.018
-    """
+    """  # noqa: E501
 
     # Open dataset and build data frame (watch memory)
     datasets = {}
@@ -58,7 +61,8 @@ def convert_h5(src, dst, res=0.0215, overwrite=True):
             crds = pd.DataFrame(ds["meta"][:])
         elif "coordinates" in datasets:
             crds = pd.DataFrame(ds["coordinates"][:])
-        elif "latitude" in datasets:  # <-------------------------------------- Search for any of a list of possible lat/lon names
+        # TODO: Search for any of a list of possible lat/lon names
+        elif "latitude" in datasets:
             lats = pd.DataFrame(ds["latitude"][:])
             lons = pd.DataFrame(ds["longitude"][:])
             crds = pd.merge(lats, lons)
@@ -76,7 +80,7 @@ def convert_h5(src, dst, res=0.0215, overwrite=True):
             df.columns = crds["gid"].values
             df.index = time
             df = df.T
-            df = crds[["latitude", "longitude"]].join(df)  
+            df = crds[["latitude", "longitude"]].join(df)
             datasets[k] = df
 
     # Create geo data frame so we can reproject
@@ -104,17 +108,17 @@ def resamples(src, n=6):
     -------
     list
         A list of paths to output files.
-    
+
     Sample Arguments
     ----------------
     src = "/home/travis/github/reViewer/data/ipm_wind_florida/ipm_wind_cfp_fl_2012.nc"
     n = 6
-    """
+    """  # noqa: E501
 
     # Expand path
     src = os.path.expanduser(src)
 
-    # Open highest resolution original file    
+    # Open highest resolution original file
     ds = xr.open_dataset(src)
 
     # Build regridder
@@ -134,7 +138,7 @@ def resamples(src, n=6):
 
         # New file name
         zoom_level = n + 1 - scale
-        dst = src.replace(".nc", "_{}.nc".format(zoom_level))
+        dst = src.replace(".nc", f"_{zoom_level}.nc")
 
         # Create Target Grid
         grid = xr.Dataset({"lat": (["lat"], np.arange(y[0], y[-1], res)),
@@ -149,7 +153,7 @@ def resamples(src, n=6):
 
         # Rewrite geotransform
         crs.attrs["GeoTransform"] = [res, 0, x[0], 0, res, y[0]]
-        rds = rds.assign(spatial_ref = crs)
+        rds = rds.assign(spatial_ref=crs)
 
         # Save
         rds.to_netcdf(dst, encoding=encoding)
@@ -176,7 +180,7 @@ def to_geo(df):
     """
 
     # Coordinate could be any of these
-    lons = ["longitude", "lon", "long",  "x"]
+    lons = ["longitude", "lon", "long", "x"]
     lats = ["latitude", "lat", "y"]
 
     # Make sure everything is lower case
@@ -217,7 +221,7 @@ def to_grid(df, res):
     space.
 
     - At the moment it is a little awkardly shaped, just because I haven't
-    gotten to it yet. 
+    gotten to it yet.
     """
 
     # At the end of all this the actual data will be inbetween these columns
@@ -236,7 +240,7 @@ def to_grid(df, res):
     gridy = np.arange(miny, maxy + res, res)
     grid_points = np.array(np.meshgrid(gridy, gridx)).T.reshape(-1, 2)
 
-    # Go ahead and make the geotransform 
+    # Go ahead and make the geotransform
     geotransform = [res, 0, minx, 0, res, miny]
 
     # Get source point coordinates
@@ -245,7 +249,7 @@ def to_grid(df, res):
 
     # Build kdtree
     ktree = cKDTree(grid_points)
-    dist, indices = ktree.query(points)
+    _, indices = ktree.query(points)
 
     # Those indices associate grid point coordinates with the original points
     df["gx"] = grid_points[indices, 1]
@@ -265,13 +269,15 @@ def to_grid(df, res):
     grid = np.zeros((values.shape[0], gridy.shape[0], gridx.shape[0]))
 
     # Now, use the cartesian indices to add the values to the new grid
-    grid[:, df["iy"].values, df["ix"].values] = values # <--------------------- Check these values against the original dataset
+    # TODO: Check these values against the original dataset
+    grid[:, df["iy"].values, df["ix"].values] = values
 
     # Holy cow, did that work?
     return grid, geotransform, time
 
 
 def to_netcdf(array, dst, time, transform, attributes=None, clobber=True):
+    # pylint: disable=unused-argument
     """
     Convert a 3D numpy time series dataset into a netcdf dataset.
 
@@ -285,7 +291,7 @@ def to_netcdf(array, dst, time, transform, attributes=None, clobber=True):
         A list of datetime compatiable time strings.
     transform : list-like
         GDAL formatted geotransform.
-    proj : str | int 
+    proj : str | int
         A proj4 string or EPSG code that corresponds with the arrays coordinate
         reference system.
     attributes : dict
@@ -305,8 +311,7 @@ def to_netcdf(array, dst, time, transform, attributes=None, clobber=True):
         time_fmt = "%Y-%m-%d %H:%M:%S"
         trgt_fmt = "%Y-%m-%d %H:%M"
         base = dt.datetime.strptime(time[0], time_fmt)
-        time_units = "hours since {}".format(dt.datetime.strftime(base,
-                                                                  trgt_fmt))
+        time_units = f"hours since {dt.datetime.strftime(base, trgt_fmt)}"
         times = [dt.datetime.strptime(t, time_fmt) for t in time]
         times = [dt.datetime.strftime(t, trgt_fmt) for t in times]
         times = [dt.datetime.strptime(t, trgt_fmt) for t in times]
@@ -323,7 +328,7 @@ def to_netcdf(array, dst, time, transform, attributes=None, clobber=True):
 
     # Get spatial information
     if len(array.shape) == 3:
-        ntime, nlat, nlon = np.shape(array)
+        _, nlat, nlon = np.shape(array)
     else:
         nlat, nlon = np.shape(array)
 
@@ -344,15 +349,15 @@ def to_netcdf(array, dst, time, transform, attributes=None, clobber=True):
 
     # Latitude
     nco.createDimension('lat', nlat)
-    latitudes = nco.createVariable('lat',  'f4', ('lat',))
+    latitudes = nco.createVariable('lat', 'f4', ('lat',))
     latitudes.units = 'degrees_north'
     latitudes.standard_name = 'latitude'
 
     # Longitude
     nco.createDimension('lon', nlon)
-    longitudes = nco.createVariable('lon',  'f4', ('lon',))
+    longitudes = nco.createVariable('lon', 'f4', ('lon',))
     longitudes.units = 'degrees_east'
-    longitudes.standard_name = 'longitude' 
+    longitudes.standard_name = 'longitude'
 
     # Variables (for var, attrs in variables.items():)
     variable = nco.createVariable('value', 'i2', ('time', 'lat', 'lon'),
@@ -363,7 +368,7 @@ def to_netcdf(array, dst, time, transform, attributes=None, clobber=True):
     variable.scale_factor = 1
     variable.setncattr('grid_mapping', 'spatial_ref')
 
-    # Mean Variables 
+    # Mean Variables
     mean_variable = nco.createVariable('value_mean', 'i2', ('lat', 'lon'),
                                        fill_value=-9999, zlib=True)
     mean_variable.standard_name = 'index'
@@ -422,7 +427,7 @@ def main(src, outdir="."):
 
     src = "/home/travis/github/reViewer/data/ipm_wind_florida/ipm_wind_cfp_fl_2012.h5"
     outdir = "/home/travis/github/reViewer/data/ipm_wind_florida"
-    """
+    """  # noqa: E501
 
     # Create the target path
     extension = os.path.splitext(src)[1]
@@ -438,8 +443,8 @@ def main(src, outdir="."):
     resamples(dst, 5)
 
 
-
 if __name__ == "__main__":
-    src = "/home/travis/github/reViewer/data/ipm_wind_florida/ipm_wind_cfp_fl_2012.h5"
-    outdir = "/home/travis/github/reViewer/data/ipm_wind_florida"
-    main(src, outdir)
+    SRC = "/home/travis/github/reViewer/data/ipm_wind_florida/"
+    "ipm_wind_cfp_fl_2012.h5"
+    OUTDIR = "/home/travis/github/reViewer/data/ipm_wind_florida"
+    main(SRC, OUTDIR)

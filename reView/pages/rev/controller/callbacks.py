@@ -93,7 +93,7 @@ def build_spec_split(path, project):
     total = df.shape[0]
     percentages = [counts[i] / total for i in range(len(counts))]
     percentages = [round(p * 100, 4) for p in percentages]
-    pdf = pd.DataFrame(dict(p=percentages, s=scenarios))
+    pdf = pd.DataFrame({"p": percentages, "s": scenarios})
     pdf = pdf.sort_values("p", ascending=False)
     table = """| Scenario | Percentage |\n|----------|------------|\n"""
     for _, row in pdf.iterrows():
@@ -157,7 +157,7 @@ def composite_fname(paths, composite_function, composite_variable):
     # If it's less than 12 paths, use words. If not use hash
     if len(paths) < 12:
         # Remove any repeating elements in the adjusted names
-        parts = [[part for part in name.split("_")] for name in names]            
+        parts = [list(name.split("_")) for name in names]
         parts = [sublst for lst in parts for sublst in lst]
         repeats = [part for part in parts if parts.count(part) > 1]
         repeats = np.unique(repeats)
@@ -628,7 +628,6 @@ def dropdown_scenarios(url, project, __, ___):
     return group_a, group_b
 
 
-
 @app.callback(
     Output("composite_variable", "options"),
     Input("project", "value")
@@ -712,7 +711,9 @@ def dropdown_variables(
     State("project", "value"),
 )
 @calls.log
-def dropdown_x_variables(_, chart_type, scenario_a, scenario_b, b_div, project):
+def dropdown_x_variables(
+    _, chart_type, scenario_a, scenario_b, b_div, project
+):
     """Return dropdown options for x variable."""
     logger.debug("Setting X variable options")
     if chart_type == "char_histogram":
@@ -1513,6 +1514,7 @@ def retrieve_recalc_parameters(
             },
         }
     return json.dumps(recalc_table)
+
 
 @app.callback(
     Output("rev_chart_options_tab", "children"),

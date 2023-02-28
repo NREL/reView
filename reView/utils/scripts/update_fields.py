@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=invalid-name, chained-comparison
 """Add fields to output CSVs.
 
 NREL Regions, Configuration variables, etc
@@ -8,60 +9,17 @@ Created on Thu Jan  7 07:17:36 2021
 @author: twillia2
 """
 
-import pandas as pd
 from multiprocessing import Pool
+import pandas as pd
 from tqdm import tqdm
 
 from reView.utils.config import Config
-from reView.utils.constants import RESOURCE_CLASSES
+from reView.utils.constants import RESOURCE_CLASSES, REGIONS
 
 
 CONFIG = Config("ATB Onshore - FY21")
 CONFIG_PATH = CONFIG.directory
 FILES = sorted(CONFIG_PATH.glob("*.csv"))
-REGIONS = {
-    "Pacific": ["Oregon", "Washington"],
-    "Mountain": ["Colorado", "Idaho", "Montana", "Wyoming"],
-    "Great Plains": [
-        "Iowa",
-        "Kansas",
-        "Missouri",
-        "Minnesota",
-        "Nebraska",
-        "North Dakota",
-        "South Dakota",
-    ],
-    "Great Lakes": ["Illinois", "Indiana", "Michigan", "Ohio", "Wisconsin"],
-    "Northeast": [
-        "Connecticut",
-        "New Jersey",
-        "New York",
-        "Maine",
-        "New Hampshire",
-        "Massachusetts",
-        "Pennsylvania",
-        "Rhode Island",
-        "Vermont",
-    ],
-    "California": ["California"],
-    "Southwest": ["Arizona", "Nevada", "New Mexico", "Utah"],
-    "South Central": ["Arkansas", "Louisiana", "Oklahoma", "Texas"],
-    "Southeast": [
-        "Alabama",
-        "Delaware",
-        "District of Columbia",
-        "Florida",
-        "Georgia",
-        "Kentucky",
-        "Maryland",
-        "Mississippi",
-        "North Carolina",
-        "South Carolina",
-        "Tennessee",
-        "Virginia",
-        "West Virginia",
-    ],
-}
 NEEDED_SAM_BITS = [
     "mean_fixed_charge_rate",
     "mean_capital_cost",
@@ -173,7 +131,7 @@ def set_field(path, field):
 
 def set_fields(path):
     """Assign resource classes if possible to an sc df."""
-    for field in RESOURCE_CLASSES.keys():
+    for field in RESOURCE_CLASSES:
         set_field(path, field)
 
 
