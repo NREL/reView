@@ -6,7 +6,6 @@ from dash.dependencies import Input, Output
 from reView.app import app
 from reView.pages.rev import view as scenario_view
 from reView.pages.reeds import view as reeds_view
-from reView.pages.config import config
 from reView.utils.constants import (
     HOME_PAGE_LOCATION,
     SCENARIO_PAGE_LOCATION,
@@ -18,7 +17,6 @@ PAGES = {
     None: scenario_view.layout,
     HOME_PAGE_LOCATION: scenario_view.layout,
     SCENARIO_PAGE_LOCATION: scenario_view.layout,
-    CONFIG_PAGE_LOCATION: config.layout,
     REEDS_PAGE_LOCATION: reeds_view.layout
 }
 
