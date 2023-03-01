@@ -6,7 +6,6 @@ flask==2.1.3
 flask-caching==2.0.1
 geopandas==0.12.2
 gunicorn==20.1.0
-h5py==3.6.0
 numpy==1.22.3
 pandas==1.4.2
 pandarallel==1.6.1
