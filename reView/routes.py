@@ -29,5 +29,7 @@ PAGES = {
 def render_page_content(pathname):
     """Output chosen layout from the navigation bar links."""
     logging.getLogger(__name__).info("URL: %s", pathname)
+    if "Workspaces" in pathname:
+        pathname = pathname.replace("/Workspaces/view/review", "")
     page = PAGES[pathname]
     return page
