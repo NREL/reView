@@ -2,10 +2,9 @@
 import plotly.colors as pcs
 
 
-HOME_PAGE_LOCATION = "/"
-SCENARIO_PAGE_LOCATION = "/scenario_page"
-CONFIG_PAGE_LOCATION = "/config_page"
-REEDS_PAGE_LOCATION = "/reeds_page"
+HOME_PAGE_LOCATION = "/review/"
+SCENARIO_PAGE_LOCATION = "/review/scenario_page"
+REEDS_PAGE_LOCATION = "/review/reeds_page"
 
 COLORS = {
     **pcs.PLOTLY_SCALES,

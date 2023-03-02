@@ -9,7 +9,6 @@ from reView.pages.reeds import view as reeds_view
 from reView.utils.constants import (
     HOME_PAGE_LOCATION,
     SCENARIO_PAGE_LOCATION,
-    CONFIG_PAGE_LOCATION,
     REEDS_PAGE_LOCATION,
 )
 
