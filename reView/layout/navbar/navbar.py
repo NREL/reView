@@ -80,7 +80,7 @@ NAVBAR = html.Nav(
                 # className="twelve columns"
             ),
             id="rev_link",
-            href="/scenario_page",
+            href="/review/rev",
         ),
         dcc.Link(
             dbc.Button(
@@ -94,7 +94,7 @@ NAVBAR = html.Nav(
                 # className="twelve columns"
             ),
             id="reeds_link",
-            href="/reeds_page",
+            href="/review/reeds",
         ),
         dcc.Link(
             html.Button(
@@ -113,7 +113,7 @@ NAVBAR = html.Nav(
         ),
         html.A(
             html.Img(
-                src=("/static/nrel_logo.png"),
+                src=("reView/static/nrel_logo.png"),
                 className="twelve columns",
                 style={
                     "height": "70px",

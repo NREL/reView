@@ -3,8 +3,8 @@ import plotly.colors as pcs
 
 
 HOME_PAGE_LOCATION = "/review/"
-SCENARIO_PAGE_LOCATION = "/review/scenario_page"
-REEDS_PAGE_LOCATION = "/review/reeds_page"
+SCENARIO_PAGE_LOCATION = "/review/rev"
+REEDS_PAGE_LOCATION = "/review/reeds"
 
 COLORS = {
     **pcs.PLOTLY_SCALES,
