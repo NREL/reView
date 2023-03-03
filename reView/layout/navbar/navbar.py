@@ -76,8 +76,7 @@ NAVBAR = html.Nav(
                 size="lg",
                 className="me-1",
                 color="light",
-                style=BUTTON_STYLES["navbar"],
-                # className="twelve columns"
+                style=BUTTON_STYLES["navbar"]
             ),
             id="rev_link",
             href="/review/rev",
@@ -90,30 +89,14 @@ NAVBAR = html.Nav(
                 size="lg",
                 color="light",
                 title=("Go to the ReEDS buildout viewer page."),
-                style=BUTTON_STYLES["navbar"],
-                # className="twelve columns"
+                style=BUTTON_STYLES["navbar"]
             ),
             id="reeds_link",
             href="/review/reeds",
-        ),
-        dcc.Link(
-            html.Button(
-                id="config_link_button",
-                children="Configuration",
-                type="button",
-                title=("Go to the data configuration page."),
-                style=(
-                    BUTTON_STYLES["navbar"]
-                    if IS_DEV_ENV
-                    else {"display": "none"}
-                ),
-            ),
-            id="config_link",
-            href="/config_page",
-        ),
+        )
         html.A(
             html.Img(
-                src=("/reView/static/nrel_logo.png"),
+                src=("/static/nrel_logo.png"),
                 className="twelve columns",
                 style={
                     "height": "70px",
