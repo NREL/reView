@@ -1,1 +1,1 @@
-web: gunicorn app:server -w 4
+web: gunicorn reView.index:server -w 4
