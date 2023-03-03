@@ -58,8 +58,9 @@ from reView.utils.constants import SKIP_VARS
 from reView.utils.functions import (
     convert_to_title,
     callback_trigger,
-    to_geo,
-    strip_rev_filename_endings
+    read_file,
+    strip_rev_filename_endings,
+    to_geo
 )
 from reView.utils.config import Config
 from reView.utils import calls
@@ -309,7 +310,7 @@ def download_chart(chart_info):
         raise PreventUpdate
     src = info["tmp_path"]
     dst = info["path"]
-    df = pd.read_csv(src)
+    df = read_file(src)
     os.remove(src)
     return dcc.send_data_frame(df.to_csv, dst, index=False)
 
@@ -497,7 +498,7 @@ def dropdown_composite_targets(scenario_options, project):
     path = choose_scenario(scenario_options, config)
     target_options = []
     if path and os.path.exists(path):
-        data = pd.read_csv(path, nrows=1)
+        data = read_file(path, nrows=1)
         columns = [c for c in data.columns if c.lower() not in SKIP_VARS]
         titles = {col: convert_to_title(col) for col in columns}
         titles.update(config.titles)
@@ -543,7 +544,7 @@ def dropdown_composite_plot_options(scenario_options, project):
         {"label": "Scenario", "value": "scenario"}
     ]
     if path and os.path.exists(path):
-        data = pd.read_csv(path, nrows=1)
+        data = read_file(path, nrows=1)
         columns = [c for c in data.columns if c.lower() not in SKIP_VARS]
         titles = {col: convert_to_title(col) for col in columns}
         titles.update(config.titles)
@@ -592,8 +593,6 @@ def dropdown_scenarios(url, project, __, ___):
     else:
         # Find all available project files
         files = [str(file) for file in config.files.values()]
-        files.sort()
-        print(files[0])
 
         # Separate the output files, let's put those at the end
         originals = [file for file in files if "review_outputs" not in file]

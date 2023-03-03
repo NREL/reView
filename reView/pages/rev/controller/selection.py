@@ -5,6 +5,7 @@ import logging
 
 import pandas as pd
 
+from reView.pages.rev.model import read_file
 from reView.utils.config import Config
 from reView.utils.functions import convert_to_title
 
@@ -137,10 +138,10 @@ def get_variable_options(
     config = Config(project)
     variable_options = []
     if scenario_a and os.path.exists(scenario_a):
-        columns = pd.read_csv(scenario_a, nrows=1).columns
+        columns = read_file(scenario_a, nrows=1).columns
         if "display" in b_div and b_div["display"] == "none":
             if scenario_b and os.path.exists(scenario_b):
-                b_columns = pd.read_csv(scenario_b, nrows=1).columns
+                b_columns = read_file(scenario_b, nrows=1).columns
                 columns = [c for c in columns if c in b_columns]
         titles = {col: convert_to_title(col) for col in columns}
         config_titles = {k: v for k, v in config.titles.items() if k in titles}

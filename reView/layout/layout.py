@@ -5,7 +5,7 @@
 from dash import dcc
 from dash import html
 
-from reView.layout.navbar import navbar
+from reView.layout import navbar
 
 
 # fmt: off

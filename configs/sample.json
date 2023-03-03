@@ -1,6 +1,6 @@
 {
     "project_name": "Sample - Wind - Colorado",
-    "directory": "REVIEW_DATA_DIR/samples",
+    "directory": "REVIEW_DATA_DIR/samples/colorado_wind",
     "characterization_cols": {
         "usa_mrlc_nlcd2011": {
             "lookup": {

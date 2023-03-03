@@ -20,13 +20,14 @@ from tqdm import tqdm
 
 from reView.app import cache, cache2, cache3
 from reView.utils.functions import (
+    adjust_cf_for_losses,
     as_float,
-    strip_rev_filename_endings,
+    capacity_factor_from_lcoe,
     lcoe,
     lcot,
     safe_convert_percentage_to_decimal,
-    capacity_factor_from_lcoe,
-    adjust_cf_for_losses
+    read_file,
+    strip_rev_filename_endings
 )
 from reView.utils.config import Config
 
@@ -210,7 +211,7 @@ def calc_least_cost(paths, dst, composite_function="min",
         dfs = []
         ncpu = min([len(paths), mp.cpu_count() - 1])
         with mp.pool.ThreadPool(ncpu) as pool:
-            for data in tqdm(pool.imap(read_scenario, paths), total=ncpu):
+            for data in tqdm(pool.imap(read_file, paths), total=ncpu):
                 dfs.append(data)
 
         # Make one big data frame and save
@@ -639,22 +640,6 @@ def point_filter(df, map_selection=None, chart_selection=None):
         df = df[df["sc_point_gid"].isin(gids)]
 
     return df
-
-
-def read_file(file):
-    """Retrieve a single data frame."""
-    ext = os.path.splitext(file)[-1]
-    name = os.path.basename(file)
-    if ext == ".parquet" or ext == ".pqt":
-        data = pd.read_parquet(file)
-    elif ext == ".csv":
-        data = pd.read_csv(file, low_memory=False)
-    else:
-        raise OSError(f"{file}'s extension not compatible at the moment.")
-
-    data["scenario"] = strip_rev_filename_endings(name)
-
-    return data
 
 
 class Difference:
