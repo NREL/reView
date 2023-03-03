@@ -1,13 +1,17 @@
 # pylint: disable=too-many-lines
-"""View reV results using a configuration file.
+"""This will be the callbacks just for the time component.
 
-Things to do:
-    - Move styling to CSS
-    - Improve caching
-    - Speed up everything
-    - Download option
-    - Automate startup elements
-    - Build categorical variable charts
+Useful things:
+    - Diurnal profiles
+        - Compare sites, compare datasets
+        - Aggregate sites?
+    - Seasonal patterns
+    - Match timeseries periods that ReEDS uses? (34 slices)
+    - Plant level power curve
+        - Power by Windspeed
+        - Compare across sites and datasets
+        - Aggregates sites
+        - We just have the average windspeed
 """
 import hashlib
 import json
@@ -93,7 +97,7 @@ def build_spec_split(path, project):
     total = df.shape[0]
     percentages = [counts[i] / total for i in range(len(counts))]
     percentages = [round(p * 100, 4) for p in percentages]
-    pdf = pd.DataFrame({"p": percentages, "s": scenarios})
+    pdf = pd.DataFrame(dict(p=percentages, s=scenarios))
     pdf = pdf.sort_values("p", ascending=False)
     table = """| Scenario | Percentage |\n|----------|------------|\n"""
     for _, row in pdf.iterrows():
@@ -157,7 +161,7 @@ def composite_fname(paths, composite_function, composite_variable):
     # If it's less than 12 paths, use words. If not use hash
     if len(paths) < 12:
         # Remove any repeating elements in the adjusted names
-        parts = [list(name.split("_")) for name in names]
+        parts = [[part for part in name.split("_")] for name in names]            
         parts = [sublst for lst in parts for sublst in lst]
         repeats = [part for part in parts if parts.count(part) > 1]
         repeats = np.unique(repeats)
@@ -565,7 +569,7 @@ def dropdown_composite_plot_options(scenario_options, project):
 )
 @calls.log
 def dropdown_scenarios(url, project, __, ___):
-    """Update the scenario options given a project."""
+    """Update the options given a project."""
     logger.debug("URL: %s", url)
     config = Config(project)
 
@@ -592,8 +596,6 @@ def dropdown_scenarios(url, project, __, ___):
     else:
         # Find all available project files
         files = [str(file) for file in config.files.values()]
-        files.sort()
-        print(files[0])
 
         # Separate the output files, let's put those at the end
         originals = [file for file in files if "review_outputs" not in file]
@@ -628,6 +630,7 @@ def dropdown_scenarios(url, project, __, ___):
         )
 
     return group_a, group_b
+
 
 
 @app.callback(
@@ -713,9 +716,7 @@ def dropdown_variables(
     State("project", "value"),
 )
 @calls.log
-def dropdown_x_variables(
-    _, chart_type, scenario_a, scenario_b, b_div, project
-):
+def dropdown_x_variables(_, chart_type, scenario_a, scenario_b, b_div, project):
     """Return dropdown options for x variable."""
     logger.debug("Setting X variable options")
     if chart_type == "char_histogram":
@@ -1520,7 +1521,6 @@ def retrieve_recalc_parameters(
             },
         }
     return json.dumps(recalc_table)
-
 
 @app.callback(
     Output("rev_chart_options_tab", "children"),

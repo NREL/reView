@@ -86,8 +86,8 @@ class Title:
         if path2 and os.path.isfile(path2):
             # label2 = lookup[path2]
             # label2 = " ".join([s.capitalize() for s in label2.split("_")])
-            label2 = strip_rev_filename_endings(Path(path1).name)
-            label2 = convert_to_title(label)
+            label2 = strip_rev_filename_endings(Path(path2).name)
+            label2 = convert_to_title(label2)
             label = f"{label} vs {label2}"
         return label
 
