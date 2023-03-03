@@ -69,7 +69,6 @@ cache4 = Cache(
 )
 
 # Should we just toss everything in one big cache?
-
 cache.init_app(server)
 cache2.init_app(server)
 cache3.init_app(server)

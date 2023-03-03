@@ -5,12 +5,19 @@ Created on Sun Aug 23 14:59:00 2020
 
 @author: travis
 """
+import os
+
 import dash_bootstrap_components as dbc
 
 from dash import dcc, html
 
+from reView import REVIEW_DIR
 from reView.layout.styles import BUTTON_STYLES
 from reView.environment.settings import IS_DEV_ENV
+
+
+# Dash enterprise does not apparently treat the static path the same as local
+print(os.path.join(REVIEW_DIR, "static/nrel_logo.png"))
 
 
 NAVBAR = html.Nav(
@@ -96,7 +103,7 @@ NAVBAR = html.Nav(
         ),
         html.A(
             html.Img(
-                src=("/static/nrel_logo.png"),
+                src="https://raw.githubusercontent.com/NREL/reView/main/reView/static/nrel_logo.png",
                 className="twelve columns",
                 style={
                     "height": "70px",
