@@ -158,6 +158,11 @@ def strip_rev_filename_endings(filename):
         "_nrwal.*\.csv",
         "_supply-curve\.csv",
         "_supply-curve-aggregation\.csv",
+        "_sc\.parquet",
+        "_agg\.parquet",
+        "_nrwal.*\.parquet",
+        "_supply-curve\.parquet",
+        "_supply-curve-aggregation\.parquet",
     ]
     full_pattern = "|".join(patterns)
     return re.sub(full_pattern, "", filename)

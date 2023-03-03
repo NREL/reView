@@ -55,7 +55,6 @@ MAP_LAYOUT.update(
 )
 
 
-# The title functions below will probably go into a single class at some point
 class Title:
     """Methods for building map and chart titles."""
 

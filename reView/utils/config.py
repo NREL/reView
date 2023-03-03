@@ -9,6 +9,7 @@ import ast
 import logging
 
 from functools import cached_property, lru_cache
+from itertools import chain
 from pathlib import Path
 
 import pandas as pd
@@ -190,7 +191,10 @@ class Config:
             for file in self.options.file:
                 yield Path(file).expanduser().resolve()
         else:
-            yield from self.directory.rglob("*.csv")
+            cfiles = self.directory.rglob("*.csv")
+            pfiles = self.directory.rglob("*.parquet")
+            files = chain(cfiles, pfiles)
+            yield from files 
 
     def _check_required_keys_exist(self):
         """Ensure all required keys are present in config file."""

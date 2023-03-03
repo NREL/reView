@@ -232,11 +232,12 @@ def cache_table(project, path, y_var, x_var, recalc_table=None, recalc="off"):
 
     # Get the table
     if recalc == "on":
-        data = ReCalculatedData(config=Config(project)).build(
-            path, recalc_table
+        data = ReCalculatedData(
+            config=Config(project)).build(
+                path, recalc_table
         )
     else:
-        data = pd.read_csv(path, low_memory=False)
+        data = read_file(path)
 
     # We want some consistent fields
     if "capacity" not in data.columns and "hybrid_capacity" in data.columns:
@@ -636,13 +637,23 @@ def point_filter(df, map_selection=None, chart_selection=None):
             points = map_selection["points"]
             gids = [p.get("customdata", [None])[0] for p in points]
         df = df[df["sc_point_gid"].isin(gids)]
+
     return df
 
 
-def read_scenario(file):
+def read_file(file):
     """Retrieve a single data frame."""
-    data = pd.read_csv(file, low_memory=False)
-    data["scenario"] = strip_rev_filename_endings(file.name)
+    ext = os.path.splitext(file)[-1]
+    name = os.path.basename(file)
+    if ext == ".parquet" or ext == ".pqt":
+        data = pd.read_parquet(file)
+    elif ext == ".csv":
+        data = pd.read_csv(file, low_memory=False)
+    else:
+        raise OSError(f"{file}'s extension not compatible at the moment.")
+
+    data["scenario"] = strip_rev_filename_endings(name)
+
     return data
 
 

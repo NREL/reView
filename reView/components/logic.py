@@ -64,11 +64,12 @@ def format_capacity_title(
 
     if map_selection:
         gids = [
-            p.get("customdata", [None])[0] for p in map_selection["points"]
+            p.get("customdata", [None])[0] for p in map_selection["points"]     # Unintuitive
         ]
         df = df[df["sc_point_gid"].isin(gids)]
 
-    total_capacity = Q_(df[capacity_col_name].sum(), "MW")
+    total_capacity = Q_(df[capacity_col_name].sum(), "MW")                      # Q_ is also unintuitive
     total_capacity = f"{total_capacity.to_compact():~H.2f}"
     num_sites = f"{df.shape[0]:,}"
+
     return total_capacity, num_sites

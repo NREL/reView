@@ -565,7 +565,7 @@ def dropdown_composite_plot_options(scenario_options, project):
 )
 @calls.log
 def dropdown_scenarios(url, project, __, ___):
-    """Update the options given a project."""
+    """Update the scenario options given a project."""
     logger.debug("URL: %s", url)
     config = Config(project)
 
@@ -592,6 +592,8 @@ def dropdown_scenarios(url, project, __, ___):
     else:
         # Find all available project files
         files = [str(file) for file in config.files.values()]
+        files.sort()
+        print(files[0])
 
         # Separate the output files, let's put those at the end
         originals = [file for file in files if "review_outputs" not in file]
