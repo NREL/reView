@@ -93,7 +93,7 @@ NAVBAR = html.Nav(
             ),
             id="reeds_link",
             href="/review/reeds",
-        )
+        ),
         html.A(
             html.Img(
                 src=("/static/nrel_logo.png"),
