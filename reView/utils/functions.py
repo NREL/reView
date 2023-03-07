@@ -1,4 +1,5 @@
 """reView functions."""
+import ast
 import json
 import logging
 import os
@@ -6,6 +7,7 @@ import re
 
 from pathlib import Path
 
+import h5py
 import pandas as pd
 import pyarrow as pa
 
@@ -106,6 +108,31 @@ def callback_trigger():
     return trigger
 
 
+def capacity_factor_from_lcoe(capacity, mean_lcoe, calc_values):
+    """Calculate teh capacity factor given the lcoe.
+
+    Parameters
+    ----------
+    capacity : `pd.core.series.Series` | `np.ndarray`
+        A series of capacity values, in MW.
+    mean_lcoe : `pd.core.series.Series` | `np.ndarray`
+        A series of lcoe values, in $/MW.
+    calc_values : dict
+        A dictionary with entries for capex ($/kW), opex ($/kW),
+        and fcr (decimal - 4.9% should be input as 0.049).
+
+    Returns
+    -------
+    float
+        Capacity factor calculated from lcoe.
+    """
+    capacity_kw = capacity * 1000
+    capex = calc_values["capex"] * capacity_kw
+    opex = calc_values["opex"] * capacity_kw
+    fcr = calc_values["fcr"]
+    return ((fcr * capex) + opex) / (mean_lcoe * capacity * 8760)
+
+
 def common_numeric_columns(*dfs):
     """Find all common numeric columns in input DataFrames.
 
@@ -177,6 +204,38 @@ def data_paths():
         for folder in Path(REVIEW_DATA_DIR).iterdir()
         if not folder.is_file()
     }
+
+
+def decode(df):
+    """Decode the columns of a meta data object from a reV output."""
+    def decode_single(x):
+        """Try to decode a single value, pass if fail."""
+        try:
+            x = x.decode()
+        except UnicodeDecodeError:
+            x = "indecipherable"
+        return x
+
+    for c in df.columns:
+        x = df[c].iloc[0]
+        if isinstance(x, bytes):
+            try:
+                df[c] = df[c].apply(decode_single)
+            except Exception:
+                df[c] = None
+                print(f"Column {c} could not be decoded.")
+        elif isinstance(x, str):
+            try:
+                if isinstance(ast.literal_eval(x), bytes):
+                    try:
+                        df[c] = df[c].apply(
+                            lambda x: ast.literal_eval(x).decode()
+                            )
+                    except Exception:
+                        df[c] = None
+                        print(f"Column {c} could not be decoded.")
+            except:
+                pass
 
 
 def deep_replace(dictionary, replacement):
@@ -317,6 +376,13 @@ def read_file(file, nrows=None):
             data = pd.read_parquet(file)
     elif ext == ".csv":
         data = pd.read_csv(file, nrows=nrows, low_memory=False)
+    elif ext == ".h5":
+        with h5py.File(file, "r") as ds:
+            if nrows:
+                data = pd.DataFrame(ds["meta"][:nrows])
+            else:
+                data = pd.DataFrame(ds["meta"][:])
+            decode(data)
     else:
         raise OSError(f"{file}'s extension not compatible at the moment.")
 
@@ -428,6 +494,7 @@ def strip_rev_filename_endings(filename):
         "_nrwal.*\.parquet",
         "_supply-curve\.parquet",
         "_supply-curve-aggregation\.parquet",
+        "\.h5"
     ]
     full_pattern = "|".join(patterns)
     return re.sub(full_pattern, "", filename)
@@ -494,29 +561,49 @@ def to_geo(df, dst, layer):
     del gpkg
 
 
-def capacity_factor_from_lcoe(capacity, mean_lcoe, calc_values):
-    """Calculate teh capacity factor given the lcoe.
 
-    Parameters
-    ----------
-    capacity : `pd.core.series.Series` | `np.ndarray`
-        A series of capacity values, in MW.
-    mean_lcoe : `pd.core.series.Series` | `np.ndarray`
-        A series of lcoe values, in $/MW.
-    calc_values : dict
-        A dictionary with entries for capex ($/kW), opex ($/kW),
-        and fcr (decimal - 4.9% should be input as 0.049).
+def to_sarray(df):
+    """Create a structured array for storing in HDF5 files."""
+    # For a single column
+    def make_col_type(col, types):
 
-    Returns
-    -------
-    float
-        Capacity factor calculated from lcoe.
-    """
-    capacity_kw = capacity * 1000
-    capex = calc_values["capex"] * capacity_kw
-    opex = calc_values["opex"] * capacity_kw
-    fcr = calc_values["fcr"]
-    return ((fcr * capex) + opex) / (mean_lcoe * capacity * 8760)
+        coltype = types[col]
+        column = df.loc[:, col]
+
+        try:
+            if 'numpy.object_' in str(coltype.type):
+                maxlens = column.dropna().str.len()
+                if maxlens.any():
+                    maxlen = maxlens.max().astype(int)
+                    coltype = ('S%s' % maxlen)
+                else:
+                    coltype = 'f2'
+            return column.name, coltype
+        except:
+            print(column.name, coltype, coltype.type, type(column))
+            raise
+
+    # All values and types
+    v = df.values
+    types = df.dtypes
+    struct_types = [make_col_type(col, types) for col in df.columns]
+    dtypes = np.dtype(struct_types)
+
+    # The target empty array
+    array = np.zeros(v.shape[0], dtypes)
+
+    # For each type fill in the empty array
+    for (i, k) in enumerate(array.dtype.names):
+        try:
+            if dtypes[i].str.startswith('|S'):
+                array[k] = df[k].str.encode('utf-8').astype('S')
+            else:
+                array[k] = v[:, i]
+        except:
+            raise
+
+    return array, dtypes
+
 
 
 def __replace_value(dictionary, replacement, key, value):

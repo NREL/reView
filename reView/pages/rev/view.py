@@ -86,10 +86,14 @@ layout = html.Div(
         ),
 
         # Time Series Div
-        # time_div(
-        #     id_prefix="rev",
-        #     class_name="eleven columns"
-        # ),
+        html.Div(
+            id="timeseries",
+            style={},
+            children=time_div(
+                id_prefix="rev",
+                class_name="eleven columns"
+            )        
+        ),
 
         # To store option names for the map title
         html.Div(id="chosen_map_options", style={"display": "none"}),

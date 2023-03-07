@@ -193,7 +193,8 @@ class Config:
         else:
             cfiles = self.directory.rglob("*.csv")
             pfiles = self.directory.rglob("*.parquet")
-            files = chain(cfiles, pfiles)
+            hfiles = self.directory.rglob("*.h5")
+            files = chain(cfiles, pfiles, hfiles)
             yield from files 
 
     def _check_required_keys_exist(self):

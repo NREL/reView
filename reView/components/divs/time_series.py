@@ -137,7 +137,7 @@ def time_div(id_prefix, class_name=None):
             # Above Timeseries Options
             above_time_options_div(id_prefix=id_prefix),
             dcc.Loading(
-                id="rev_time_loading",
+                id=f"{id_prefix}_time_loading",
                 style={"margin-right": "500px"},
             ),
             dcc.Graph(

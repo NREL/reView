@@ -17,6 +17,7 @@ import tempfile
 
 from pathlib import Path
 
+import h5py
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
@@ -807,7 +808,7 @@ def dropdowns_additional_scenarios(url, __, project):
     State("rev_chart", "selectedData"),
     State("project", "value"),
     State("rev_chart", "relayoutData"),
-    State("map_function", "value"),
+    State("map_function", "value")
 )
 @calls.log
 def figure_chart(
@@ -825,7 +826,7 @@ def figure_chart(
     chart_selection,
     project,
     chart_view,
-    map_func,
+    map_func
 ):
     """Make one of a variety of charts."""
     # Unpack the signal
@@ -1027,6 +1028,77 @@ def figure_map(
     click_dump = None
 
     return figure, mapcap, click_dump, loading_style
+
+
+# pylint: disable=too-many-arguments,unused-argument
+@app.callback(
+    Output("rev_time", "figure"),
+    Output("rev_time_loading", "style"),
+    Input("rev_map", "selectedData"),
+    Input("rev_chart_point_size", "value"),
+    Input("chosen_map_options", "children"),
+    Input("rev_chart_region", "value"),
+    Input("rev_map_color_min", "value"),
+    Input("rev_map_color_max", "value"),
+    Input("rev_chart_x_bin", "value"),
+    Input("rev_chart_alpha", "value"),
+    Input("rev_chart_download_button", "n_clicks"),
+    Input("map_signal", "children"),
+    State("rev_chart", "selectedData"),
+    State("project", "value"),
+    State("rev_chart", "relayoutData"),
+    State("map_function", "value"),
+)
+@calls.log
+def figure_timeseries(
+        map_selection,
+        point_size,
+        map_options,
+        region,
+        user_ymin,
+        user_ymax,
+        bins,
+        alpha,
+        download,
+        signal,
+        chart_selection,
+        project,
+        chart_view,
+        map_func
+    ):
+    """Render timeseries plots if possible."""
+    import plotly.express as px
+
+    # read in signal
+    signal_dict = json.loads(signal)
+    file = signal_dict["path"]
+    if not file.endswith(".h5"):
+        raise PreventUpdate
+
+    # Initial page load project
+    if not project:
+        project = signal_dict["project"]
+
+    # Let's start with a simple cf time series...use the first n steps
+    with h5py.File(file) as ds:
+        cf = ds["rep_profiles_0"][:1000, :].mean(axis=1)
+        ti = [t.decode()[:16] for t in ds["time_index"][:1000]]
+
+    # Build Figure
+    data = pd.DataFrame({
+        "cf": cf,
+        "ti": ti
+    })
+
+    fig = px.bar(
+        data,
+        x="ti",
+        y="cf",
+        color_discrete_sequence=px.colors.qualitative.Safe,
+        barmode="overlay",
+    )
+
+    return fig, None
 
 
 @app.callback(
@@ -1552,32 +1624,6 @@ def toggle_bins(chart_type):
 
 
 @app.callback(
-    Output("rev_chart_below_options", "is_open"),
-    Input("rev_chart_below_options_button", "n_clicks"),
-    State("rev_chart_below_options", "is_open"),
-)
-@calls.log
-def toggle_rev_chart_below_options(n_clicks, is_open):
-    """Open or close chart below options."""
-    if n_clicks:
-        return not is_open
-    return is_open
-
-
-@app.callback(
-    Output("rev_map_below_options", "is_open"),
-    Input("rev_map_below_options_button", "n_clicks"),
-    State("rev_map_below_options", "is_open"),
-)
-@calls.log
-def toggle_rev_map_below_options(n_clicks, is_open):
-    """Open or close map below options."""
-    if n_clicks:
-        return not is_open
-    return is_open
-
-
-@app.callback(
     Output("toggle_options", "children"),
     Output("options_label", "style"),
     Output("options_div", "is_open"),
@@ -1646,6 +1692,32 @@ def toggle_recalc_tab(recalc, scenario):
 
 
 @app.callback(
+    Output("rev_chart_below_options", "is_open"),
+    Input("rev_chart_below_options_button", "n_clicks"),
+    State("rev_chart_below_options", "is_open"),
+)
+@calls.log
+def toggle_rev_chart_below_options(n_clicks, is_open):
+    """Open or close chart below options."""
+    if n_clicks:
+        return not is_open
+    return is_open
+
+
+@app.callback(
+    Output("rev_map_below_options", "is_open"),
+    Input("rev_map_below_options_button", "n_clicks"),
+    State("rev_map_below_options", "is_open"),
+)
+@calls.log
+def toggle_rev_map_below_options(n_clicks, is_open):
+    """Open or close map below options."""
+    if n_clicks:
+        return not is_open
+    return is_open
+
+
+@app.callback(
     Output("scenario_b_div", "style"),
     Input("difference", "value"),
     Input("mask", "value"),
@@ -1656,6 +1728,20 @@ def toggle_scenario_b(difference, mask):
     if difference == "on":
         style = {}
     elif mask == "on":
+        style = {}
+    else:
+        style = {"display": "none"}
+    return style
+
+
+@app.callback(
+    Output("timeseries", "style"),
+    Input("scenario_dropdown_a", "value"),
+)
+@calls.log
+def toggle_timeseries(scenario):
+    """Toggle the timeseries component on/off in response to chose dataset."""
+    if "rep-profiles" in scenario:
         style = {}
     else:
         style = {"display": "none"}
