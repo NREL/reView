@@ -1,8 +1,54 @@
 """reView default layout options."""
 # pylint: disable=import-error
+from itertools import chain
+
 import us  # noqa: E0401
 
 from reView.utils.constants import COLORS, COLORS_Q
+
+REGIONS = {
+    "Pacific": ["Oregon", "Washington"],
+    "Mountain": ["Colorado", "Idaho", "Montana", "Wyoming"],
+    "Great Plains": [
+        "Iowa",
+        "Kansas",
+        "Missouri",
+        "Minnesota",
+        "Nebraska",
+        "North Dakota",
+        "South Dakota",
+    ],
+    "Great Lakes": ["Illinois", "Indiana", "Michigan", "Ohio", "Wisconsin"],
+    "Northeast": [
+        "Connecticut",
+        "New Jersey",
+        "New York",
+        "Maine",
+        "New Hampshire",
+        "Massachusetts",
+        "Pennsylvania",
+        "Rhode Island",
+        "Vermont",
+    ],
+    "California": ["California"],
+    "Southwest": ["Arizona", "Nevada", "New Mexico", "Utah"],
+    "South Central": ["Arkansas", "Louisiana", "Oklahoma", "Texas"],
+    "Southeast": [
+        "Alabama",
+        "Delaware",
+        "District of Columbia",
+        "Florida",
+        "Georgia",
+        "Kentucky",
+        "Maryland",
+        "Mississippi",
+        "North Carolina",
+        "South Carolina",
+        "Tennessee",
+        "Virginia",
+        "West Virginia",
+    ]
+}
 
 
 BASEMAP_OPTIONS = [
@@ -23,11 +69,8 @@ CHART_OPTIONS = [
 ]
 COLOR_OPTIONS = [{"label": k, "value": k} for k, _ in COLORS.items()]
 COLOR_Q_OPTIONS = [{"label": k, "value": k} for k, _ in COLORS_Q.items()]
-REGION_OPTIONS = [
-    {"label": "National", "value": "national"},
-    {"label": "NREL Regions", "value": "nrel_region"},
-    {"label": "States", "value": "state"},
-]
+REGION_OPTIONS = [{"label": k, "value": k} for k in REGIONS.keys()]
+
 # pylint: disable=no-member
 STATE_OPTIONS = [{"label": s.name, "value": s.name} for s in us.STATES] + [
     {"label": "Onshore", "value": "onshore"},

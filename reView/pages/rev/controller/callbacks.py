@@ -127,15 +127,6 @@ def chart_tab_div_children(chart_choice):
             )
         ]
 
-    children += [
-        dcc.Tab(
-            value="region",
-            label="Region",
-            style=TABLET_STYLE,
-            selected_style=TABLET_STYLE,
-        )
-    ]
-
     if chart_choice not in {"char_histogram"}:
         children += [
             dcc.Tab(
@@ -798,7 +789,6 @@ def dropdowns_additional_scenarios(url, __, project):
     Input("rev_map", "selectedData"),
     Input("rev_chart_point_size", "value"),
     Input("chosen_map_options", "children"),
-    Input("rev_chart_region", "value"),
     Input("rev_map_color_min", "value"),
     Input("rev_map_color_max", "value"),
     Input("rev_chart_x_bin", "value"),
@@ -816,7 +806,6 @@ def figure_chart(
     map_selection,
     point_size,
     map_options,
-    region,
     user_ymin,
     user_ymax,
     bins,
@@ -836,6 +825,8 @@ def figure_chart(
     if not project:
         project = signal_dict["project"]
 
+    # Collect minimum needed inputs
+
     x_var = signal_dict["x"]
     if x_var == "None":
         x_var = "capacity"
@@ -843,7 +834,7 @@ def figure_chart(
     project = signal_dict["project"]
 
     # Get the data frames
-    dfs = cache_chart_tables(signal_dict, region)
+    dfs = cache_chart_tables(signal_dict)
 
     # Return empty alert
     if all(df.empty for df in dfs.values()):
@@ -1037,7 +1028,6 @@ def figure_map(
     Input("rev_map", "selectedData"),
     Input("rev_chart_point_size", "value"),
     Input("chosen_map_options", "children"),
-    Input("rev_chart_region", "value"),
     Input("rev_map_color_min", "value"),
     Input("rev_map_color_max", "value"),
     Input("rev_chart_x_bin", "value"),
@@ -1054,7 +1044,6 @@ def figure_timeseries(
         map_selection,
         point_size,
         map_options,
-        region,
         user_ymin,
         user_ymax,
         bins,
@@ -1090,13 +1079,20 @@ def figure_timeseries(
         "ti": ti
     })
 
-    fig = px.bar(
-        data,
-        x="ti",
-        y="cf",
-        color_discrete_sequence=px.colors.qualitative.Safe,
-        barmode="overlay",
+    # Build Title
+    title_builder = Title({"timeseries": data}, signal_dict, "cf", project)
+    title = title_builder.chart_title
+
+    # Create figure
+    plotter = Plots(
+        project,
+        datasets={"timeseries": data},
+        plot_title=title,
+        point_size=point_size,
+        user_scale=(user_ymin, user_ymax),
+        alpha=alpha,
     )
+    fig = plotter.figure("timeseries", y_var="cf")
 
     return fig, None
 
@@ -1597,7 +1593,6 @@ def retrieve_recalc_parameters(
     Output("rev_chart_options_tab", "children"),
     Output("rev_chart_options_div", "style"),
     Output("rev_chart_x_variable_options_div", "style"),
-    Output("rev_chart_region_div", "style"),
     Output("rev_additional_scenarios_div", "style"),
     Input("rev_chart_options_tab", "value"),
     Input("rev_chart_options", "value"),
@@ -1606,7 +1601,7 @@ def tabs_chart(tab_choice, chart_choice):
     """Choose which chart tabs to display."""
     tabs = chart_tab_div_children(chart_choice)
     styles = tab_styles(
-        tab_choice, options=["chart", "x_variable", "region", "scenarios"]
+        tab_choice, options=["chart", "x_variable", "scenarios"]
     )
     return tabs, *styles
 
@@ -1718,6 +1713,19 @@ def toggle_rev_map_below_options(n_clicks, is_open):
 
 
 @app.callback(
+    Output("rev_time_below_options", "is_open"),
+    Input("rev_time_below_options_button", "n_clicks"),
+    State("rev_time_below_options", "is_open"),
+)
+@calls.log
+def toggle_rev_timeseries_below_options(n_clicks, is_open):
+    """Open or close map below options."""
+    if n_clicks:
+        return not is_open
+    return is_open
+
+
+@app.callback(
     Output("scenario_b_div", "style"),
     Input("difference", "value"),
     Input("mask", "value"),
@@ -1742,7 +1750,7 @@ def toggle_scenario_b(difference, mask):
 def toggle_timeseries(scenario):
     """Toggle the timeseries component on/off in response to chose dataset."""
     if "rep-profiles" in scenario:
-        style = {}
+        style = {"margin-top": "50px"}
     else:
         style = {"display": "none"}
     return style

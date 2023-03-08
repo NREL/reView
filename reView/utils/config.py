@@ -18,14 +18,16 @@ from reView import REVIEW_DATA_DIR
 from reView.utils.constants import COMMON_REV_COLUMN_UNITS, SCALE_OVERRIDES
 from reView.utils.functions import (
     deep_replace,
-    strip_rev_filename_endings,
     load_project_configs,
+    strip_rev_filename_endings,
 )
 
 pd.set_option("mode.chained_assignment", None)
 
 logger = logging.getLogger(__name__)
 
+
+DEFAULT_PROJECT = "Sample - Wind - Colorado"
 PROJECT_CONFIGS = load_project_configs()
 PROJECT_NAMES = list(PROJECT_CONFIGS.keys())
 
@@ -36,10 +38,10 @@ class Config:
     _all_configs = {}
     REQUIREMENTS = {"directory"}
 
-    def __new__(cls, project):
+    def __new__(cls, project=DEFAULT_PROJECT):
         return cls._all_configs.setdefault(project, super().__new__(cls))
 
-    def __init__(self, project):
+    def __init__(self, project=DEFAULT_PROJECT):
         """Initialize plotting object for a reV project."""
         self.project = project
         self._config = None

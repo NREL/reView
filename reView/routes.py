@@ -14,6 +14,7 @@ from reView.utils.constants import (
 
 PAGES = {
     None: scenario_view.layout,
+    "/": scenario_view.layout,
     HOME_PAGE_LOCATION: scenario_view.layout,
     SCENARIO_PAGE_LOCATION: scenario_view.layout,
     REEDS_PAGE_LOCATION: reeds_view.layout

@@ -8,7 +8,7 @@ import plotly.graph_objects as go
 
 from dash import dcc, html
 
-from reView.layout.options import CHART_OPTIONS, REGION_OPTIONS
+from reView.layout.options import CHART_OPTIONS
 from reView.utils.constants import DEFAULT_POINT_SIZE
 from reView.layout.styles import (
     OPTION_STYLE,
@@ -33,11 +33,6 @@ def above_chart_options_div(id_prefix, class_name="row"):
                 all state options.
             - rev_chart_state_options
                 A `dcc.Dropdown` to include all state options.
-            - rev_chart_region_options_div
-                A `html.Div` that holds the `dcc.Dropdown` that includes
-                all region options.
-            - rev_chart_region_options
-                A `dcc.Dropdown` to include all region options.
             - rev_chart_basemap_options_div
                 A `html.Div` that holds the `dcc.Dropdown` that includes
                 all basemap options.
@@ -100,21 +95,6 @@ def above_chart_options_div(id_prefix, class_name="row"):
                         ],
                         multi=False,
                         value="capacity",
-                    )
-                ],
-            ),
-
-            # Region grouping
-            html.Div(
-                id=f"{id_prefix}_chart_region_div",
-                # className="six columns",
-                children=[
-                    dcc.Dropdown(
-                        id=f"{id_prefix}_chart_region",
-                        clearable=False,
-                        options=REGION_OPTIONS,
-                        multi=False,
-                        value="national",
                     )
                 ],
             ),

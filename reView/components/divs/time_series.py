@@ -191,7 +191,6 @@ def time_div(id_prefix, class_name=None):
         className=class_name,
         style={
             "margin-top": "50px",
-            "margin-left": "50px",
             "box-shadow": (
                 "0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 "
                 "rgba(0, 0, 0, 0.19)"

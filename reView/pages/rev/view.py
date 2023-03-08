@@ -81,18 +81,16 @@ layout = html.Div(
 
                 # The chart
                 chart_div(id_prefix="rev", class_name="six columns"),
-            ],
-            # style={"margin-bottom": "250px"}
-        ),
 
-        # Time Series Div
-        html.Div(
-            id="timeseries",
-            style={},
-            children=time_div(
-                id_prefix="rev",
-                class_name="eleven columns"
-            )        
+                # The timeseries if available
+                html.Div(
+                    id="timeseries",
+                    children=time_div(
+                        id_prefix="rev",
+                        class_name="twelve columns"
+                    )        
+                ),
+            ],
         ),
 
         # To store option names for the map title

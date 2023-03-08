@@ -19,6 +19,7 @@ from sklearn.metrics import DistanceMetric
 from tqdm import tqdm
 
 from reView.app import cache, cache2, cache3
+from reView.layout.options import REGIONS
 from reView.utils.functions import (
     adjust_cf_for_losses,
     as_float,
@@ -30,6 +31,7 @@ from reView.utils.functions import (
     strip_rev_filename_endings
 )
 from reView.utils.config import Config
+
 
 pd.set_option("mode.chained_assignment", None)
 pdl.initialize(progress_bar=True, verbose=0)
@@ -276,15 +278,13 @@ def cache_table(project, path, y_var, x_var, recalc_table=None, recalc="off"):
 
 @cache3.memoize()
 def cache_chart_tables(
-    signal_dict,
-    region="national",
-    # idx=None
+    signal_dict
 ):
     """Read and store a data frame from the config and options given."""
-    signal_copy = signal_dict.copy()
-
     # Unpack subsetting information
+    signal_copy = signal_dict.copy()
     states = signal_copy["states"]
+    regions = signal_dict["regions"]
 
     # If multiple tables selected, make a list of those files
     if signal_copy["added_scenarios"]:
@@ -307,15 +307,6 @@ def cache_chart_tables(
     for signal in signal_dicts:
         name = build_name(signal["path"])
         df = cache_map_data(signal)
-        # first_cols = [x, y, "state", "sc_point_gid"]
-        # rest_of_cols = set(df.columns) - set(first_cols)
-        # all_cols = first_cols + sorted(rest_of_cols)
-        # df = df[all_cols]
-        # TODO: Where to add "nrel_region" col?
-
-        # Subset by index selection
-        # if idx:
-        #     df = df.iloc[idx]
 
         # Subset by state selection
         if states:
@@ -328,9 +319,8 @@ def cache_chart_tables(
                 df = df[df["offshore"] == 0]
 
         # Divide into regions if one table (cancel otherwise for now)
-        if region != "national" and len(signal_dicts) == 1:
-            regions = df[region].unique()
-            dfs = {r: df[df[region] == r] for r in regions}
+        if regions is not None and len(signal_dicts) == 1:
+            dfs = {r: df[df["state"].isin(REGIONS[r])] for r in regions}
         else:
             dfs[name] = df
 
@@ -395,8 +385,8 @@ def cache_map_data(signal_dict):
 
     # Filter for regions
     if regions:
-        if any(df["nrel_region"].isin(regions)):
-            df = df[df["nrel_region"].isin(regions)]
+        states = sum([REGIONS[region] for region in regions], [])
+        df = df[df["state"].isin(states)]
 
     return df
 

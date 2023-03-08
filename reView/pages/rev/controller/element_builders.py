@@ -313,6 +313,8 @@ class Plots:
             fig = self.char_hist(x_var)
         elif chart_type == "box":
             fig = self.box(y_var)
+        elif chart_type == "timeseries":
+            fig = self.timeseries(y_var)
         return fig
 
     def histogram(self, y_var, bins=100):
@@ -383,6 +385,18 @@ class Plots:
             marker_line={"width": 0},
             marker={"size": self.point_size, "line": {"width": 0}},
             unselected={"marker": {"color": 'grey'}},
+        )
+
+        return self._update_fig_layout(fig, y_var)
+
+    def timeseries(self, y_var="cf"):
+        """Render time series."""
+        fig = px.bar(
+            self.datasets["timeseries"],
+            x="ti",
+            y=y_var,
+            color_discrete_sequence=px.colors.sequential.Viridis,
+            barmode="overlay",
         )
 
         return self._update_fig_layout(fig, y_var)
