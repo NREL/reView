@@ -34,6 +34,7 @@ from reView.components.callbacks import (
 )
 from reView.components.logic import tab_styles
 from reView.components.map import Map, Title
+from reView.index import DEFAULT_PROJECT
 from reView.layout.options import (
     CHART_OPTIONS,
     COLOR_OPTIONS,
@@ -60,6 +61,7 @@ from reView.utils.functions import (
     convert_to_title,
     callback_trigger,
     read_file,
+    read_timeseries,
     strip_rev_filename_endings,
     to_geo
 )
@@ -519,7 +521,13 @@ def dropdown_projects(__, ___):
         # pylint: disable=not-an-iterable
         for project in Config.sorted_projects
     ]
-    return project_options, project_options[0]["value"]
+
+    if DEFAULT_PROJECT is None:
+        default_project = project_options[0]["value"]
+    else:
+        default_project = DEFAULT_PROJECT
+
+    return project_options, default_project
 
 
 @app.callback(
@@ -731,9 +739,10 @@ def dropdown_x_variables(
 
 @app.callback(
     Output("rev_additional_scenarios", "options"),
+    Output("rev_additional_scenarios_time", "options"),
     Input("url", "pathname"),
     Input("submit", "n_clicks"),
-    State("project", "value"),
+    Input("project", "value"),
 )
 @calls.log
 def dropdowns_additional_scenarios(url, __, project):
@@ -751,7 +760,6 @@ def dropdowns_additional_scenarios(url, __, project):
     scenario_outputs = [
         str(f) for f in scenario_outputs_path.glob("least*.csv")
     ]
-    # scenario_outputs = []
     scenario_originals = [str(file) for file in config.files.values()]
     files = scenario_originals + scenario_outputs
     files.sort()
@@ -777,7 +785,14 @@ def dropdowns_additional_scenarios(url, __, project):
             option = {"label": key, "value": str(file)}
             least_cost_options.append(option)
 
-    return scenario_options
+    # Now build the h5 list
+    scenario_options_h5 = [
+        {"label": key, "value": os.path.expanduser(file)}
+        for key, file in file_list.items()
+        if file.endswith(".h5")
+    ]
+
+    return scenario_options, scenario_options_h5
 
 
 # pylint: disable=too-many-arguments,unused-argument
@@ -826,7 +841,6 @@ def figure_chart(
         project = signal_dict["project"]
 
     # Collect minimum needed inputs
-
     x_var = signal_dict["x"]
     if x_var == "None":
         x_var = "capacity"
@@ -1026,38 +1040,24 @@ def figure_map(
     Output("rev_time", "figure"),
     Output("rev_time_loading", "style"),
     Input("rev_map", "selectedData"),
-    Input("rev_chart_point_size", "value"),
-    Input("chosen_map_options", "children"),
-    Input("rev_map_color_min", "value"),
-    Input("rev_map_color_max", "value"),
-    Input("rev_chart_x_bin", "value"),
-    Input("rev_chart_alpha", "value"),
-    Input("rev_chart_download_button", "n_clicks"),
     Input("map_signal", "children"),
+    Input("rev_time_trace_options_tab", "value"),
+    Input("rev_time_period_options_tab", "value"),
+    Input("rev_additional_scenarios_time", "value"),
     State("rev_chart", "selectedData"),
-    State("project", "value"),
-    State("rev_chart", "relayoutData"),
-    State("map_function", "value"),
+    State("project", "value")
 )
 @calls.log
 def figure_timeseries(
         map_selection,
-        point_size,
-        map_options,
-        user_ymin,
-        user_ymax,
-        bins,
-        alpha,
-        download,
         signal,
+        trace_type,
+        time_period,
+        additional_scenarios,
         chart_selection,
-        project,
-        chart_view,
-        map_func
+        project
     ):
     """Render timeseries plots if possible."""
-    import plotly.express as px
-
     # read in signal
     signal_dict = json.loads(signal)
     file = signal_dict["path"]
@@ -1068,31 +1068,35 @@ def figure_timeseries(
     if not project:
         project = signal_dict["project"]
 
-    # Let's start with a simple cf time series...use the first n steps
-    with h5py.File(file) as ds:
-        cf = ds["rep_profiles_0"][:1000, :].mean(axis=1)
-        ti = [t.decode()[:16] for t in ds["time_index"][:1000]]
-
-    # Build Figure
-    data = pd.DataFrame({
-        "cf": cf,
-        "ti": ti
-    })
+    # Read in timeseries data
+    datasets = {}
+    files = [file]
+    if additional_scenarios:
+        files += additional_scenarios
+    for file in files:
+        name = strip_rev_filename_endings(Path(file).name)
+        data = read_timeseries(file, nsteps=None)
+        datasets[name] = data
 
     # Build Title
-    title_builder = Title({"timeseries": data}, signal_dict, "cf", project)
+    title_builder = Title(datasets, signal_dict, "capacity factor", project)
     title = title_builder.chart_title
 
     # Create figure
     plotter = Plots(
         project,
-        datasets={"timeseries": data},
+        datasets=datasets,
         plot_title=title,
-        point_size=point_size,
-        user_scale=(user_ymin, user_ymax),
-        alpha=alpha,
+        point_size=10,
+        user_scale=(0, 1),
+        alpha=1,
     )
-    fig = plotter.figure("timeseries", y_var="cf")
+    fig = plotter.figure(
+        chart_type="timeseries",
+        y_var="capacity factor",
+        trace_type=trace_type,
+        time_period=time_period
+    )
 
     return fig, None
 
@@ -1590,6 +1594,51 @@ def retrieve_recalc_parameters(
 
 
 @app.callback(
+    Output("scenario_a_specs", "children"),
+    Output("scenario_b_specs", "children"),
+    Output("scenario_a_specs", "style"),
+    Output("scenario_b_specs", "style"),
+    Input("scenario_dropdown_a", "value"),
+    Input("scenario_dropdown_b", "value"),
+    State("project", "value"),
+)
+@calls.log
+def scenario_specs(scenario_a, scenario_b, project):
+    """Output the specs association with a chosen scenario."""
+    # Project might be None on initial load
+    if not project:
+        raise PreventUpdate
+
+    # Return a blank space if no parameters entry found
+    config = Config(project)
+    params = config.parameters
+
+    # Infer the names
+    path_lookup = {str(value): key for key, value in config.files.items()}
+    name_a = path_lookup[scenario_a]
+    name_b = path_lookup[scenario_b]
+
+    specs_a = ""
+    specs_b = ""
+    style_a = {}
+    style_b = {}
+    if name_a in params:
+        style_a = {"overflow-y": "auto", "height": "300px", "width": "94%"}
+        specs_a = build_specs(name_a, project)
+    if "least_cost" in scenario_a:
+        style_a = {"overflow-y": "auto", "height": "300px", "width": "94%"}
+        specs_a = build_spec_split(scenario_a, project)
+    if name_b in params:
+        style_b = {"overflow-y": "auto", "height": "300px", "width": "94%"}
+        specs_b = build_specs(name_b, project)
+    if "least_cost" in scenario_b:
+        style_b = {"overflow-y": "auto", "height": "300px", "width": "94%"}
+        specs_b = build_spec_split(scenario_b, project)
+
+    return specs_a, specs_b, style_a, style_b
+
+
+@app.callback(
     Output("rev_chart_options_tab", "children"),
     Output("rev_chart_options_div", "style"),
     Output("rev_chart_x_variable_options_div", "style"),
@@ -1671,6 +1720,7 @@ def toggle_options_tabs(choice):
 )
 def toggle_recalc_tab(recalc, scenario):
     """Toggle the recalc options on and off."""
+    # Set target dictionaries
     tab_style = {}
     recalc_a_style = {}
     recalc_b_style = {}
@@ -1744,58 +1794,15 @@ def toggle_scenario_b(difference, mask):
 
 @app.callback(
     Output("timeseries", "style"),
+    Input("submit", "n_clicks"),
+    Input("url", "pathname"),
     Input("scenario_dropdown_a", "value"),
 )
 @calls.log
-def toggle_timeseries(scenario):
+def toggle_timeseries(_, ___, scenario):
     """Toggle the timeseries component on/off in response to chose dataset."""
     if "rep-profiles" in scenario:
         style = {"margin-top": "50px"}
     else:
         style = {"display": "none"}
     return style
-
-
-@app.callback(
-    Output("scenario_a_specs", "children"),
-    Output("scenario_b_specs", "children"),
-    Output("scenario_a_specs", "style"),
-    Output("scenario_b_specs", "style"),
-    Input("scenario_dropdown_a", "value"),
-    Input("scenario_dropdown_b", "value"),
-    State("project", "value"),
-)
-@calls.log
-def scenario_specs(scenario_a, scenario_b, project):
-    """Output the specs association with a chosen scenario."""
-    # Project might be None on initial load
-    if not project:
-        raise PreventUpdate
-
-    # Return a blank space if no parameters entry found
-    config = Config(project)
-    params = config.parameters
-
-    # Infer the names
-    path_lookup = {str(value): key for key, value in config.files.items()}
-    name_a = path_lookup[scenario_a]
-    name_b = path_lookup[scenario_b]
-
-    specs_a = ""
-    specs_b = ""
-    style_a = {}
-    style_b = {}
-    if name_a in params:
-        style_a = {"overflow-y": "auto", "height": "300px", "width": "94%"}
-        specs_a = build_specs(name_a, project)
-    if "least_cost" in scenario_a:
-        style_a = {"overflow-y": "auto", "height": "300px", "width": "94%"}
-        specs_a = build_spec_split(scenario_a, project)
-    if name_b in params:
-        style_b = {"overflow-y": "auto", "height": "300px", "width": "94%"}
-        specs_b = build_specs(name_b, project)
-    if "least_cost" in scenario_b:
-        style_b = {"overflow-y": "auto", "height": "300px", "width": "94%"}
-        specs_b = build_spec_split(scenario_b, project)
-
-    return specs_a, specs_b, style_a, style_b

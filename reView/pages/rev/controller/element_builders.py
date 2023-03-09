@@ -10,6 +10,7 @@ Created on Fri May 20 12:07:29 2022
 @author: twillia2
 """
 import copy
+import datetime as dt
 import json
 from collections import Counter
 from itertools import cycle
@@ -298,7 +299,8 @@ class Plots:
 
         return self._update_fig_layout(fig, y_var)
 
-    def figure(self, chart_type="cumsum", x_var=None, y_var=None, bins=None):
+    def figure(self, chart_type="cumsum", x_var=None, y_var=None, bins=None, 
+               trace_type="bar", time_period="original"):
         """Return plotly figure for requested chart type."""
         if chart_type == "cumsum":
             print(x_var)
@@ -314,7 +316,7 @@ class Plots:
         elif chart_type == "box":
             fig = self.box(y_var)
         elif chart_type == "timeseries":
-            fig = self.timeseries(y_var)
+            fig = self.timeseries(y_var, trace_type, time_period)
         return fig
 
     def histogram(self, y_var, bins=100):
@@ -389,17 +391,102 @@ class Plots:
 
         return self._update_fig_layout(fig, y_var)
 
-    def timeseries(self, y_var="cf"):
+    def timeseries(self, y_var="cf", trace_type="bar", time_period="original"):
         """Render time series."""
-        fig = px.bar(
-            self.datasets["timeseries"],
-            x="ti",
-            y=y_var,
-            color_discrete_sequence=px.colors.sequential.Viridis,
-            barmode="overlay",
-        )
+        # Check for valid options
+        try:
+            assert trace_type in ["bar", "line"]
+        except:
+            raise AssertionError(f"{trace_type} traces not available for this "
+                                 "graph.")
+
+        # Create the plottable dataframe
+        main_df = None
+        for key, df in self.datasets.items():
+            if main_df is None:
+                key1 = key
+                main_df = df.copy()
+                if time_period != "original":
+                    main_df = self._aggregate_timeseries(main_df, y_var, time_period)
+                main_df[self.GROUP] = key
+            else:
+                if time_period != "original":
+                    df = self._aggregate_timeseries(df, y_var, time_period)
+                df[self.GROUP] = key
+                main_df = pd.concat([main_df, df])
+
+        # Aggregate time series if needed
+        if trace_type == "bar":
+            df = main_df[main_df[self.GROUP] == key1]
+            fig = px.bar(
+                data_frame=df,  # Single dataset for now
+                x="time",
+                y=y_var,
+                color=y_var,
+                color_discrete_sequence=px.colors.sequential.Viridis
+            )
+            fig.update_layout(hovermode="x unified")
+        else:
+            fig = px.line(
+                data_frame=main_df,
+                line_group=self.GROUP,
+                color=self.GROUP,
+                x="time",
+                y=y_var
+            )
+
+            fig.update_layout(hovermode="x")
+
+        fig.update_xaxes(showspikes=True)
+        fig.update_yaxes(showspikes=True)
+
+        if time_period == "original":
+            fig.update_layout(
+                xaxis_range=[
+                    main_df["time"].iloc[0],
+                    main_df["time"].iloc[500]
+                ]
+            )
 
         return self._update_fig_layout(fig, y_var)
+
+    def _aggregate_timeseries(self, data, y_var="capacity factor",
+                              time_period="daily"):
+        """Aggregate timeseries to a given time period."""
+        # Check inputs
+        try:
+            assert time_period in ["daily", "hour", "weekly", "monthly"]
+        except:
+            raise AssertionError("Cannot aggregate timeseries to "
+                                 f"{time_period} steps.")
+
+        # Aggregate data
+        grouped = data.groupby(time_period)
+        if y_var == "capacity factor":
+            out = grouped[y_var].mean()
+        else:
+            out = grouped[y_var].sum()
+
+        # Reset time stamp
+        t1 = data["time"].iloc[0]
+        t2 = data["time"].iloc[-1]
+        if time_period == "daily":
+            time = pd.date_range(t1, t2, freq="1D")
+        elif time_period == "hour":
+            hours = range(0, 24)
+            time = [dt.datetime(1, 1, 1, h) for h in hours]
+            time = [t.strftime("%H:%M") for t in time]
+        elif time_period == "weekly":
+            time = pd.date_range(t1, t2, freq="1W")
+        elif time_period == "monthly":
+            time = pd.date_range(t1, t2, freq="MS")
+            time = [t + pd.offsets.MonthEnd() for t in time]
+        time = [str(t) for t in time]
+
+        # Rebuild data
+        data = pd.DataFrame({y_var: out, "time": time})
+
+        return data
 
     def _assign_bins(self, main_df, y_var, x_var, bins):
         """Assign bin values to variable in dataframe."""

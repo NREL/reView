@@ -16,6 +16,9 @@ from reView.utils.log import init_logger, log_versions
 from reView.utils import calls
 
 
+DEFAULT_PROJECT = "PR100 - Forecasts"
+
+
 def main():
     """Run reView."""
     init_logger(level=LOG_LEVEL)

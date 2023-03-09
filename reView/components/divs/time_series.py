@@ -64,20 +64,60 @@ def above_time_options_div(id_prefix, class_name=None):
     return html.Div(
         className=class_name,
         children=[
+            # Trace Type Options
             dcc.Tabs(
-                id=f"{id_prefix}_time_options_tab",
-                value="state",
+                id=f"{id_prefix}_time_trace_options_tab",
+                value="bar",
                 style=TAB_STYLE,
                 children=[
                     dcc.Tab(
-                        value="options_1",
-                        label="PLACEHOLDER",
+                        value="line",
+                        label="Line",
                         style=TABLET_STYLE,
                         selected_style=TABLET_STYLE,
                     ),
                     dcc.Tab(
-                        value="options_1",
-                        label="PLACEHOLDER",
+                        value="bar",
+                        label="Bar",
+                        style=TABLET_STYLE,
+                        selected_style=TABLET_STYLE,
+                    )
+                ],
+            ),
+
+            # Time window options
+            dcc.Tabs(
+                id=f"{id_prefix}_time_period_options_tab",
+                value="original",
+                style=TAB_STYLE,
+                children=[
+                    dcc.Tab(
+                        value="original",
+                        label="Original",
+                        style=TABLET_STYLE,
+                        selected_style=TABLET_STYLE,
+                    ),
+                    dcc.Tab(
+                        value="hour",
+                        label="Diurnal",
+                        style=TABLET_STYLE,
+                        selected_style=TABLET_STYLE,
+                    ),
+                    dcc.Tab(
+                        value="daily",
+                        label="Daily",
+                        style=TABLET_STYLE,
+                        selected_style=TABLET_STYLE,
+                    ),
+                    dcc.Tab(
+                        value="weekly",
+                        label="Weekly",
+                        style=TABLET_STYLE,
+                        selected_style=TABLET_STYLE,
+                    ),
+                    dcc.Tab(
+                        value="monthly",
+                        label="Monthly",
                         style=TABLET_STYLE,
                         selected_style=TABLET_STYLE,
                     )
@@ -86,21 +126,20 @@ def above_time_options_div(id_prefix, class_name=None):
 
             # Placeholder First Options
             html.Div(
-                id=f"{id_prefix}_options_1",
                 children=[
                     dcc.Dropdown(
-                        id=f"{id_prefix}_option_1_options",
+                        id=f"{id_prefix}_additional_scenarios_time",
                         clearable=False,
-                        # options=COLOR_OPTIONS,
-                        multi=False,
-                        value="Viridis",
+                        placeholder="Additional Scenarios",
+                        multi=True
                     )
-                ],
+                ]
             ),
 
             # Placeholder Second Options
             html.Div(
                 id=f"{id_prefix}_options_2",
+                style={"display": "none"},
                 children=[
                     dcc.Dropdown(
                         id=f"{id_prefix}_option_2_options",

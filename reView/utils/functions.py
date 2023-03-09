@@ -1,5 +1,6 @@
 """reView functions."""
 import ast
+import datetime as dt
 import json
 import logging
 import os
@@ -30,6 +31,8 @@ from reView import REVIEW_CONFIG_DIR, REVIEW_DATA_DIR
 
 logger = logging.getLogger(__name__)
 
+
+TIME_PATTERN = "%Y-%m-%d %H:%M:%S+00:00"
 
 
 def adjust_cf_for_losses(mean_cf, new_losses, original_losses):
@@ -349,12 +352,12 @@ def load_project_configs(config_dir=REVIEW_CONFIG_DIR):
 
 
 def read_file(file, nrows=None):
-    """Read a CSV or Parquet file.
-    
+    """Read a CSV, Parquet, or HDF5 file. Only the meta read for HDF5.
+
     Parameters
     ----------
     file : str
-        Path to a reV data frame. CSV and Parquet formats accepted.
+        Path to a reV data frame. CSV, Parquet, and HDF5 formats accepted.
     nrows : int
         Number of rows to read in.
 
@@ -388,6 +391,51 @@ def read_file(file, nrows=None):
 
     # Assign a scenario name to the dataframe (useful for composite building)
     data["scenario"] = strip_rev_filename_endings(name)
+
+    return data
+
+def read_timeseries(file, nsteps=None):
+    """Read in a time-series from an HDF5 file.
+
+    Parameters
+    ----------
+    file : str
+        Path to HDF5 file.
+    nsteps : int
+        Number of time-steps to read in.
+
+    Returns
+    -------
+    pd.core.frame.DataFrame
+        A apandas dataframe containing the time-series, datetime stamp,
+        day, week, and month.
+    """
+    # Open file and pull out needed datasets
+    with h5py.File(file) as ds:
+        if nsteps is None:
+            nsteps = ds["time_index"].shape[0]
+        capacity = pd.DataFrame(ds["meta"][:])["capacity"].values
+        cf = ds["rep_profiles_0"][:nsteps, :]  # <----------------------------- Include site indices later
+        gen = cf * capacity
+        cf = cf.mean(axis=1)
+        gen = gen.sum(axis=1)
+        time = [t.decode() for t in ds["time_index"][:nsteps]]
+        dtime = [dt.datetime.strptime(t, TIME_PATTERN) for t in time]
+        hours = [t.hour for t in dtime]
+        days = [t.timetuple().tm_yday for t in dtime]
+        weeks = [t.isocalendar().week for t in dtime]
+        months = [t.month for t in dtime]
+
+    # Build Dataframe
+    data = pd.DataFrame({
+        "capacity factor": cf,
+        "generation": gen,
+        "time": time,
+        "hour": hours,
+        "daily": days,
+        "weekly": weeks,
+        "monthly": months
+    })
 
     return data
 
