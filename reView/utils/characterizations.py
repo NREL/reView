@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""Methods for unpacking characterization data from supply curves so that the data
-can be accessed as proper columns rather than embedded JSON data.
+"""Methods for unpacking characterization data from supply curves so that the
+data can be accessed as proper columns rather than embedded JSON data.
 
 @author: Mike Gleason
 """
@@ -14,9 +14,9 @@ import tqdm
 # pylint: disable=raise-missing-from
 def recast_categories(df, col, lkup, cell_size_sq_km):
     """
-    Recast the JSON string found in ``df[col]`` to new columns in the dataframe. Each
-    element in the embedded JSON strings will become a new column following the casting
-    specified by ``lkup`` and ``cell_size_sq_km``.
+    Recast the JSON string found in ``df[col]`` to new columns in the
+    dataframe. Each element in the embedded JSON strings will become a new
+    column following the casting specified by ``lkup`` and ``cell_size_sq_km``.
 
     Parameters
     ----------

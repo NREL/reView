@@ -133,6 +133,7 @@ def test_unpack_turbines_results(
     assert correct_df.geom_almost_equals(output_df).all(),\
         "Geometries are not the same."
 
+
 @pytest.mark.filterwarnings("ignore:Skipping")
 def test_unpack_characterizations(
     test_characterization_supply_curve, test_cli_runner, test_data_dir
