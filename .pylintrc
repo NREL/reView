@@ -158,7 +158,8 @@ function-naming-style=snake_case
 good-names=_,
            __,
            df,
-           reView
+           reView,
+           f
 
 # Include a hint for the correct naming format with invalid-name
 include-naming-hint=yes

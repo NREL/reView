@@ -8,7 +8,8 @@ import geopandas as gpd
 from pandas.testing import assert_frame_equal
 from reView.cli import (
     main,
-    unpack_turbines
+    unpack_turbines,
+    unpack_characterizations
 )
 
 
@@ -131,6 +132,34 @@ def test_unpack_turbines_results(
         rtol=0.001)
     assert correct_df.geom_almost_equals(output_df).all(),\
         "Geometries are not the same."
+
+@pytest.mark.filterwarnings("ignore:Skipping")
+def test_unpack_characterizations(
+    test_characterization_supply_curve, test_cli_runner, test_data_dir
+):
+    """Test that the data produced by unpack_characterizations() CLI
+       command matches known output file."""
+
+    char_map_path = test_data_dir.joinpath("characterization-map.json")
+
+    correct_results_src = test_data_dir.joinpath(
+        'unpacked-characterization-supply-curve.csv')
+    correct_df = pd.read_csv(correct_results_src)
+
+    with tempfile.TemporaryDirectory() as tempdir:
+        output_csv = pathlib.Path(tempdir).joinpath("characterizations.csv")
+        result = test_cli_runner.invoke(
+            unpack_characterizations, [
+                '-i', test_characterization_supply_curve.as_posix(),
+                '-m', char_map_path.as_posix(),
+                '-o', output_csv
+            ]
+        )
+        assert result.exit_code == 0
+
+        output_df = pd.read_csv(output_csv)
+
+    assert_frame_equal(output_df, correct_df)
 
 
 if __name__ == '__main__':

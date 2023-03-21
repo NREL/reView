@@ -22,11 +22,19 @@ def test_data_dir():
 
 @pytest.fixture
 def test_bespoke_supply_curve():
-    """Return bespoke_supply_curve.csv as a `Path` object."""
+    """Return bespoke-supply-curve.csv as a `Path` object."""
     bespoke_csv = Path(TEST_DATA_DIR).joinpath('bespoke-supply-curve.csv')
 
     return bespoke_csv
 
+@pytest.fixture
+def test_characterization_supply_curve():
+    """Return characterization-supply-curve.csv as a `Path` object."""
+    char_csv = Path(TEST_DATA_DIR).joinpath(
+        'characterization-supply-curve.csv'
+    )
+
+    return char_csv
 
 @pytest.fixture
 def test_cli_runner():

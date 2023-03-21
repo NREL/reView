@@ -1,0 +1,152 @@
+{
+    "nlcd_2019_90x90":
+    {
+        "method": "category",
+        "recast": "area",
+        "lkup": null
+    },
+    "SEI_2017_2020_30_Current_warped":
+    {
+        "method": "category",
+        "recast": "area",
+        "lkup":
+        {
+            "1": "Core_Sagebrush_Area",
+            "2": "Sagebrush_Growth_Opportunity_Area",
+            "3": "Other_Rangeland_Area"
+        }
+    },
+    "nced_06232022_gap_3_4":
+    {
+        "method": "sum",
+        "recast": "area",
+        "rename": "NCED_GAP_Status_3_and_4"
+    },
+    "padus_09012022_gap_3_4":
+    {
+        "method": "sum",
+        "recast": "area",
+        "rename": "PAD-US_GAP_Status_3_and_4"
+    },
+    "fed_land_owner":
+    {
+        "method": "category",
+        "recast": "area",
+        "lkup":
+        {
+            "1.0": "DOD",
+            "2.0": "FS",
+            "3.0": "FWS",
+            "4.0": "NPS",
+            "5.0": "VA",
+            "6.0": "BLM",
+            "7.0": "BOR",
+            "8.0": "NASA",
+            "9.0": "BIA",
+            "10.0": "DOE",
+            "11.0": "DOT",
+            "12.0": "GSA",
+            "13.0": "USDA",
+            "14.0": "DOJ",
+            "15.0": "HHS",
+            "16.0": "TVA",
+            "17.0": "DOL",
+            "18.0": "MWAA",
+            "19.0": "DOC",
+            "255.0": "Non-Federal"
+        }
+    },
+    "nlcd_2016_treecanopy_2019_08_31_rev90m":
+    {
+        "method": "mean",
+        "recast": null,
+        "rename": "Percent_Tree_Canopy"
+    },
+    "2016_30m_cdls_rev90m":
+    {
+        "method": null,
+        "recast": null,
+        "rename": "CDL_Croplands"
+    },
+    "landscan_usa_2020_conus_night":
+    {
+        "method": "sum",
+        "recast": null,
+        "rename": "Nighttime_Population_Count"
+    },
+    "cdc_svi_2018_us_tract":
+    {
+        "method": "mean",
+        "recast": null,
+        "rename": "Average_CDC_Social_Vulnerability_Index"
+    },
+    "resilient_and_connected_network":
+    {
+        "method": "category",
+        "recast": "area",
+        "lkup": null
+    },
+    "aft_pvr_2016_rev":
+    {
+        "method": "mean",
+        "recast": null,
+        "rename": "Average_AFT_PVR"
+    },
+    "aft_state_best_ag_2016_rev":
+    {
+        "method": "sum",
+        "recast": "area",
+        "rename": "AFT_States_Best_Ag_Land"
+    },
+    "nationally_significant_ag_land_2016_conus_rev":
+    {
+        "method": "sum",
+        "recast": "area",
+        "rename": "AFT_Nationally_Significant_Agricultural_Lands"
+    },
+    "TNC_KeyWildlifeAreas":
+    {
+        "method": "category",
+        "recast": "area",
+        "lkup":
+        {
+            "1": "Whooping_crane_stopover_sites",
+            "7": "Threatened_or_endangered_species",
+            "9": "Water_wetlands",
+            "10": "Protected_or_managed_lands",
+            "11": "Intact_natural_habitats",
+            "12": "Other_biodiversity_significance",
+            "13": "Climate_resilient_lands"
+        }
+    },
+    "places_fmv_all_rev":
+    {
+        "method": "mean",
+        "recast": null,
+        "rename": "Average_Fair_Market_Private_Land_Value"
+    },
+    "ungulate_use_areas":
+    {
+        "method": "sum",
+        "recast": "area",
+        "rename": "Ungulate_Use_Areas"
+    },
+    "sagebrush_growth":
+    {
+        "method": "category",
+        "recast": "area",
+        "lkup":
+        {
+            "2": "Sagebrush_Critical_Habitat_Growth_Area"
+        }
+    },
+    "sagebrush_core":
+    {
+        "method": "category",
+        "recast": "area",
+        "lkup":
+        {
+            "1": "Sagebrush_Critical_Habitat_Core_Area"
+        }
+    }
+}
