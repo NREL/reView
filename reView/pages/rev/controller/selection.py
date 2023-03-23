@@ -135,10 +135,17 @@ def get_variable_options(
     b_div={"display": "none"}
 ):  # pylint: disable=dangerous-default-value
     """Retrieve appropriate variable list."""
+    # Initialize lists
     config = Config(project)
     variable_options = []
+
+    # Table variables
     if scenario_a and os.path.exists(scenario_a):
-        columns = read_file(scenario_a, nrows=1).columns
+        try:
+            columns = read_file(scenario_a, nrows=1).columns
+        except:
+            print(f"COULD NOT READ {scenario_a}")
+            raise
         if "display" in b_div and b_div["display"] == "none":
             if scenario_b and os.path.exists(scenario_b):
                 b_columns = read_file(scenario_b, nrows=1).columns

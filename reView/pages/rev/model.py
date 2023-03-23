@@ -18,7 +18,7 @@ from sklearn.neighbors import BallTree
 from sklearn.metrics import DistanceMetric
 from tqdm import tqdm
 
-from reView.app import cache, cache2, cache3
+from reView.app import cache, cache2, cache3, cache4
 from reView.layout.options import REGIONS
 from reView.utils.functions import (
     adjust_cf_for_losses,
@@ -28,6 +28,7 @@ from reView.utils.functions import (
     lcot,
     safe_convert_percentage_to_decimal,
     read_file,
+    read_timeseries,
     strip_rev_filename_endings
 )
 from reView.utils.config import Config
@@ -165,9 +166,13 @@ def apply_all_selections(df, signal_dict, project, chart_selection,
                 sdf = df[(df[y_var] >= bottom_bin) & (df[y_var] < top_bin)]
                 sdfs.append(sdf)
             df = pd.concat(sdfs)
-        df = point_filter(df, map_selection, chart_selection=None)
+        gids = point_filter(map_selection, chart_selection=None)
+        if gids:
+            df = df[df["sc_point_gid"].isin(gids)]
     else:
-        df = point_filter(df, map_selection, chart_selection=chart_selection)
+        gids = point_filter(map_selection, chart_selection)
+        if gids:
+            df = df[df["sc_point_gid"].isin(gids)]
 
     return df
 
@@ -220,7 +225,8 @@ def calc_least_cost(paths, dst, composite_function="min",
         data = composite(
             dfs,
             composite_function=composite_function,
-            composite_variable=composite_variable)
+            composite_variable=composite_variable
+        )
         data.to_csv(dst, index=False)
 
 
@@ -389,6 +395,18 @@ def cache_map_data(signal_dict):
         df = df[df["state"].isin(states)]
 
     return df
+
+
+@cache4.memoize()
+def cache_timeseries(file, map_selection, chart_selection, map_click=None):
+    """Read and store a timeseries data frame with site selections."""
+    # Convert map and chart selections into site indices
+    gids = point_filter(map_selection, chart_selection, map_click)
+
+    # Read in data frame
+    data = read_timeseries(file, gids)
+
+    return data
 
 
 def calc_mask(df1, df2, unique_id_col="sc_point_gid"):
@@ -612,24 +630,36 @@ def meet_demand(df, map_function, project, click_selection, map_selection):
     return df
 
 
-def point_filter(df, map_selection=None, chart_selection=None):
+def point_filter(map_selection=None, chart_selection=None, map_click=None):
     """Filter a dataframe by points selected from the chart."""
-    if chart_selection or map_selection:
-        if chart_selection and map_selection:
+    # Start with no gids
+    gids = None
+
+    # Check what is none and what has information
+    check1 = chart_selection is not None
+    check2 = map_selection is not None
+    check3 = map_click is not None
+
+    # There are several possible combinations if selections are found
+    if check1 or check2 or check3:
+        # If a click, override
+        if check3:
+            point = map_click["points"]  
+            gids = [point[0]["customdata"][0]]
+        if check1 and check2:
             points = chart_selection["points"]
             chart_gids = [p.get("customdata", [None])[0] for p in points]
             points = map_selection["points"]
             map_gids = [p.get("customdata", [None])[0] for p in points]
             gids = set(chart_gids).intersection(map_gids)
-        elif chart_selection:
+        elif chart_selection is not None:
             points = chart_selection["points"]
             gids = [p.get("customdata", [None])[0] for p in points]
-        elif map_selection:
+        elif map_selection is not None:
             points = map_selection["points"]
             gids = [p.get("customdata", [None])[0] for p in points]
-        df = df[df["sc_point_gid"].isin(gids)]
 
-    return df
+    return gids
 
 
 class Difference:

@@ -391,7 +391,8 @@ class Plots:
 
         return self._update_fig_layout(fig, y_var)
 
-    def timeseries(self, y_var="cf", trace_type="bar", time_period="original"):
+    def timeseries(self, y_var="capacity factor", trace_type="bar",
+                   time_period="original"):
         """Render time series."""
         # Check for valid options
         try:
@@ -407,7 +408,8 @@ class Plots:
                 key1 = key
                 main_df = df.copy()
                 if time_period != "original":
-                    main_df = self._aggregate_timeseries(main_df, y_var, time_period)
+                    main_df = self._aggregate_timeseries(main_df, y_var,
+                                                         time_period)
                 main_df[self.GROUP] = key
             else:
                 if time_period != "original":
@@ -415,14 +417,22 @@ class Plots:
                 df[self.GROUP] = key
                 main_df = pd.concat([main_df, df])
 
+        # Get the right x-axis
+        if time_period in ["cdf", "pdf"]:
+            x = y_var
+            y = "Probability"
+        else:
+            x = "time"
+            y = y_var
+
         # Aggregate time series if needed
         if trace_type == "bar":
             df = main_df[main_df[self.GROUP] == key1]
             fig = px.bar(
                 data_frame=df,  # Single dataset for now
-                x="time",
-                y=y_var,
-                color=y_var,
+                x=x,
+                y=y,
+                color=y,
                 color_discrete_sequence=px.colors.sequential.Viridis
             )
             fig.update_layout(hovermode="x unified")
@@ -431,12 +441,16 @@ class Plots:
                 data_frame=main_df,
                 line_group=self.GROUP,
                 color=self.GROUP,
-                x="time",
-                y=y_var
+                x=x,
+                y=y
             )
 
             fig.update_layout(hovermode="x")
 
+        # Update the layout and axes
+        ymin = main_df[y].min()
+        ymax = main_df[y].max()
+        # fig.update_layout(yaxis_range=[ymin, ymax * 1.1])
         fig.update_xaxes(showspikes=True)
         fig.update_yaxes(showspikes=True)
 
@@ -455,36 +469,48 @@ class Plots:
         """Aggregate timeseries to a given time period."""
         # Check inputs
         try:
-            assert time_period in ["daily", "hour", "weekly", "monthly"]
+            assert time_period in ["daily", "hour", "weekly", "monthly", "cdf",
+                                   "pdf"]
         except:
             raise AssertionError("Cannot aggregate timeseries to "
                                  f"{time_period} steps.")
 
-        # Aggregate data
-        grouped = data.groupby(time_period)
-        if y_var == "capacity factor":
-            out = grouped[y_var].mean()
+        # Aggregate temporally, or via a distribution
+        if time_period not in ["cdf", "pdf"]:
+            # Aggregate data
+            grouped = data.groupby(time_period)
+            if y_var == "capacity factor":
+                out = grouped[y_var].mean()
+            else:
+                out = grouped[y_var].sum()
+    
+            # Reset time stamp
+            t1 = data["time"].iloc[0]
+            t2 = data["time"].iloc[-1]
+
+            if time_period == "daily":
+                time = pd.date_range(t1, t2, freq="1D")
+            elif time_period == "hour":
+                hours = range(0, 24)
+                time = [dt.datetime(1, 1, 1, h) for h in hours]
+                time = [t.strftime("%H:%M") for t in time]
+            elif time_period == "weekly":
+                time = pd.date_range(t1, t2, freq="1W")
+            elif time_period == "monthly":
+                time = pd.date_range(t1, t2, freq="MS")
+                time = [t + pd.offsets.MonthEnd() for t in time]
+            time = [str(t) for t in time]
+    
+            # Rebuild data
+            data = pd.DataFrame({y_var: out, "time": time})
+
         else:
-            out = grouped[y_var].sum()
-
-        # Reset time stamp
-        t1 = data["time"].iloc[0]
-        t2 = data["time"].iloc[-1]
-        if time_period == "daily":
-            time = pd.date_range(t1, t2, freq="1D")
-        elif time_period == "hour":
-            hours = range(0, 24)
-            time = [dt.datetime(1, 1, 1, h) for h in hours]
-            time = [t.strftime("%H:%M") for t in time]
-        elif time_period == "weekly":
-            time = pd.date_range(t1, t2, freq="1W")
-        elif time_period == "monthly":
-            time = pd.date_range(t1, t2, freq="MS")
-            time = [t + pd.offsets.MonthEnd() for t in time]
-        time = [str(t) for t in time]
-
-        # Rebuild data
-        data = pd.DataFrame({y_var: out, "time": time})
+            data = self._distributions(data, y_var)
+            if time_period == "cdf":
+                data = data[[y_var, "cdf"]]     
+            elif time_period == "pdf":
+                data = data[[y_var, "pdf"]]
+            data.columns = [y_var, "Probability"]
 
         return data
 
@@ -525,6 +551,18 @@ class Plots:
 
         return " ".join(title)
 
+    def _distributions(self, data, y_var, nbins=100):
+        """Build a data frame with CDF and PDF curves."""
+        data = data.sort_values(y_var)
+        count, bins = np.histogram(data[y_var], bins=nbins)
+        cbins = bins + (np.diff(bins)[0] / 2)
+        cbins = cbins[:-1]
+        pdf = count / sum(count)
+        cdf = np.cumsum(pdf)
+        df = pd.DataFrame({y_var: cbins, "cdf": cdf, "pdf": pdf})
+        df = df.reset_index()
+        return df
+
     def _histogram(self, main_df, y_var, bins):
         """Build grouped bin count dataframe for histogram."""
         # Get bin ranges for full value range
@@ -551,7 +589,6 @@ class Plots:
 
     def _plot_range(self, var):
         """Get plot range."""
-
         user_ymin, user_ymax = self.user_scale
         scale = self.config.scales.get(
             DiffUnitOptions.remove_from_variable_name(var), {}

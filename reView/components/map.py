@@ -186,7 +186,8 @@ class Title:
         """Return the result of aggregation of the variable."""
         # Apply map filter
         if self.map_selection and len(self.map_selection["points"]) > 0:
-            df = point_filter(self.df, self.map_selection)
+            gids = point_filter(self.map_selection)
+            df = self.df[self.df["sc_point_gid"].isin(gids)]
         else:
             df = self.df
 
