@@ -45,9 +45,9 @@ def char_map():
 
     char_map_path = Path(TEST_DATA_DIR).joinpath("characterization-map.json")
     with open(char_map_path, "r") as f:
-        char_map = json.load(f)
+        map_data = json.load(f)
 
-    return char_map
+    return map_data
 
 
 @pytest.fixture

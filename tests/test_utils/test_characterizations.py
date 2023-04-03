@@ -8,7 +8,8 @@ import pandas as pd
 from pandas.testing import assert_frame_equal
 
 from reView.utils.characterizations import (
-    unpack_characterizations, validate_characterization_remapper, recast_categories
+    unpack_characterizations, validate_characterization_remapper,
+    recast_categories
 )
 
 
@@ -154,7 +155,7 @@ def test_recast_categories_pass_through(char_map):
     lkup = char_map[col]["lkup"]
 
     mock_df = pd.DataFrame()
-    mock_df["sc_gid"] = np.arange(1,6)
+    mock_df["sc_gid"] = np.arange(1, 6)
     mock_char = {"255.0": 10, "4.0": 1, "6.0": 2}
     mock_df[col] = json.dumps(mock_char)
 
@@ -176,7 +177,7 @@ def test_recast_categories_recast_to_area(char_map):
     lkup = char_map[col]["lkup"]
 
     mock_df = pd.DataFrame()
-    mock_df["sc_gid"] = np.arange(1,6)
+    mock_df["sc_gid"] = np.arange(1, 6)
     mock_char = {"255.0": 10, "4.0": 1, "6.0": 2}
     mock_df[col] = json.dumps(mock_char)
 
@@ -187,6 +188,7 @@ def test_recast_categories_recast_to_area(char_map):
         assert np.all(
             mock_df[f"{lkup[k]}_area_sq_km"] == v * cell_size_sq_km
         )
+
 
 if __name__ == '__main__':
     pytest.main([__file__, '-s'])
