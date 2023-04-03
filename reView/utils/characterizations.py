@@ -200,7 +200,7 @@ def unpack_characterizations(  # noqa: C901
     return in_df
 
 
-def validate_characterization_remapper(
+def validate_characterization_remapper(  # noqa: C901
     characterization_remapper, supply_curve_df
 ):
     """
