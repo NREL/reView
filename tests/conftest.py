@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Fixtures and setup for use across all tests."""
 from pathlib import Path
+import json
 
 import pytest
 
@@ -36,6 +37,17 @@ def test_characterization_supply_curve():
     )
 
     return char_csv
+
+
+@pytest.fixture
+def char_map():
+    """Return characterization map"""
+
+    char_map_path = Path(TEST_DATA_DIR).joinpath("characterization-map.json")
+    with open(char_map_path, "r") as f:
+        char_map = json.load(f)
+
+    return char_map
 
 
 @pytest.fixture

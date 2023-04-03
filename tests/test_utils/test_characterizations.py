@@ -2,18 +2,19 @@
 """Characterizations unit tests."""
 import json
 
+import numpy as np
 import pytest
 import pandas as pd
 from pandas.testing import assert_frame_equal
 
 from reView.utils.characterizations import (
-    unpack_characterizations, validate_characterization_remapper
+    unpack_characterizations, validate_characterization_remapper, recast_categories
 )
 
 
 @pytest.mark.filterwarnings("ignore:Skipping")
 def test_unpack_characterizations_happy(
-    test_characterization_supply_curve, test_data_dir
+    test_characterization_supply_curve, test_data_dir, char_map
 ):
     """
     Happy path unit test for unpack_characterizations() function. Check that it
@@ -21,11 +22,6 @@ def test_unpack_characterizations_happy(
     """
 
     in_df = pd.read_csv(test_characterization_supply_curve)
-
-    char_map_path = test_data_dir.joinpath("characterization-map.json")
-    with open(char_map_path, "r") as f:
-        char_map = json.load(f)
-
     output_df = unpack_characterizations(in_df, char_map, cell_size_m=90)
 
     correct_results_src = test_data_dir.joinpath(
@@ -38,20 +34,16 @@ def test_unpack_characterizations_happy(
 
 @pytest.mark.filterwarnings("ignore:Skipping")
 def test_unpack_characterizations_bad_method(
-    test_characterization_supply_curve, test_data_dir
+    test_characterization_supply_curve, char_map
 ):
     """
     Test that unpack_characterizations() function correctly raises a ValueError
     when passed an invalid method. This is a proxy for testing that this
     function will catch various other invalidities in the input
-    characterization map.
+    characterization map, which are tested more thoroughly in other unit tests.
     """
 
     in_df = pd.read_csv(test_characterization_supply_curve)
-
-    char_map_path = test_data_dir.joinpath("characterization-map.json")
-    with open(char_map_path, "r") as f:
-        char_map = json.load(f)
 
     char_map["nlcd_2019_90x90"]["method"] = "not-a-valid-method"
     with pytest.raises(ValueError):
@@ -60,7 +52,7 @@ def test_unpack_characterizations_bad_method(
 
 @pytest.mark.filterwarnings("ignore:Skipping")
 def test_validate_characterization_remapper_happy(
-    test_characterization_supply_curve, test_data_dir
+    test_characterization_supply_curve, char_map
 ):
     """
     Happy path test for validate_characterization_remapper(). Make sure it
@@ -69,16 +61,12 @@ def test_validate_characterization_remapper_happy(
 
     in_df = pd.read_csv(test_characterization_supply_curve)
 
-    char_map_path = test_data_dir.joinpath("characterization-map.json")
-    with open(char_map_path, "r") as f:
-        char_map = json.load(f)
-
     validate_characterization_remapper(char_map, in_df)
 
 
 @pytest.mark.filterwarnings("ignore:Skipping")
 def test_validate_characterization_remapper_key_error(
-    test_characterization_supply_curve, test_data_dir
+    test_characterization_supply_curve, char_map
 ):
     """
     Test that validate_characterization_remapper() will raise a KeyError
@@ -87,9 +75,6 @@ def test_validate_characterization_remapper_key_error(
 
     in_df = pd.read_csv(test_characterization_supply_curve)
     in_df.drop(columns=["fed_land_owner"], inplace=True)
-    char_map_path = test_data_dir.joinpath("characterization-map.json")
-    with open(char_map_path, "r") as f:
-        char_map = json.load(f)
 
     with pytest.raises(KeyError):
         validate_characterization_remapper(char_map, in_df)
@@ -97,7 +82,7 @@ def test_validate_characterization_remapper_key_error(
 
 @pytest.mark.filterwarnings("ignore:Skipping")
 def test_validate_characterization_remapper_value_error(
-    test_characterization_supply_curve, test_data_dir
+    test_characterization_supply_curve, char_map
 ):
     """
     Test that validate_characterization_remapper() will raise a ValueError
@@ -106,36 +91,32 @@ def test_validate_characterization_remapper_value_error(
 
     in_df = pd.read_csv(test_characterization_supply_curve)
 
-    char_map_path = test_data_dir.joinpath("characterization-map.json")
-    with open(char_map_path, "r") as f:
-        char_map_original = json.load(f)
-
     # not a valid method
-    char_map_bad = char_map_original.copy()
+    char_map_bad = char_map.copy()
     char_map_bad["fed_land_owner"]["method"] = "not-a-valid-method"
     with pytest.raises(ValueError):
         validate_characterization_remapper(char_map_bad, in_df)
 
     # not a valid recast
-    char_map_bad = char_map_original.copy()
+    char_map_bad = char_map.copy()
     char_map_bad["fed_land_owner"]["recast"] = "not-a-valid-recast"
     with pytest.raises(ValueError):
         validate_characterization_remapper(char_map_bad, in_df)
 
     # method = category but lkup is not a dict
-    char_map_bad = char_map_original.copy()
+    char_map_bad = char_map.copy()
     char_map_bad["fed_land_owner"]["lkup"] = "not-a-dictionary"
     with pytest.raises(ValueError):
         validate_characterization_remapper(char_map_bad, in_df)
 
     # method = category but rename is not None
-    char_map_bad = char_map_original.copy()
+    char_map_bad = char_map.copy()
     char_map_bad["fed_land_owner"]["rename"] = "cannot-rename-this"
     with pytest.raises(ValueError):
         validate_characterization_remapper(char_map_bad, in_df)
 
     # method = sum but lkup is not None
-    char_map_bad = char_map_original.copy()
+    char_map_bad = char_map.copy()
     char_map_bad["fed_land_owner"]["method"] = "sum"
     with pytest.raises(ValueError):
         validate_characterization_remapper(char_map_bad, in_df)
@@ -147,7 +128,7 @@ def test_validate_characterization_remapper_value_error(
         validate_characterization_remapper(char_map_bad, in_df)
 
     # method = None but any of the other values are not None
-    char_map_bad = char_map_original.copy()
+    char_map_bad = char_map.copy()
     char_map_bad["fed_land_owner"]["method"] = None
     with pytest.raises(ValueError):
         validate_characterization_remapper(char_map_bad, in_df)
@@ -161,6 +142,51 @@ def test_validate_characterization_remapper_value_error(
     # this one should pass finally
     validate_characterization_remapper(char_map_bad, in_df)
 
+
+def test_recast_categories_pass_through(char_map):
+    """
+    Test that recast_categories() unpacks data correctly (as pass through, no
+    area recast).
+    """
+
+    col = "fed_land_owner"
+    cell_size_sq_km = None
+    lkup = char_map[col]["lkup"]
+
+    mock_df = pd.DataFrame()
+    mock_df["sc_gid"] = np.arange(1,6)
+    mock_char = {"255.0": 10, "4.0": 1, "6.0": 2}
+    mock_df[col] = json.dumps(mock_char)
+
+    mock_df = recast_categories(
+        mock_df, col, lkup, cell_size_sq_km
+    )
+    for k, v in mock_char.items():
+        assert np.all(mock_df[lkup[k]] == v)
+
+
+def test_recast_categories_recast_to_area(char_map):
+    """
+    Test that recast_categories() unpacks data correct when recasting to area
+    values.
+    """
+
+    col = "fed_land_owner"
+    cell_size_sq_km = 90
+    lkup = char_map[col]["lkup"]
+
+    mock_df = pd.DataFrame()
+    mock_df["sc_gid"] = np.arange(1,6)
+    mock_char = {"255.0": 10, "4.0": 1, "6.0": 2}
+    mock_df[col] = json.dumps(mock_char)
+
+    mock_df = recast_categories(
+        mock_df, col, lkup, cell_size_sq_km
+    )
+    for k, v in mock_char.items():
+        assert np.all(
+            mock_df[f"{lkup[k]}_area_sq_km"] == v * cell_size_sq_km
+        )
 
 if __name__ == '__main__':
     pytest.main([__file__, '-s'])
