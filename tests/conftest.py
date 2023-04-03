@@ -27,6 +27,7 @@ def test_bespoke_supply_curve():
 
     return bespoke_csv
 
+
 @pytest.fixture
 def test_characterization_supply_curve():
     """Return characterization-supply-curve.csv as a `Path` object."""
@@ -35,6 +36,7 @@ def test_characterization_supply_curve():
     )
 
     return char_csv
+
 
 @pytest.fixture
 def test_cli_runner():
