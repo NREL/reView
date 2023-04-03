@@ -112,8 +112,9 @@ def unpack_characterizations(  # noqa: C901
         columns you want to unpack need to be included.
 
         The corresponding value should be a dictionary with the following keys:
-        "method", "recast", and "lkup". Details for each are provided below:
-        - "method": Must be one of "category", "sum", and "mean".
+        "method", "recast", and "lkup" OR "rename".
+        Details for each are provided below:
+        - "method": Must be one of "category", "sum", "mean", or None.
             Note: These correspond to the "method" used for the
             corresponding layer in the "data_layers" input
             to reV supply-curve aggregation configuration.
@@ -125,6 +126,8 @@ def unpack_characterizations(  # noqa: C901
             column names (see documentation of recast_categories() for more
              information). It should be used when "method" = "category".
              It can also be specified as null to skip unpacking of the column.
+        - "rename": This is a string indicating what name to use for the new
+            column. This should be used when "method" != "category".
 
          A valid example for this parameter can be loaded from
          ``tests/data/characterization-map.json``.
@@ -149,6 +152,8 @@ def unpack_characterizations(  # noqa: C901
 
     cell_size_sq_km = cell_size_m**2 / 1e6
 
+    validate_characterization_remapper(characterization_remapper, in_df)
+
     for char_col, col_remapper in tqdm.tqdm(
         characterization_remapper.items(),
         desc="Unpacking Characterizations"
@@ -168,10 +173,6 @@ def unpack_characterizations(  # noqa: C901
                     )
                 elif recast is None:
                     in_df = recast_categories(in_df, char_col, lkup, None)
-                else:
-                    raise ValueError(
-                        f"Invalid recast value {recast} for method=category"
-                    )
         elif method == "sum":
             if recast == "area":
                 in_df[f"{rename}_area_sq_km"] = (
@@ -197,3 +198,99 @@ def unpack_characterizations(  # noqa: C901
         in_df = in_df.copy()
 
     return in_df
+
+
+def validate_characterization_remapper(
+    characterization_remapper, supply_curve_df
+):
+    """
+    Ensure the validity of the input characterization map. Intended for use as
+    a helper function to unpack_characterizations()
+
+    Parameters
+    ----------
+    characterization_remapper : dict
+        This dictionary defines how to unpack and recast values from the
+        characterization JSON strings to new columns. See documentation of
+        unpack_characterizations() for details.
+    supply_curve_df : list
+        DataFrame that will be used with characterization_remapper.
+
+    Raises
+    ------
+    KeyError
+        A KeyError will be raised if any of the input column names in
+        characterization_remapper are not present in supply_curve_df.
+    ValueError
+        A ValueError will be raised if any invalid combinations of
+        parameters are encountered in characterization_remapper.
+    """
+
+    characterization_cols = list(characterization_remapper.keys())
+    df_cols = supply_curve_df.columns.tolist()
+    cols_not_in_df = list(set(characterization_cols).difference(set(df_cols)))
+    if len(cols_not_in_df) > 0:
+        raise KeyError(
+            "Invalid column name(s) in characterization_remapper. "
+            "The following column name(s) were not found in the input "
+            f"dataframe: {cols_not_in_df}."
+        )
+
+    for col_name, col_remapper in characterization_remapper.items():
+        method = col_remapper.get("method", None)
+        recast = col_remapper.get("recast", None)
+        lkup = col_remapper.get("lkup", None)
+        rename = col_remapper.get("rename", None)
+
+        valid_methods = ("category", "sum", "mean", None)
+        if method not in valid_methods:
+            raise ValueError(
+                f"{col_name} - Invalid value for method: {method}."
+                f"Must be one of {valid_methods}."
+            )
+
+        valid_recasts = ("area", None)
+        if recast not in valid_recasts:
+            raise ValueError(
+                f"{col_name} - Invalid value for recast: {recast}."
+                f"Must be one of {valid_recasts}."
+            )
+
+        if method == "category":
+            if lkup is not None and not isinstance(lkup, dict):
+                raise ValueError(
+                    f"{col_name} - Invalid value for lkup: {lkup}. "
+                    f"Must be a dict or None when method={method}."
+                )
+            if rename is not None:
+                raise ValueError(
+                    f"{col_name} - Invalid value for rename: {rename}."
+                    f"Must be None when method={method}."
+                )
+        elif method in ("sum", "mean"):
+            if lkup is not None:
+                raise ValueError(
+                    f"{col_name} - Invalid value for lkup: {lkup}. "
+                    f"Must be None when method={method}."
+                )
+            if rename is not None and not isinstance(rename, str):
+                raise ValueError(
+                    f"{col_name} - Invalid value for rename: {rename}. "
+                    f"Must be None or a string when method={method}."
+                )
+        elif method is None:
+            if lkup is not None:
+                raise ValueError(
+                    f"{col_name} - Invalid value for lkup: {lkup}. "
+                    f"Must be None when method={method}."
+                )
+            if recast is not None:
+                raise ValueError(
+                    f"{col_name} - Invalid value for recast: {recast}. "
+                    f"Must be None when method={method}."
+                )
+            if rename is not None:
+                raise ValueError(
+                    f"{col_name} - Invalid value for rename: {rename}. "
+                    f"Must be None when method={method}."
+                )

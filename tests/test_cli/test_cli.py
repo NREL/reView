@@ -192,8 +192,8 @@ def test_unpack_characterizations_no_overwrite(
     test_characterization_supply_curve, test_cli_runner, test_data_dir
 ):
     """
-    Test unpack_characterizations() CLI command correctly raises FileExistsError when
-    output CSV exists and overwrite flag is not used.
+    Test unpack_characterizations() CLI command correctly raises
+    FileExistsError whe output CSV exists and overwrite flag is not used.
     """
 
     char_map_path = test_data_dir.joinpath("characterization-map.json")

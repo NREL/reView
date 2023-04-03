@@ -57,10 +57,11 @@ The trickiest part of using `unpack-characterizations` is defining the correct "
 
 Each top-level key in this JSON should be the name of a column of `-i/--supply_curve_csv` containing characterization JSON data. Only the columns you want to unpack need to be included.
 
-The corresponding value should be a dictionary with the following keys: `method`, `recast`, and `lkup`. Details for each are provided below:
-- `method`: Must be one of `category`, `sum`, and `mean`. Note: These correspond to the `method` used for the corresponding layer in the `data_layers` input to reV supply-curve aggregation configuration.
+The corresponding value should be a dictionary with the following keys: `method`, `recast`, and `lkup` OR `rename`. Details for each are provided below:
+- `method`: Must be one of `category`, `sum`, `mean`, or `null`. Note: These correspond to the `method` used for the corresponding layer in the `data_layers` input to reV supply-curve aggregation configuration.
 - `recast`: Must be one of `area` or None. This defines how values in the JSON will be recast to new columns. If `area` is specified, they will be converted to area values. If null, they will not be changed and will be passed through as-is.
 - `lkup`: This is a dictionary for remapping categories to new column names. Using the `fed_land_owner` example above, it would be: `{"2.0": "FS", "6.0": "BLM", "255.0": "Non-Federal"}`. This follows the same format one could use for ``pandas.rename(columns=lkup)``. This parameter should be used when `method` = `category`. It can also be specified as `null` to skip unpacking of the column.
+- `rename`: This is a string indicating what name to use for the new column. This should be used when `method` != `category`.
 
 A valid example of a characterization map can be found [here](tests/data/characterization-map.json) in the test data.
 
