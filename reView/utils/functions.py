@@ -28,6 +28,7 @@ import numpy as np
 import pyproj
 
 from reView import REVIEW_CONFIG_DIR, REVIEW_DATA_DIR
+from reView.app import cache3
 
 logger = logging.getLogger(__name__)
 
@@ -390,17 +391,21 @@ def read_file(file, nrows=None):
         raise OSError(f"{file}'s extension not compatible at the moment.")
 
     # Assign a scenario name to the dataframe (useful for composite building)
-    data["scenario"] = strip_rev_filename_endings(name)
+    if "scenario" not in data:
+        data["scenario"] = strip_rev_filename_endings(name)
 
     return data
 
-def read_timeseries(file, nsteps=None):
+
+def read_timeseries(file, gids=None, nsteps=None):
     """Read in a time-series from an HDF5 file.
 
     Parameters
     ----------
     file : str
         Path to HDF5 file.
+    gids : list
+        List of sc_point_gids to use to filter sites.
     nsteps : int
         Number of time-steps to read in.
 
@@ -410,15 +415,32 @@ def read_timeseries(file, nsteps=None):
         A apandas dataframe containing the time-series, datetime stamp,
         day, week, and month.
     """
-    # Open file and pull out needed datasets
-    with h5py.File(file) as ds:
-        if nsteps is None:
-            nsteps = ds["time_index"].shape[0]
-        capacity = pd.DataFrame(ds["meta"][:])["capacity"].values
-        cf = ds["rep_profiles_0"][:nsteps, :]  # <----------------------------- Include site indices later
-        gen = cf * capacity
-        cf = cf.mean(axis=1)
-        gen = gen.sum(axis=1)
+    # Open file and pull out needed datasets (how to catch with context mgmt?)
+    try:
+        ds = h5py.File(file)
+    except OSError:
+        print(f"Could not read {file} with h5py.")
+        logger.error("Could not read %s with h5py.", str(file))
+        raise
+
+    # Get meta, convert gids to index positions if needed
+    meta = pd.DataFrame(ds["meta"][:])
+
+    # Set nsteps
+    if nsteps is None:
+        nsteps = ds["time_index"].shape[0]
+
+    # Find site indices
+    if gids is not None:
+        meta = meta[meta["sc_point_gid"].isin(gids)]
+    idx = list(meta.index)
+
+    # Get capacity, time index, format 
+    capacity = meta["capacity"].values
+
+    # If it has any "rep_profiles_" datasets it rep-profiles
+    if "rep_profiles_0" in ds.keys():
+        # Break down time entries
         time = [t.decode() for t in ds["time_index"][:nsteps]]
         dtime = [dt.datetime.strptime(t, TIME_PATTERN) for t in time]
         hours = [t.hour for t in dtime]
@@ -426,15 +448,69 @@ def read_timeseries(file, nsteps=None):
         weeks = [t.isocalendar().week for t in dtime]
         months = [t.month for t in dtime]
 
-    # Build Dataframe
+        # Process generation data
+        cf = ds["rep_profiles_0"][:nsteps, idx]
+        gen = cf * capacity
+        cf = cf.mean(axis=1)
+        gen = gen.sum(axis=1)
+
+    # Otherwise, it's probably bespoke and has each year
+    else:
+        # Get all capacity factor keys
+        cf_keys = [key for key in ds.keys() if "cf_profile-" in key]
+        time_keys = [key for key in ds.keys() if "time_index-" in key] 
+        scale = ds[cf_keys[0]].attrs["scale_factor"]
+
+        # Build complete time-series at each site
+        all_cfs = []
+        all_time = []
+        for i, cf_key in enumerate(cf_keys):
+            time_key = time_keys[i]
+            cf = ds[cf_key][:nsteps, idx]
+            time = ds[time_key][:nsteps]
+            all_cfs.append(cf)
+            all_time.append(time)
+        site_cfs = np.concatenate(all_cfs)
+        time = np.concatenate(all_time)
+        site_gen = site_cfs * capacity
+
+        # Build single long-term average timeseries for all sites
+        cf = np.mean(site_cfs, axis=1) / scale
+        gen = site_gen.sum(axis=1)
+
+        # This will only take the average across the year
+        time = [t.decode() for t in time]
+        dtime = [dt.datetime.strptime(t, TIME_PATTERN) for t in time]
+        days = [t.timetuple().tm_yday for t in dtime]
+        weeks = [t.isocalendar().week for t in dtime]
+        months = [t.month for t in dtime]
+        hours = [t.hour for t in dtime]
+
+        # Break down time entries
+        # hours = [t.hour for t in dtime]
+
+        # days = []
+        # y = 0
+        # for i, t in enumerate(dtime):
+        #     if day == 1:
+        #         y += 1
+        #     day = t.timetuple().tm_yday * y
+        #     print(day)
+
+        # t.timetuple().tm_yday for t in dtime]
+        # weeks = [t.isocalendar().week for t in dtime]
+        # months = [t.month for t in dtime]
+
+    ds.close()
+
     data = pd.DataFrame({
-        "capacity factor": cf,
-        "generation": gen,
         "time": time,
         "hour": hours,
         "daily": days,
         "weekly": weeks,
-        "monthly": months
+        "monthly": months,
+        "capacity factor": cf,
+        "generation": gen
     })
 
     return data

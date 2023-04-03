@@ -120,18 +120,49 @@ def above_time_options_div(id_prefix, class_name=None):
                         label="Monthly",
                         style=TABLET_STYLE,
                         selected_style=TABLET_STYLE,
+                    ),
+                    dcc.Tab(
+                        value="cdf",
+                        label="CDF",
+                        style=TABLET_STYLE,
+                        selected_style=TABLET_STYLE,
+                    ),
+                    dcc.Tab(
+                        value="pdf",
+                        label="PDF",
+                        style=TABLET_STYLE,
+                        selected_style=TABLET_STYLE,
                     )
                 ],
             ),
 
             # Placeholder First Options
             html.Div(
+                className="row",
                 children=[
-                    dcc.Dropdown(
-                        id=f"{id_prefix}_additional_scenarios_time",
-                        clearable=False,
-                        placeholder="Additional Scenarios",
-                        multi=True
+                    html.Div(                  
+                        className="six columns",
+                        children=dcc.Dropdown(
+                            id=f"{id_prefix}_variable_time",
+                            style={"width": "100%"},
+                            clearable=False,
+                            value="capacity factor",
+                            options=[
+                                {"label": "Capacity Factor", "value": "capacity factor"},
+                                {"label": "Generation (MW)", "value": "generation"},
+                            ],
+                            multi=False
+                        )
+                    ),
+                    html.Div(
+                        className="six columns",
+                        children=dcc.Dropdown(
+                            id=f"{id_prefix}_additional_scenarios_time",
+                            style={"width": "105%"},
+                            clearable=False,
+                            placeholder="Additional Scenarios",
+                            multi=True
+                        )                    
                     )
                 ]
             ),

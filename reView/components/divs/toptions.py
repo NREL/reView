@@ -51,14 +51,25 @@ COMPOSITE_DIV = html.Div(
     className="row",
     style={"display": "none"},
     children=[
-        # First Scenario
+        # Scenario Dropdowns
         html.Div(
-            [
+            children=[
                 html.H5("Scenarios"),
                 html.Div(
                     id="composite_options",
-                    children=dcc.Dropdown(id="composite_scenarios")
+                    children=dcc.Dropdown(
+                        id="composite_scenarios",
+                        multi=True
+                    )
                 ),
+                html.H6("Scenario Filters"),
+                html.Div(
+                    id="composite_filter_div",
+                    children=html.Div(
+                        id="composite_filters",
+                        children=[]                   
+                    )
+                )
             ],
             className="four columns",
             style={"margin-left": "25px"},
@@ -148,20 +159,30 @@ TOPTIONS = [
                                 ],
                             ),
                         ],
-                        className="four columns",
+                        className="three columns",
                         style={"margin-left": "50px"}
                     ),
 
                     # First Scenario
                     html.Div(
-                        [
+                        className="four columns",
+                        style={"margin-left": "25px"},
+                        children=[
                             html.H5("Scenario A"),
                             html.Div(
-                                id="scenario_a_options",
+                                children=dcc.Dropdown(
+                                    id="scenario_dropdown_a",
+                                    value="placeholder"
+                                ),
+                            ),
+                            html.Div(
+                                id="scenario_a_filter_div",
+                                className="twelve columns",
                                 children=[
-                                    dcc.Dropdown(
-                                        id="scenario_dropdown_a",
-                                        value="placeholder"
+                                    html.H6("Scenario A Filters"),
+                                    html.Div(
+                                        id="scenario_a_filters",
+                                        children=[]
                                     )
                                 ]
                             ),
@@ -169,48 +190,59 @@ TOPTIONS = [
                                 id="scenario_a_specs",
                                 style={
                                     "overflow-y": "auto",
-                                    "height": "300px",
                                     "width": "95%"
                                 }
                             ),
-                            html.Hr(style={"height": "1.5px", "width": "95%"})
+                            html.Div(
+                                className="twelve columns",
+                                children=html.Hr(
+                                    style={
+                                        "height": "1.5px",
+                                        "width": "95%"
+                                    }
+                                )                            
+                            )
                         ],
-                        className="four columns",
-                        style={"margin-left": "25px"},
                     ),
-
+ 
                     # Second Scenario
                     html.Div(
                         id="scenario_b_div",
+                        className="four columns",
+                        style={"margin-left": "5px"},
                         children=[
+                            html.H5("Scenario B"),
                             html.Div(
-                                [
-                                    html.H5("Scenario B"),
+                                children=dcc.Dropdown(
+                                    id="scenario_dropdown_b",
+                                    value="placeholder"
+                                ),
+                            ),
+                            html.Div(
+                                id="scenario_b_filter_div",
+                                className="twelve columns",
+                                children=[
+                                    html.H6("Scenario B Filters"),
                                     html.Div(
-                                        id="scenario_b_options",
-                                        children=[
-                                            dcc.Dropdown(
-                                                id="scenario_dropdown_b",
-                                                value="placeholder"
-                                            )
-                                        ]
-                                    ),
-                                    html.Div(
-                                        id="scenario_b_specs",
-                                        style={
-                                            "overflow-y": "auto",
-                                            "height": "300px",
-                                            "width": "95%"
-                                        }
-                                    ),
-                                    html.Hr(
-                                        style={
-                                            "height": "1.5px",
-                                            "width": "95%"}
+                                        id="scenario_b_filters",
+                                        children=[]
                                     )
-                                ],
-                                className="four columns",
-                                style={"margin-left": "5px"},
+                                ]
+                            ),
+                            html.Div(
+                                id="scenario_b_specs",
+                                style={
+                                    "overflow-y": "auto"
+                                }
+                            ),
+                            html.Div(
+                                className="twelve columns",
+                                children=html.Hr(
+                                    style={
+                                        "height": "1.5px",
+                                        "width": "95%"
+                                    }
+                                )                            
                             )
                         ],
                     ),
@@ -548,12 +580,11 @@ TOPTIONS = [
             html.Div(
                 children=[
                     html.H5(
-                        "Filters",
+                        "Variable Filters",
                         title=(
-                            "Filter map and charts with variable "
-                            "value thresholds. Enter <variable> "
-                            "<operator> <value> (working on a "
-                            "more intuitive way)"
+                            "Filter map and charts with variable value "
+                            "thresholds. Enter <variable> <operator> <value> "
+                            "(working on a more intuitive way)"
                         ),
                         id="filter_title",
                     ),
