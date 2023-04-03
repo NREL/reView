@@ -17,12 +17,12 @@ def test_options_chart_type():
 @pytest.mark.parametrize(
     "chart_choice, num_expected_tabs, should_be_missing",
     [
-        ("cumsum", 4, None),
-        ("histogram", 3, "X Variable"),
-        ("box", 3, "X Variable"),
-        ("scatter", 4, None),
-        ("binned", 4, None),
-        ("char_histogram", 3, "Additional Scenarios"),
+        ("cumsum", 3, None),
+        ("histogram", 2, "X Variable"),
+        ("box", 2, "X Variable"),
+        ("scatter", 3, None),
+        ("binned", 3, None),
+        ("char_histogram", 2, "Additional Scenarios"),
     ],
 )
 def test_chart_tab_div_children(
