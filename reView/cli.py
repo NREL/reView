@@ -101,7 +101,8 @@ def unpack_turbines(
 @click.option('--cell_size', '-c', required=False,
               default=90.,
               type=float,
-              help='Cell size in meters of characterization layers')
+              help=('(Optional) Cell size in meters of characterization layers. '
+                    'Default is 90.'))
 @click.option('--overwrite', default=False,
               show_default=True,
               required=False,

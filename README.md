@@ -75,8 +75,8 @@
 
 Additional command-line tools are available as part of this package. A list of these tools can be accessed using the command `reView-tools`. The commands currently available include:
 
-- `unpack-turbines`: Unpack individual turbines from each reV project site in a reV supply curve CSV, produced using "bespoke" (i.e., SROM) turbine placement.
-
+- `unpack-turbines`:  Unpack individual turbines from each reV project site in a reV supply curve CSV, produced using "bespoke" (i.e., SROM) turbine placement.
+- `unpack-characterizations`: Unpacks characterization data from the input supply curve dataframe, converting values from embedded JSON strings to new standalone columns, and saves out a new version of the supply curve with these columns included.
 ----
 
 ## Development
