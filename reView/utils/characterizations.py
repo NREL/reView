@@ -90,10 +90,9 @@ def recast_categories(df, col, lkup, cell_size_sq_km):
     return out_df
 
 
-def unpack_characterizations(
-    in_df,
-    characterization_remapper,
-    cell_size_m=90,
+# pylint: disable=too-many-branches
+def unpack_characterizations(  # noqa: C901
+        in_df, characterization_remapper, cell_size_m=90
 ):
     """
     Unpacks characterization data from the input supply curve dataframe,
