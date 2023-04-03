@@ -128,4 +128,4 @@ def unpack_characterizations(
 
     if overwrite is True:
         out_csv.unlink(missing_ok=True)
-    char_df.to_csv(out_csv, header=True, index=False)
+    char_df.to_csv(out_csv, header=True, index=False, mode="x")

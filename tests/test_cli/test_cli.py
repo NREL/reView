@@ -163,5 +163,55 @@ def test_unpack_characterizations(
     assert_frame_equal(output_df, correct_df)
 
 
+@pytest.mark.filterwarnings("ignore:Skipping")
+def test_unpack_characterizations_overwrite(
+    test_characterization_supply_curve, test_cli_runner, test_data_dir
+):
+    """Test unpack_characterizations() CLI command correctly overwrites when
+        output CSV exists and overwrite flag is used."""
+
+    char_map_path = test_data_dir.joinpath("characterization-map.json")
+
+    with tempfile.TemporaryDirectory() as tempdir:
+        output_csv = pathlib.Path(tempdir).joinpath("characterizations.csv")
+        with open(output_csv, 'w'):
+            pass
+        result = test_cli_runner.invoke(
+            unpack_characterizations, [
+                '-i', test_characterization_supply_curve.as_posix(),
+                '-m', char_map_path.as_posix(),
+                '-o', output_csv,
+                '--overwrite'
+            ]
+        )
+        assert result.exit_code == 0
+
+
+@pytest.mark.filterwarnings("ignore:Skipping")
+def test_unpack_characterizations_no_overwrite(
+    test_characterization_supply_curve, test_cli_runner, test_data_dir
+):
+    """
+    Test unpack_characterizations() CLI command correctly raises FileExistsError when
+    output CSV exists and overwrite flag is not used.
+    """
+
+    char_map_path = test_data_dir.joinpath("characterization-map.json")
+
+    with tempfile.TemporaryDirectory() as tempdir:
+        output_csv = pathlib.Path(tempdir).joinpath("characterizations.csv")
+        with open(output_csv, 'w'):
+            pass
+        result = test_cli_runner.invoke(
+            unpack_characterizations, [
+                '-i', test_characterization_supply_curve.as_posix(),
+                '-m', char_map_path.as_posix(),
+                '-o', output_csv
+            ]
+        )
+        assert result.exit_code == 1
+        assert isinstance(result.exception, FileExistsError)
+
+
 if __name__ == '__main__':
     pytest.main([__file__, '-s'])
