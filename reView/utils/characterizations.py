@@ -141,13 +141,6 @@ def unpack_characterizations(  # noqa: C901
     pandas.DataFrame
         New pandas dataframe with additional columns for data unpacked
         from characterization columns.
-
-    Raises
-    ------
-    ValueError
-        _description_
-    ValueError
-        _description_
     """
 
     cell_size_sq_km = cell_size_m**2 / 1e6
@@ -191,9 +184,6 @@ def unpack_characterizations(  # noqa: C901
                     in_df[rename] = in_df[char_col]
         elif method is None:
             warnings.warn(f"Skipping {char_col}: No method provided")
-
-        else:
-            raise ValueError(f"Invalid method: {method}")
 
         in_df = in_df.copy()
 
