@@ -136,7 +136,7 @@ def build_scenario_dropdowns(groups, dropid=None, multi=False, dynamic=False,
 
 
 def build_specs(scenario, project):
-    """Calculate the percentage of each scenario present."""
+    """Display model specifications for a given scenario."""
     config = Config(project)
     specs = config.parameters
     dct = specs[scenario]
