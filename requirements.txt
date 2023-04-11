@@ -23,5 +23,5 @@ scipy==1.10.0
 setuptools==65.5.1
 tqdm==4.62.3
 us==2.0.2
-werkzeug==2.0.3
+werkzeug==2.2.3
 shapely==2.0.0
