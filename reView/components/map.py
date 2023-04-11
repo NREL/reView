@@ -193,7 +193,7 @@ class Title:
 
         # Drop nan values in variable
         df = df.dropna(subset=self.color_var)
-        df = df[df[self.color_var] != -np.inf]
+        df = df[~df[self.color_var].isin([-np.inf, np.inf])]
         if all(df[self.color_var].isnull()):
             err = f"No {self.color_var} values found in \
                 {self.scenario} in the {self.project} project"
@@ -205,7 +205,7 @@ class Title:
                 and self.color_var not in ["capacity", "area_sq_km"]):
             aggregation = np.average(
                 df[self.color_var],
-                weights=df["capacity"]
+                weights=df["area_sq_km"]
             ).round(2)
         else:
             aggregation = df[self.color_var].apply(agg_type).round(2)

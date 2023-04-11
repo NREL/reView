@@ -71,7 +71,7 @@ COMMON_CALLBACKS = [
     capacity_print(id_prefix="rev"),
     display_selected_tab_above_map(id_prefix="rev"),
 ]
-DEFAULT_PROJECT = "PR100 - Forecasts"
+DEFAULT_PROJECT = "ATB Bespoke - FY23"
 
 
 def build_scenario_dropdowns(groups, dropid=None, multi=False, dynamic=False,
@@ -136,7 +136,7 @@ def build_scenario_dropdowns(groups, dropid=None, multi=False, dynamic=False,
 
 
 def build_specs(scenario, project):
-    """Calculate the percentage of each scenario present."""
+    """Display model specifications for a given scenario."""
     config = Config(project)
     specs = config.parameters
     dct = specs[scenario]

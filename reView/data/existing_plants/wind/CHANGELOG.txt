@@ -1,0 +1,704 @@
+# Changelog
+## [5.3.0] - 2023-1-13
+### Added
+- Addition of 540 turbine records. Additions include:
+	- 530 new turbines.
+	- 10 existing turbines issued new case_id. Replaces old records.
+
+### Removed
+- Removed 228 turbine records. Removals include: 
+	- 10 duplicate turbines removed.
+	- 120 decommissioned turbine.
+	- 86 reclassified as "not a turbine" (Either another structure mislabeled, or nothing in imagery >2 years after "built date").
+	- 2 residential scale turbines (<= 50 kW) identified and removed.
+	- 10 turbines issued new case_id. Replaced by new records.
+
+### Changed
+- A total of 4,645 attribute changes were made. These include:
+	- 197 "faa_asn" updates.
+	- 1,165 "p_name" updates.
+	- 38 "p_year" updates.
+	- 1,493 "p_tnum" updates.
+	- 386 "t_rsa" updates.
+	- 1 "t_ttlh" update.
+	- 1,826 "t_conf_atr" updates.
+	- 954 "t_conf_loc" updates.
+	- 1,474 "t_img_date" updates.
+	- 70 "t_img_srce" updates.
+	- 36 "xlong" updates.
+	- 28 "ylat" updates.
+
+## [5.2.0] - 2022-10-12
+### Added
+- Addition of 345 turbine records. Additions include:
+	- 345 new turbines.
+
+### Removed
+- Removed 118 turbine records. Removals include: 
+	- 24 duplicate turbines removed.
+	- 66 decommissioned turbine.
+	- 28 reclassified as "not a turbine" (Either another structure mislabeled, or nothing in imagery >2 years after "built date").
+
+### Changed
+- A total of 6,114 attribute changes were made. These include:
+	- 198 "faa_asn" updates.
+	- 1,113 "p_name" updates.
+	- 632 "p_year" updates.
+	- 1,561 "p_tnum" updates.
+	- 3 "p_cap" updates.
+	- 1 "t_cap" update.
+	- 197 "t_rsa" updates.
+	- 1 "t_ttlh" update.
+	- 68 "t_conf_atr" updates.
+	- 717 "t_conf_loc" updates.
+	- 1,130 "t_img_date" updates.
+	- 434 "t_img_srce" updates.
+	- 27 "xlong" updates.
+	- 32 "ylat" updates.
+
+## [5.1.0] - 2022-07-29
+### Added
+- Addition of 656 turbine records. Additions include:
+	- 656 new turbines.
+
+### Removed
+- Removed 192 turbine records. Removals include: 
+	- 31 duplicate turbines removed.
+	- 156 decommissioned turbine.
+	- 5 reclassified as "not a turbine" (Either another structure mislabeled, or nothing in imagery >2 years after "built date").
+
+### Changed
+- A total of 12,584 attribute changes were made. These include:
+	- 61 "faa_asn" updates.
+	- 163 "p_name" updates.
+	- 1,372 "p_year" updates.
+	- 1,869 "p_tnum" updates.
+	- 36 "t_manu" updates
+	- 688 "t_model" updates.
+	- 1,553 "p_cap" updates.
+	- 488 "t_cap" updates.
+	- 140 "t_hh" updates.
+	- 200 "t_rd" updates.
+	- 397 "t_rsa" updates.
+	- 520 "t_ttlh" updates.
+	- 2,104 "t_conf_atr" updates.
+	- 1,087 "t_conf_loc" updates.
+	- 1,535 "t_img_date" updates.
+	- 163 "t_img_srce" updates.
+	- 101 "retrofit" updates
+	- 53 "xlong" updates.
+	- 54 "ylat" updates.
+
+## [5.0.0] - 2022-04-27
+### Added
+- Addition of 930 turbine records. Additions include:
+	- 930 new turbines.
+
+### Removed
+- Removed 72 turbine records. Removals include: 
+	- 64 duplicate turbines removed.
+	- 1 decommissioned turbine.
+	- 7 reclassified as "not a turbine" (Either another structure mislabeled, or nothing in imagery >2 years after "built date").
+
+### Changed
+- A total of 11,081 attribute changes were made. These include:
+	- 202 "faa_asn" updates.
+	- 1,911 "p_name" updates.
+	- 197 "p_year" updates.
+	- 2,371 "p_tnum" updates.
+	- 352 "t_model" updates.
+	- 214 "p_cap" update.
+	- 72 "t_cap" updates.
+	- 16 "t_hh" updates.
+	- 65 "t_rd" updates.
+	- 262 "t_rsa" updates.
+	- 361 "t_ttlh" updates.
+	- 3,511 "t_conf_atr" updates.
+	- 626 "t_conf_loc" updates.
+	- 796 "t_img_date" updates.
+	- 31 "t_img_srce" updates.
+	- 44 "xlong" updates.
+	- 50 "ylat" updates.
+
+## [4.3.0] - 2022-01-14
+### Added
+- Addition of 1097 turbine records. Additions include:
+	- 1092 new turbines.
+	- 5 existing turbines issued new case_id. Replaces old records.
+
+### Removed
+- Removed 426 turbine records. Removals include: 
+	- 41 duplicate turbines removed.
+	- 365 decommissioned turbines.
+	- 15 reclassified as "not a turbine" (Either another structure mislabeled, or nothing in imagery >2 years after "built date").
+	- 5 turbines issued new case_id. Replaced by new records.
+
+### Changed
+- A total of 6,667 attribute changes were made. These include:
+	- 755 "faa_asn" updates.
+	- 444 "p_name" updates.
+	- 157 "p_year" updates.
+	- 2,713 "p_tnum" updates.
+	- 2 "t_manu" updates.
+	- 45 "t_model" updates.
+	- 1 "p_cap" update.
+	- 16 "t_cap" updates.
+	- 16 "t_hh" updates.
+	- 15 "t_rd" updates.
+	- 15 "t_rsa" updates.
+	- 3 "t_ttlh" updates.
+	- 62 "t_conf_atr" updates.
+	- 862 "t_conf_loc" updates.
+	- 1,380 "t_img_date" updates.
+	- 76 "t_img_srce" updates.
+	- 45 "xlong" updates.
+	- 60 "ylat" updates.
+	
+## [4.2.0] - 2021-11-01
+### Added
+- Addition of 1366 turbine records. Additions include:
+	- 1366 new turbines.
+
+### Removed
+- Removed 390 turbine records. Removals include: 
+	- 50 duplicate turbines removed.
+	- 329 decommissioned turbines.
+	- 11 reclassified as "not a turbine" (Either another structure mislabeled, or nothing in imagery >2 years after "built date").
+	
+### Changed
+- A total of 9,887 attribute changes were made. These include:
+	- 205 "faa_asn" updates.
+	- 773 "p_name" updates.
+	- 655 "p_year" updates.
+	- 1,961 "p_tnum" updates.
+	- 74 "t_manu" updates.
+	- 395 "t_model" updates.
+	- 234 "p_cap" updates.
+	- 1 "t_cap" updates.
+	- 2 "t_hh" updates.
+	- 3 "t_rd" updates.
+	- 3 "t_rsa" updates.
+	- 740 "t_ttlh" updates.
+	- 1,715 "t_conf_atr" updates.
+	- 1,008 "t_conf_loc" updates.
+	- 1,837 "t_img_date" updates.
+	- 162 "t_img_srce" updates.
+	- 58 "xlong" updates.
+	- 61 "ylat" updates.
+	
+## [4.1.0] - 2021-07-21
+### Added
+- Addition of 951 turbine records. Additions include:
+	- 951 new turbines.
+
+### Removed
+- Removed 577 turbine records. Removals include: 
+	- 153 duplicate turbines removed.
+	- 422 decommissioned turbines.
+	- 2 reclassified as "not a turbine" (Either another structure mislabeled, or nothing in imagery >2 years after "built date").
+	
+### Changed
+- A total of 22,427 attribute changes were made. These include:
+	- 8 "faa_ors" updates.
+	- 283 "faa_asn" updates.
+	- 31 "t_state" updates.
+	- 33 "t_county" updates.
+	- 33 "t_fips" updates.
+	- 1,963 "p_name" updates.
+	- 953 "p_year" updates.
+	- 2,288 "p_tnum" updates.
+	- 346 "t_manu" updates.
+	- 1,573 "t_model" updates.
+	- 2,012 "p_cap" updates.
+	- 1,241 "t_cap" updates.
+	- 140 "t_hh" updates.
+	- 1,566 "t_rd" updates.
+	- 1,566 "t_rsa" updates.
+	- 1,575 "t_ttlh" updates.
+	- 1,571 "retrofit" updates.
+	- 573 "t_conf_atr" updates.
+	- 825 "t_conf_loc" updates.
+	- 1,297 "t_img_date" updates.
+	- 2,398 "t_img_srce" updates.
+	- 86 "xlong" updates.
+	- 66 "ylat" updates.
+	
+## [4.0.0] - 2021-04-09
+### Added
+- Addition of 1,120 turbine records. Additions include:
+	- 1,120 new turbines.
+
+### Removed
+- Removed 142 turbine records. Removals include: 
+	- 69 duplicate turbines removed.
+	- 64 decommissioned turbines.
+	- 5 residential scale turbines (<= 50 kW) identified and removed.
+	- 4 reclassified as "not a turbine" (Either another structure mislabeled, or nothing in imagery >2 years after "built date").
+	
+### Changed
+- A total of 18,352 attribute changes were made. These include:
+	- 389 "faa_asn" updates.
+	- 3,112 "p_name" updates.
+	- 3 "p_year" updates.
+	- 3,870 "p_tnum" updates.
+	- 57 "t_model" updates.
+	- 1 "p_cap" update.
+	- 1 "t_cap" update.
+	- 1 "t_rd" update.
+	- 1 "t_rsa" update.
+	- 157 "t_ttlh" update.
+	- 4,599 "t_conf_atr" updates.
+	- 1,175 "t_conf_loc" updates.
+	- 3,104 "t_img_date" updates.
+	- 1,608 "t_img_srce" updates.
+	- 132 "xlong" updates.
+	- 142 "ylat" updates.
+	
+## [3.3.0] - 2021-01-14
+### Added
+- Addition of 2,382 turbine records. Additions include:
+	- 2,382 new turbines.
+	- Addition of quasi 3D-capability to viewer	
+
+### Removed
+- Removed 116 turbine records. Removals include: 
+	- 75 decommissioned turbines.
+	- 4 reclassified as "not a turbine" (Either another structure mislabeled, or nothing in imagery >2 years after "built date")
+	- 37 duplicate turbines removed.
+
+### Changed
+- A total of 18,481 attribute changes were made. These include:
+	- 817 "faa_asn" updates.
+	- 2 "t_county" updates.
+	- 2 "t_fips" updates.
+	- 927 "p_name" updates.
+	- 181 "p_year" updates.
+	- 2,223 "p_tnum" updates.
+	- 124 "p_cap" updates.
+	- 425 "t_manu" updates.
+	- 1,813 "t_model" updates.
+	- 1,094 "t_cap" updates.
+	- 47 "t_hh" updates.
+	- 1,640 "t_rd" updates.
+	- 1,640 "t_rsa" updates.
+	- 1,640 "t_ttlh" updates.
+	- 2,156 "t_conf_atr" updates.
+	- 1,226 "t_conf_loc" updates.
+	- 2,005 "t_img_date" updates.
+	- 399 "t_img_srce" updates.
+	- 66 "xlong" updates.
+	- 54 "ylat" updates.
+
+## [3.2.0] - 2020-10-14
+### Added
+- Addition of 3,661 turbine records. Additions include:
+	- 1,849 new turbines.
+	- 1,812 existing turbines issued new case_id. Replaces old records.
+
+### Removed
+- Removed 2,666 turbine records. Removals include: 
+	- 787 decommissioned turbines.
+	- 1,812 turbines issued new case_id. Replaced by new records.
+	- 38 reclassified as "not a turbine" (Either another structure mislabeled, or nothing in imagery >2 years after "built date")
+	- 28 duplicate turbines removed.
+	- 1 residential scale turbine (<= 50 kW) identified and removed.
+
+### Changed
+- A total of 14,709 attribute changes were made. These include:
+	- 584 "faa_asn" updates.
+	- 1,170 "p_name" updates.
+	- 250 "p_year" updates.
+	- 3,248 "p_tnum" updates.
+	- 1,993 "p_cap" updates.
+	- 474 "t_manu" updates.
+	- 809 "t_model" updates.
+	- 202 "t_cap" updates
+	- 12 "t_hh" updates
+	- 40 "t_rd" updates
+	- 40 "t_rsa" updates
+	- 901 "t_ttlh" updates.
+	- 1,618 "t_conf_atr" updates.
+	- 1,401 "t_conf_loc" updates.
+	- 1,840 "t_img_date" updates.
+	- 32 "t_img_srce" updates.
+	- 44 "xlong" updates.
+	- 51 "ylat" updates.
+	
+## [3.1.0] - 2020-07-17
+### Added
+- Addition of 869 turbine records. Additions include:
+	- 867 new turbines.
+	- 2 existing turbines issued new case_id. Replaces old records.
+
+### Removed
+- Removed 110 turbine records. Removals include: 
+	- 9 decommissioned turbines.
+	- 2 turbines issued new case_id. Replaced by new records.
+	- 95 duplicate turbines removed.
+	- 4 residential scale turbines (<= 50 kW) identified and removed.
+
+### Changed
+- A total of 8,661 attribute changes were made. These include:
+	- 155 "faa_asn" updates.
+	- 1,556 "p_name" updates.
+	- 831 "p_year" updates.
+	- 2,666 "p_tnum" updates.
+	- 149 "p_cap" updates.
+	- 635 "t_manu" updates.
+	- 2,086 "t_model" updates.
+	- 1,214 "t_cap" updates
+	- 2 "t_hh" updates
+	- 1,642 "t_rd" updates
+	- 1,642 "t_rsa" updates
+	- 2,364 "t_ttlh" updates.
+	- 1,619 "t_conf_atr" updates.
+	- 605 "t_conf_loc" updates.
+	- 1,089 "t_img_date" updates.
+	- 251 "t_img_srce" updates.
+	- 28 "xlong" updates.
+	- 25 "ylat" updates.
+	
+## [3.0.1] - 2020-05-14
+### Added
+- No additions
+	
+### Removed
+- No removals
+
+### Changed
+- An error was discovered and corrected in the attributes of turbines that have been retrofitted (partially repowered).
+- A total of 10,354 attribute changes were made across 2,378 turbines. These include:
+	- 723 changes to "t_manu"
+	- 2,368 changes to "t_model"
+	- 260 changes to "t_cap"
+	- 144 changes to "t_hh"
+	- 1,997 changes to "t_rd"
+	- 1,997 changes to "t_rsa"
+	- 2,001 changes to "t_ttlh"
+	- 864 changes to "t_conf_atr"
+	
+## [3.0.0] - 2020-04-17
+### Added
+- Addition of 1600 turbine records. Additions include:
+	- 1600 new turbines.
+	
+### Removed
+- Removed 809 turbine records. Removals include: 
+	- 717 decommissioned turbines.
+	- 46 reclassified as "not a turbine" (Either another structure mislabeled, or nothing in imagery >2 years after "built date").
+	- 1 duplicate turbine removed.
+	- 18 residential scale turbines (<= 50 kW) identified and removed.
+
+### Changed
+- "p_cap" and "p_tnum" are summed across the full project, rather than across the unique turbine types within each project.
+- A total of 35,502 attribute changes were made. These include:
+	- 524 "faa_asn" updates.
+	- 1,598 "p_name" updates.
+	- 35 "p_year" updates.
+	- 12,764 "p_tnum" updates.
+	- 10,447 "p_cap" updates.
+	- 15 "t_manu" updates.
+	- 18 "t_model" updates.
+	- 2 "t_hh" updates.
+	- 8 "t_rd" updates.
+	- 8 "t_rsa" updates.
+	- 9 "t_ttlh" updates.
+	- 2,064 "t_conf_atr" updates.
+	- 1,322 "t_conf_loc" updates.
+	- 1,692 "t_img_date" updates.
+	- 4,866 "t_img_srce" updates.
+	- 64 "xlong" updates.
+	- 48 "ylat" updates.
+
+## [2.3.0] - 2020-01-09
+### Added
+- Addition of 2635 turbine records. Additions include:
+	- 2635 new turbines.	
+- Addition of database attributes. Additions include:	
+	- "eia_id" (plant ID from EIA form 860 added to 57,085 turbines).
+	
+### Removed
+- Removed 208 turbine records. Removals include: 
+	- 63 decommissioned turbines.
+	- 115 reclassified as "not a turbine" (Either another structure mislabeled, or nothing in imagery >2 years after "built date")
+	- 28 duplicate turbines removed.
+	- 2 residential scale turbines (<= 50 kW) identified and removed
+
+### Changed
+- A total of 14,593 attribute changes were made. These include:
+	- 2 "faa_ors" updates.
+	- 1,285 "faa_asn" updates.
+	- 2,601 "p_name" updates.
+	- 935 "p_year" updates.
+	- 3,905 "p_tnum" updates.
+	- 866 "p_cap" updates.
+	- 944 "t_manu" updates.
+	- 268 "t_model" updates.
+	- 30 "t_hh" updates.
+	- 6 "t_ttlh" updates.
+	- 1,299 "t_conf_atr" updates.
+	- 415 "t_conf_loc" updates.
+	- 633 "t_img_date" updates.
+	- 1,318 "t_img_srce" updates.
+	- 51 "xlong" updates.
+	- 35 "ylat" updates.
+
+## [2.2.0] - 2019-10-04
+### Added
+- Addition of 839 turbine records. Additions include:
+	- 839 new turbines.
+	
+### Removed
+- Removed 147 turbine records. Removals include: 
+	- 60 decommissioned turbines.
+	- 69 reclassified as "not a turbine" (Either another structure mislabeled, or nothing in imagery >2 years after "built date")
+	- 18 duplicate turbines removed.
+
+### Changed
+- A total of 7,706 attribute changes were made. These include:
+	- 510 "faa_asn" updates.
+	- 4 "t_county" updates.
+	- 364 "p_name" updates.
+	- 145 "p_year" updates.
+	- 2,786 "p_tnum" updates.
+	- 82 "p_cap" updates.
+	- 886 "t_manu" updates.
+	- 333 "t_model" updates.
+	- 32 "t_cap" updates.
+	- 12 "t_hh" updates.
+	- 29 "t_rd" updates.
+	- 29 "t_rsa" updates.
+	- 90 "t_ttlh" updates.
+	- 515 "t_conf_atr" updates.
+	- 776 "t_conf_loc" updates.
+	- 955 "t_img_date" updates.
+	- 14 "t_img_srce" updates.
+	- 74 "xlong" updates.
+	- 70 "ylat" updates.
+	
+## [2.1.0] - 2019-07-15
+### Added
+- Addition of 1,561 turbine records. Additions include:
+	- 655 new turbines.
+	- 906 existing turbines issued new case_id. Replaces old records.
+	
+### Removed
+- Removed 1,015 turbine records. Removals include: 
+	- 25 decommissioned turbines.
+	- 34 reclassified as "not a turbine".
+	- 1 residential scale turbines (<= 50 kW) identified and removed
+	- 906 turbines issued new case_id. Replaced by new records.
+	- 49 duplicate turbines removed.
+
+### Changed
+- A total of 8,845 attribute changes were made. These include:
+	- 848 "faa_asn" updates.
+	- 432 "p_name" updates.
+	- 412 "p_year" updates.
+	- 2,197 "p_tnum" updates.
+	- 76 "p_cap" updates.
+	- 5 "t_manu" updates.
+	- 989 "t_model" updates.
+	- 71 "t_cap" updates.
+	- 58 "t_hh" updates.
+	- 180 "t_rd" updates.
+	- 180 "t_rsa" updates.
+	- 183 "t_ttlh" updates.
+	- 533 "t_conf_atr" updates.
+	- 561 "t_conf_loc" updates.
+	- 782 "t_img_date" updates.
+	- 881 "t_img_srce" updates.
+	- 194 "xlong" updates.
+	- 263 "ylat" updates.
+	
+## [2.0.0] - 2019-04-24
+### Added
+- Added USWTDB API resource allowing for programmatic access to the USWTDB (https://eerscmap.usgs.gov/uswtdb/api-doc/).
+- Addition of 1450 turbine records. Additions include:
+	- 1450 new turbines.
+	
+### Removed
+- Removed 561 turbine records. Removals include: 
+	- 517 decommissioned turbines.
+	- 44 duplicate records removed.
+
+### Changed
+- A total of 19,727 attribute changes were made. These include:
+	- 259 "faa_asn" updates.
+	- 2 “t_state" updates.
+	- 46 “t_county" updates.
+	- 46 “t_fips" updates.
+	- 1,423 "p_name" updates.
+	- 73 "p_year" updates.
+	- 1,940 "p_tnum" updates.
+	- 1,156 "p_cap" updates.
+	- 838 "t_manu" updates.
+	- 2,564 "t_model" updates.
+	- 354 "t_cap" updates.
+	- 112 "t_hh" updates.
+	- 1,959 "t_rd" updates.
+	- 1,959 "t_rsa" updates.
+	- 3,277 "t_ttlh" updates.
+	- 2,550 "t_conf_atr" updates.
+	- 426 "t_conf_loc" updates.
+	- 575 "t_img_date" updates.
+	- 2 "t_img_srce" updates.
+	- 85 "xlong" updates.
+	- 81 "ylat" updates.
+	
+## [1.3.0] - 2019-01-07 (due to the partial U.S. federal government shutdown, the USGS was unable to release this update until 2/1/2019)
+### Added
+- Addition of 1091 turbine records. Additions include:
+	- 1025 new turbines.
+	- 66 existing turbines issued new case_id. Replaces old records.
+
+### Removed
+- Removed 827 turbine records. Removals include:
+	- 742 decommissioned turbines.
+	- 3 reclassified as "not a turbine".
+	- 1 residential scale turbines (<= 50 kW) identified and removed.
+	- 66 turbines issued new case_id. Replaced by new records.
+	- 15 duplicate turbines removed.
+
+### Changed
+- A total of 38,536 attribute changes were made. These include:
+	- 5,622 "faa_ors" updates.
+	- 5,971 "faa_asn" updates.
+	- 2 "usgs_pr_id" updates.
+	- 710 "p_name" updates.
+	- 25 "p_year" updates.
+	- 3,153 "p_tnum" updates.
+	- 599 "p_cap" updates.
+	- 3,202 "t_manu" updates.
+	- 3,683 "t_model" updates.
+	- 550 "t_cap" updates.
+	- 503 "t_hh" updates.
+	- 551 "t_rd" updates.
+	- 551 "t_rsa" updates.
+	- 194 "t_ttlh" updates.
+	- 746 "t_conf_atr" updates.
+	- 337 "t_conf_loc" updates.
+	- 6,492 "t_img_date" updates.
+	- 2,882 "t_img_srce" updates.
+	- 1,379 "xlong" updates.
+	- 1,384 "ylat" updates.
+
+## [1.2.0] - 2018-10-01
+### Added
+- Addition of 849 turbine records. Additions include:
+	- 730 new turbines.
+	- 119 existing turbines issued new case_id. Replaces old records.
+
+### Removed
+- Removed 310 turbine records. Removals include:
+	- 128 decommissioned turbines.
+	- 13 reclassified as "not a turbine".
+	- 43 residential scale turbines (<= 50 kW) identified and removed
+	- 119 turbines issued new case_id. Replaced by new records.
+	- 7 duplicate turbines removed.
+
+### Changed
+- A total of 22,628 attribute changes were made. These include:
+	- 242 "faa_ors" updates.
+	- 5,924 "faa_asn" updates.
+	- 5,151 "p_name" updates.
+	- 1,527 "p_year" updates.
+	- 3,351 "p_tnum" updates.
+	- 1,120 "p_cap" updates.
+	- 260 "t_manu" updates.
+	- 679 "t_model" updates.
+	- 372 "t_cap" updates.
+	- 382 "t_hh" updates.
+	- 430 "t_rd" updates.
+	- 432 "t_rsa" updates.
+	- 312 "t_ttlh" updates.
+	- 1,429 "t_conf_atr" updates.
+	- 314 "t_conf_loc" updates.
+	- 495 "t_img_date" updates.
+	- 102 "t_img_srce" updates.
+	- 52 "xlong" updates
+	- 56 "ylat" updates.
+
+## [1.1.0] - 2018-07-05
+### Added
+- Addition of 1081 turbine records. Additions include:
+	-551 new turbines.
+	-530 added due to major retrofits (e.g., rotor / nacelle replacement). Replaces old records.
+
+### Removed
+- Removed 1071 turbine records. Removals include:
+	- 477 decommissioned turbines.
+	- 20 reclassified as "not a turbine".
+	- 44 duplicate turbines removed.
+	- 530 retired due to major retrofits. Replaced by new records.
+
+### Changed
+- A total of 41,254 attribute changes were made. These include:
+	- 25,942 "xlong" updates (moved from 5 to 6 decimal places).
+	- 148 "faa_ors" updates.
+	- 112 "faa_asn" updates.
+	- 75 "usgs_pr_id" updates.
+	- 940 "p_name" updates.
+	- 1,114 "p_year" updates.
+	- 3,305 "p_tnum" updates.
+	- 969 "p_cap" updates.
+	- 400 "t_manu" updates.
+	- 1,206 "t_model" updates.
+	- 404 "t_cap" updates.
+	- 331 "t_hh" updates.
+	- 640 "t_rd" updates.
+	- 636 "t_rsa" updates.
+	- 851 "t_ttlh" updates.
+	- 758 "t_conf_atr" updates.
+	- 1,014 "t_conf_loc" updates.
+	- 1,485 "t_img_date" updates.
+	- 504 "t_img_srce" updates.
+	- 208 "xlong" updates (unrelated to decimal precision).
+	- 212 "ylat" updates.
+
+## [1.0.0] - 2018-04-19
+- First public release of USWTDB. Changelog for 1.0.0 reflects differences between USWTDB and USGS turbine database/windFarm application (2014).
+
+### Added
+- Addition of 14,693 turbine records.
+- Dedicated home, data, partner, and help landing pages.
+- Additional USWTDB fields include "case_id", "faa_asn", "t_fips", "t_img_date".
+- Added end-user web application capabilities including:
+	- Dynamic filtering and turbine statistic computation.
+	- Data-driven styling.
+	- Dynamic project information table.
+	- Enhanced project search (with auto-complete).
+	- Temporal animation controls.
+	- Enhanced navigation (pitch and bearing controls).
+	- Enhanced geocoder (with auto-complete).
+	- Enhanced geolocation controls.
+	- Extended turbine-level pop-up information.
+
+### Changed
+- Migrated legacy windFarm web application platform (Flash to JavaScript).
+- Migrated geospatial service endpoints.
+- USWTDB fields changed include:
+	"unique_id" > "usgs_pr_id",
+	"site_name" > "p_name",
+	"total_turb" > "p_tnum",
+	"on_year_s" > "p_year",
+	"manufac" > "t_manu",
+	"model" > "t_model",
+	"MW_turbine" > "t_cap",
+	"total_cpcy" > "p_cap",
+	"total_ht" > "t_ttlh",
+	"tower_h" > "t_hh",
+	"rotor_dia" > "t_rd",
+	"rotor_s_a" > "t_rsa",
+	"usgs_ydd" > "ylat",
+	"usgs_xdd" > "xlong",
+	"state" > "t_state",
+	"county" > "t_county",
+	"conf_attr" > "t_conf_atr",
+	"conf_loc" > "t_conf_loc",
+	"FAA_ORS" > "faa_ors",
+	"image_name" > "t_img_srce".
+
+### Removed
+- Removed 5,992 turbine records (decommissioned or reclassified as "not a turbine").
+- USWTDB fields removed include "year_range", "on_year_s", "type_tower", "decommiss", "blade_l", "WENDI_name", "EIA_name", "FAA_jdate", "FAA_AGL", "image_year", "comments", "FID".
