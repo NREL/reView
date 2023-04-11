@@ -41,7 +41,8 @@ setup(
         "console_scripts": [
             "reView=reView.index:main",
             "reView-tools=reView.cli:main",
-            "unpack-turbines=reView.cli:unpack_turbines"
+            "unpack-turbines=reView.cli:unpack_turbines",
+            "unpack-characterizations=reView.cli:unpack_characterizations"
         ],
     },
     zip_safe=False,

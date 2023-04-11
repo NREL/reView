@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Fixtures and setup for use across all tests."""
 from pathlib import Path
+import json
 
 import pytest
 
@@ -22,10 +23,31 @@ def test_data_dir():
 
 @pytest.fixture
 def test_bespoke_supply_curve():
-    """Return bespoke_supply_curve.csv as a `Path` object."""
+    """Return bespoke-supply-curve.csv as a `Path` object."""
     bespoke_csv = Path(TEST_DATA_DIR).joinpath('bespoke-supply-curve.csv')
 
     return bespoke_csv
+
+
+@pytest.fixture
+def test_characterization_supply_curve():
+    """Return characterization-supply-curve.csv as a `Path` object."""
+    char_csv = Path(TEST_DATA_DIR).joinpath(
+        'characterization-supply-curve.csv'
+    )
+
+    return char_csv
+
+
+@pytest.fixture
+def char_map():
+    """Return characterization map"""
+
+    char_map_path = Path(TEST_DATA_DIR).joinpath("characterization-map.json")
+    with open(char_map_path, "r") as f:
+        map_data = json.load(f)
+
+    return map_data
 
 
 @pytest.fixture

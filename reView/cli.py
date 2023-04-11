@@ -2,13 +2,13 @@
 """
 reView command line interface (CLI).
 """
-
+import json
 import logging
 import pathlib
 import click
 import pandas as pd
 from reView.utils.bespoke import batch_unpack_from_supply_curve
-
+from reView.utils import characterizations
 from reView import __version__
 
 logger = logging.getLogger(__name__)
@@ -83,3 +83,49 @@ def unpack_turbines(
         out_gpkg_path.unlink(missing_ok=True)
 
     turbines_gdf.to_file(out_gpkg_path, driver='GPKG')
+
+
+@main.command()
+@click.option('--supply_curve_csv', '-i', required=True,
+              prompt='Path to input bespoke wind supply curve CSV file',
+              type=click.Path(exists=True, dir_okay=False, file_okay=True),
+              help='Path to bespoke wind supply curve CSV file created by reV')
+@click.option('--char_map', '-m', required=True,
+              prompt='Path to JSON file storing characterization map',
+              type=click.Path(exists=True, dir_okay=False, file_okay=True),
+              help='Path to JSON file storing characterization map')
+@click.option('--out_csv', '-o', required=True,
+              prompt='Path to output csv.',
+              type=click.Path(dir_okay=False),
+              help='Path to CSV to store results')
+@click.option('--cell_size', '-c', required=False,
+              default=90.,
+              type=float,
+              help=('Cell size in meters of characterization layers. '
+                    'Default is 90.'))
+@click.option('--overwrite', default=False,
+              show_default=True,
+              required=False,
+              is_flag=True,
+              help='Overwrite output CSV if it already exists. '
+                   'Default is False.')
+def unpack_characterizations(
+    supply_curve_csv, char_map, out_csv, cell_size=90., overwrite=False
+):
+    """
+    Unpacks characterization data from the input supply curve dataframe,
+    converting values from embedded JSON strings to new standalone columns,
+    and saves out a new version of the supply curve with these columns
+    included.
+    """
+
+    supply_curve_df = pd.read_csv(supply_curve_csv)
+    with open(char_map, 'r') as f:
+        characterization_map = json.load(f)
+    char_df = characterizations.unpack_characterizations(
+        supply_curve_df, characterization_map, cell_size
+    )
+
+    if overwrite is True:
+        out_csv.unlink(missing_ok=True)
+    char_df.to_csv(out_csv, header=True, index=False, mode="x")
