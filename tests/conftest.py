@@ -4,13 +4,12 @@ from pathlib import Path
 import json
 
 import pytest
-
 from selenium.webdriver.chrome.options import Options
-
 from click.testing import CliRunner
+import pandas as pd
+import geopandas as gpd
 
 import reView.utils.config
-
 from reView import TEST_DATA_DIR
 from reView.utils.functions import load_project_configs
 
@@ -75,6 +74,64 @@ def test_configs(test_config_dir):
     yield
 
     reView.utils.config.PROJECT_CONFIGS = old_configs
+
+@pytest.fixture
+def background_gdf():
+    """
+    Return a geopandas geodataframe that is the dissolved boundaries from
+    states.geojson. To be used as the "background" layer for
+    utils.plots.map_geodataframe_column() tests.
+    """
+
+    state_boundaries_path = Path(TEST_DATA_DIR).joinpath(
+        "plots", "states.geojson"
+    )
+    states_gdf = gpd.read_file(state_boundaries_path)
+    states_dissolved = states_gdf.unary_union
+    states_dissolved_gdf = gpd.GeoDataFrame(
+        {"geometry": [states_dissolved]},
+        crs=states_gdf.crs).explode(index_parts=False)
+
+    return states_dissolved_gdf
+
+
+@pytest.fixture
+def states_gdf():
+    """
+    Return a geopandas geodataframe that is the states boundaries from
+    states.geojson. To be used as the "boundary" layer for
+    utils.plots.map_geodataframe_column() tests.
+    """
+
+    state_boundaries_path = Path(TEST_DATA_DIR).joinpath(
+        "plots", "states.geojson"
+    )
+    states_gdf = gpd.read_file(state_boundaries_path)
+    states_singlepart_gdf = states_gdf.explode(index_parts=True)
+
+    return states_singlepart_gdf
+
+
+@pytest.fixture
+def supply_curve_gdf():
+    """
+    Return a geopandas geodataframe of points from a test supply curve
+    consisting of results for just a few states.
+    """
+
+    supply_curve_path = Path(TEST_DATA_DIR).joinpath(
+        "plots", "map-supply-curve.csv"
+    )
+    supply_curve_df = pd.read_csv(supply_curve_path)
+    supply_curve_gdf = gpd.GeoDataFrame(
+        supply_curve_df,
+        geometry=gpd.points_from_xy(
+            supply_curve_df['longitude'], supply_curve_df['latitude']
+        ),
+        crs="EPSG:4326"
+    )
+
+    return supply_curve_gdf
 
 
 def pytest_setup_options():

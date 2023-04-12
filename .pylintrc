@@ -162,7 +162,8 @@ good-names=_,
            f,
            k,
            v,
-           ax
+           ax,
+           yb
 
 # Include a hint for the correct naming format with invalid-name
 include-naming-hint=yes

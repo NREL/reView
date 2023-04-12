@@ -219,13 +219,16 @@ def map_geodataframe_column(
     input_geom_types = list(set(data_df.geom_type))
     legend_kwargs["title"] = legend_title
     if input_geom_types == ["Point"]:
+        if layer_kwargs == {}:
+            layer_kwargs = {
+                "s": 1.25,  # point size
+                "linewidth": 0,
+                "marker": "o"
+            }
         ax = gplt.pointplot(
             data_df,
             hue=column,
             legend=True,
-            s=1.25,  # point size
-            linewidth=0,
-            marker="o",
             scheme=scheme,
             projection=projection,
             extent=extent,
