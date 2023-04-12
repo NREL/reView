@@ -122,6 +122,53 @@ def test_YBFixedBounds_mapclassify():
 def test_map_geodataframe_column_happy(
     test_data_dir, supply_curve_gdf, background_gdf, states_gdf
 ):
+    """
+    Happy path test for map_geodataframe_column. Test that when run
+    with known inputs and default style settings, the output image matches
+    the expected image.
+    """
+    col_name = "capacity"
+    color_map = "GnBu"
+
+    breaks = [500, 1000, 1500, 2000]
+    map_extent = states_gdf.buffer(1.5).total_bounds
+
+    with tempfile.TemporaryDirectory() as tempdir:
+
+        g = map_geodataframe_column(
+            supply_curve_gdf,
+            col_name,
+            color_map=color_map,
+            breaks=breaks,
+            map_title="Happy Map",
+            legend_title=col_name,
+            background_df=background_gdf,
+            boundaries_df=states_gdf,
+            extent=map_extent
+        )
+        plt.tight_layout()
+
+        out_png_name = "happy_map.png"
+        out_png = Path(tempdir).joinpath("happy_map.png")
+        g.figure.savefig(out_png, dpi=600)
+        plt.close(g.figure)
+
+        expected_png = test_data_dir.joinpath("plots", out_png_name)
+
+        images_match_exactly = compare_images_exact(expected_png, out_png)
+        if not images_match_exactly:
+            assert compare_images_approx(expected_png, out_png), \
+                f"Output image does not match expected image {expected_png}"
+
+
+@pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
+def test_map_geodataframe_column_styling(
+    test_data_dir, supply_curve_gdf, background_gdf, states_gdf
+):
+    """
+    Test that map_geodataframe_column() produces expected output image when
+    various styling parameters are passed.
+    """
 
     col_name = "capacity"
     color_map = "GnBu"
@@ -141,12 +188,12 @@ def test_map_geodataframe_column_happy(
             background_df=background_gdf,
             boundaries_df=states_gdf,
             extent=map_extent,
-            # layer_kwargs={"s": 4, "linewidth": 0, "marker": "o"}
+            layer_kwargs={"s": 4, "linewidth": 0, "marker": "o"}
         )
         plt.tight_layout()
 
-        out_png_name = "happy_map.png"
-        out_png = Path(tempdir).joinpath("happy_map.png")
+        out_png_name = "styling_map.png"
+        out_png = Path(tempdir).joinpath("styling_map.png")
         g.figure.savefig(out_png, dpi=600)
         plt.close(g.figure)
 
@@ -157,6 +204,10 @@ def test_map_geodataframe_column_happy(
             assert compare_images_approx(expected_png, out_png), \
                 f"Output image does not match expected image {expected_png}"
 
+# TODO: add more style params to test_map_geodataframe_column_styling
+# TODO: write a test for map_geodataframe_column that tests polygons
+# TODO: add tests for a few other parameters of map_geodataframe_column
+# TODO: add more detailed examples in the docs
 
 if __name__ == '__main__':
     pytest.main([__file__, '-s'])
