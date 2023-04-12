@@ -13,6 +13,70 @@ import imagehash
 from reView.utils.plots import YBFixedBounds, map_geodataframe_column
 
 
+def compare_images_approx(
+    image_1_path, image_2_path, hash_size=16, max_diff_pct=0.05
+):
+    """
+    Check if two images match approximately.
+
+    Parameters
+    ----------
+    image_1_path : pathlib.Path
+        File path to first image.
+    image_2_path : pathlib.Path
+        File path to first image.
+    hash_size : int, optional
+        Size of the image hashes that will be used for image comparison,
+        by default 16. Increase to make the check more precise, decrease to
+        make it more approximate.
+    max_diff_pct : float, optional
+        Tolerance for the amount of difference allowed, by default 0.05 (= 5%).
+        Increase to allow for a larger delta between the image hashes, decrease
+        to make the check stricter and require a smaller delta between the
+        image hashes.
+
+    Returns
+    -------
+    bool
+        Returns true if the images match approximately, false if not.
+    """
+
+    hash_size = 16
+    expected_hash = imagehash.phash(
+        PIL.Image.open(image_1_path), hash_size=hash_size
+    )
+    out_hash = imagehash.phash(
+        PIL.Image.open(image_2_path), hash_size=hash_size
+    )
+
+    max_diff_bits = int(np.ceil(hash_size * max_diff_pct))
+
+    return expected_hash - out_hash < max_diff_bits
+
+
+def compare_images_exact(image_1_path, image_2_path):
+    """
+    Check if two images match exactly.
+
+    Parameters
+    ----------
+    image_1_path : pathlib.Path
+        File path to first image.
+    image_2_path : pathlib.Path
+        File path to first image.
+
+    Returns
+    -------
+    bool
+        Returns true if the images match approximately, false if not.
+    """
+
+    image_1 = np.asarray(PIL.Image.open(image_1_path))
+    image_2 = np.asarray(PIL.Image.open(image_2_path))
+
+    return np.all(image_1 == image_2)
+
+
 # pylint: disable=invalid-name
 def test_YBFixedBounds_happy():
     """
@@ -88,24 +152,10 @@ def test_map_geodataframe_column_happy(
 
         expected_png = test_data_dir.joinpath("plots", out_png_name)
 
-        hash_size = 16
-        expected_hash = imagehash.phash(
-            PIL.Image.open(expected_png), hash_size=hash_size
-        )
-        out_hash = imagehash.phash(
-            PIL.Image.open(out_png), hash_size=hash_size
-        )
-        max_diff_pct = 0.05
-        max_diff_bits = int(np.ceil(hash_size * max_diff_pct))
-        assert expected_hash - out_hash < max_diff_bits, \
-            f"Output image does not match expected image {expected_png}"
-
-        # out_image = np.asarray(PIL.Image.open(out_png))
-        # expected_image = np.asarray(PIL.Image.open(expected_png))
-
-        # assert np.all(out_image == expected_image), \
-        #     f"Output image does not match expected image {expected_png}"
-
+        images_match_exactly = compare_images_exact(expected_png, out_png)
+        if not images_match_exactly:
+            assert compare_images_approx(expected_png, out_png), \
+                f"Output image does not match expected image {expected_png}"
 
 
 if __name__ == '__main__':
