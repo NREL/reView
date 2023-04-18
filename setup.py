@@ -58,7 +58,7 @@ setup(
     ],
     test_suite="tests",
     include_package_data=True,
-    package_data={"": ["data/*"]},
+    package_data={"": ["data/*", "data/**/*"]},
     install_requires=INSTALL_REQUIREMENTS,
     extras_require={
         "gunicorn": GUNICORN_REQUIREMENTS,
