@@ -188,12 +188,73 @@ def test_map_geodataframe_column_styling(
             background_df=background_gdf,
             boundaries_df=states_gdf,
             extent=map_extent,
-            layer_kwargs={"s": 4, "linewidth": 0, "marker": "o"}
+            layer_kwargs={"s": 4, "linewidth": 0, "marker": "o"},
+            legend_kwargs={
+                "frameon": False,
+                "bbox_to_anchor": (1, 0.5),
+                "loc": "center left"
+            }
         )
         plt.tight_layout()
 
         out_png_name = "styling_map.png"
         out_png = Path(tempdir).joinpath("styling_map.png")
+        g.figure.savefig(out_png, dpi=600)
+        plt.close(g.figure)
+
+        expected_png = test_data_dir.joinpath("plots", out_png_name)
+
+        images_match_exactly = compare_images_exact(expected_png, out_png)
+        if not images_match_exactly:
+            assert compare_images_approx(expected_png, out_png), \
+                f"Output image does not match expected image {expected_png}"
+
+
+@pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
+def test_map_geodataframe_column_repeat(
+    test_data_dir, supply_curve_gdf, background_gdf, states_gdf
+):
+    """
+    Test that running map_geodataframe_column twice exactly the same produces
+    the same output. This covers a previously discovered bug where the legend
+    symbols would change from squares to circles for the second map in a
+    sequence.
+    """
+    col_name = "capacity"
+    color_map = "GnBu"
+
+    breaks = [500, 1000, 1500, 2000]
+    map_extent = states_gdf.buffer(1.5).total_bounds
+
+    with tempfile.TemporaryDirectory() as tempdir:
+
+        g = map_geodataframe_column(
+            supply_curve_gdf,
+            col_name,
+            color_map=color_map,
+            breaks=breaks,
+            map_title="Happy Map",
+            legend_title=col_name,
+            background_df=background_gdf,
+            boundaries_df=states_gdf,
+            extent=map_extent
+        )
+        plt.tight_layout()
+        g = map_geodataframe_column(
+            supply_curve_gdf,
+            col_name,
+            color_map=color_map,
+            breaks=breaks,
+            map_title="Happy Map",
+            legend_title=col_name,
+            background_df=background_gdf,
+            boundaries_df=states_gdf,
+            extent=map_extent
+        )
+        plt.tight_layout()
+
+        out_png_name = "happy_map.png"
+        out_png = Path(tempdir).joinpath("happy_map.png")
         g.figure.savefig(out_png, dpi=600)
         plt.close(g.figure)
 

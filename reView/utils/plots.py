@@ -234,7 +234,7 @@ def map_geodataframe_column(
             extent=extent,
             ax=ax,
             cmap=color_map,
-            legend_kwargs=legend_kwargs,
+            legend_kwargs=legend_kwargs.copy(),
             **layer_kwargs,
         )
     elif input_geom_types in (["Polygon"], ["MultiPolygon"]):
@@ -247,7 +247,7 @@ def map_geodataframe_column(
             extent=extent,
             ax=ax,
             cmap=color_map,
-            legend_kwargs=legend_kwargs,
+            legend_kwargs=legend_kwargs.copy(),
             **layer_kwargs,
         )
     else:
