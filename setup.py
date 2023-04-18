@@ -6,7 +6,7 @@
 """
 import os
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 
 REPO_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -36,7 +36,8 @@ setup(
     long_description=README,
     author="Travis Williams",
     author_email="Travis.Williams@nrel.gov",
-    packages=["reView"],
+    packages=find_packages(),
+    package_dir={"blmlu": "blmlu"},
     entry_points={
         "console_scripts": [
             "reView=reView.index:main",
