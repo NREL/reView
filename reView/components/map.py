@@ -383,6 +383,10 @@ class Map:
     @property
     def hover_text(self):
         """Return hover text column."""
+        # Convert NaNs to strings for international projects
+        self.df["state"][np.isnan(self.df["state"])] = "nan"
+        self.df["county"][np.isnan(self.df["county"])] = "nan"
+
         if self.demand_data is not None:
             text = (
                 self.demand_data["sera_node"]
