@@ -201,11 +201,21 @@ class Title:
             raise EmptyDataError
 
         # If mean, use weights
-        if (agg_type == "mean"
-                and self.color_var not in ["capacity", "area_sq_km"]):
+        if "wind" in self.color_var:
+            weights = df["wind_area_sq_km"]
+        elif "solar" in self.color_var:
+            weights = df["solar_area_sq_km"]
+        elif "area_sq_km" not in df:  # Quick fix, change when we get to bespoke hybrids
+            weights = df["capacity"]
+        else:
+            weights = df["area_sq_km"]
+
+        skippers = ["capacity", "area_sq_km"]  # Don't use weights for these
+
+        if (agg_type == "mean" and self.color_var not in skippers):
             aggregation = np.average(
                 df[self.color_var],
-                weights=df["area_sq_km"]
+                weights=weights
             ).round(2)
         else:
             aggregation = df[self.color_var].apply(agg_type).round(2)
@@ -384,8 +394,8 @@ class Map:
     def hover_text(self):
         """Return hover text column."""
         # Convert NaNs to strings for international projects
-        self.df["state"][np.isnan(self.df["state"])] = "nan"
-        self.df["county"][np.isnan(self.df["county"])] = "nan"
+        self.df["state"][self.df["state"].isnull()] = "nan"
+        self.df["county"][self.df["county"].isnull()] = "nan"
 
         if self.demand_data is not None:
             text = (
