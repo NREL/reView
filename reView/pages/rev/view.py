@@ -48,7 +48,7 @@ DEFAULT_SIGNAL = {
     "diff_units": "original",
     "states": None,
     "x": "capacity",
-    "y": "mean_lcoe",
+    "y": "capacity",
 }
 
 layout = html.Div(
