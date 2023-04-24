@@ -597,12 +597,12 @@ def dropdown_scenarios(
     # Find all available project files
     config = Config(project)
 
-    # Separate the output files, let's put those at the end
-    files = [str(file) for file in config.files.values()]  # This is causing a huge slow down!
-    originals = [file for file in files if "review_outputs" not in file]
-    outputs = [file for file in files if "review_outputs" in file]
-    originals.sort()
-    outputs.sort()
+    # Gather previously derived review outputs
+    output_dir = config.directory.joinpath("review_outputs")
+    if output_dir.exists():
+        outputs = list(output_dir.glob("*"))
+    else:
+        outputs = []
 
     # If filters are provided, use them to downselect files
     if config.options is not None:
@@ -617,6 +617,12 @@ def dropdown_scenarios(
 
     # If not return all files
     else:
+        # Separate the output files, let's put those at the end
+        files = [str(file) for file in config.files.values()]  # This is causing a huge slow down!
+        originals = [file for file in files if "review_outputs" not in file]
+        originals.sort()
+        outputs.sort()
+
         # Recombine orginal and output paths
         files_a = files_b = originals + outputs
 
