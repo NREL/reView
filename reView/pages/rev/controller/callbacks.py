@@ -100,13 +100,16 @@ def build_scenario_dropdowns(groups, dropid=None, multi=False, dynamic=False,
         else:
             dropid = f"dropdown_{'_'.join(group.split()).lower()}"
 
-        # Use the appropriate height
+        # Use the appropriate cell height for each dropdown
         if len(group) > 30:
             height = f"{80}px"
         elif len(group) > 15:
             height = f"{58}px"
         else:
             height = None
+
+        # Don't use "all" as the default value (large file list problem)
+        values = [op["value"] for op in options if op["value"] != "all"]
 
         # Build dropdown object
         dropdown = html.Div(
@@ -121,7 +124,7 @@ def build_scenario_dropdowns(groups, dropid=None, multi=False, dynamic=False,
                         dcc.Dropdown(
                             id=dropid,
                             options=options,
-                            value=options[0]["value"],
+                            value=values[0],
                             optionHeight=50,
                             multi=multi,
                             style={
@@ -595,7 +598,7 @@ def dropdown_scenarios(
     config = Config(project)
 
     # Separate the output files, let's put those at the end
-    files = [str(file) for file in config.files.values()]
+    files = [str(file) for file in config.files.values()]  # This is causing a huge slow down!
     originals = [file for file in files if "review_outputs" not in file]
     outputs = [file for file in files if "review_outputs" in file]
     originals.sort()
@@ -1873,9 +1876,7 @@ def toggle_scenario_filters(project):
         df = odf.copy()
         for i, col in enumerate(cols):
             # pylint: disable=unsubscriptable-object
-            options = df[col].unique()
-            options = ["all"] + list(options)
-
+            options = ["all"] + list(df[col].unique())
             dropdown_options = []
             for option in options:
                 label = str(option)
