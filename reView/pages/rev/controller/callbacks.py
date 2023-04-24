@@ -1182,9 +1182,14 @@ def figure_timeseries(
 @calls.log
 def options_recalc_a(project, scenario, recalc_table):
     """Update the drop down options for each scenario."""
+    # Prevent update if not recalcs
+    recalc_table = json.loads(recalc_table)
+    values = [val for val in entry.values() for entry in recalc_table.values()]
+    if all([val is None for val in values]):
+        raise PreventUpdate
+
     config = Config(project)
     data = ReCalculatedData(config)
-    recalc_table = json.loads(recalc_table)
     scenario = os.path.basename(scenario).replace("_sc.csv", "")
 
     if scenario not in config.scenarios:
@@ -1291,9 +1296,14 @@ def options_recalc_a(project, scenario, recalc_table):
 @calls.log
 def options_recalc_b(project, scenario, recalc_table):
     """Update the drop down options for each scenario."""
+    # Prevent update if not recalcs
+    recalc_table = json.loads(recalc_table)
+    values = [val for val in entry.values() for entry in recalc_table.values()]
+    if all([val is None for val in values]):
+        raise PreventUpdate
+
     config = Config(project)
     data = ReCalculatedData(config)
-    recalc_table = json.loads(recalc_table)
     scenario = os.path.basename(scenario).replace("_sc.csv", "")
 
     if scenario not in config.scenarios:
