@@ -598,11 +598,7 @@ def dropdown_scenarios(
     config = Config(project)
 
     # Gather previously derived review outputs
-    output_dir = config.directory.joinpath("review_outputs")
-    if output_dir.exists():
-        outputs = list(output_dir.glob("*"))
-    else:
-        outputs = []
+    outputs = config.outputs
 
     # If filters are provided, use them to downselect files
     if config.options is not None:
@@ -669,10 +665,8 @@ def dropdown_scenarios_composite(
     logger.debug("URL: %s", url)
     config = Config(project)
 
-    # Separate the output files, let's put those at the end
-    files = [str(file) for file in config.files.values()]
-    files = [file for file in files if "review_outputs" not in file]
-    files.sort()
+    # Gather previously derived review outputs
+    outputs = config.outputs
 
     # If filters are provided, use them to downselect files
     if config.options is not None:
@@ -681,6 +675,12 @@ def dropdown_scenarios_composite(
 
         # Get filter list of files
         files = filter_files(project, filters, options)
+    else:
+        # Separate the output files, let's put those at the end
+        files = [str(file) for file in config.files.values()]
+        files = [file for file in files if "review_outputs" not in file]
+        files += outputs
+        files.sort()
 
     group = files_to_dropdown(files, typeid="c")
 
@@ -696,7 +696,7 @@ def dropdown_composite_variables(project):
     """Set the minimizing variable options."""
     logger.debug("Setting variable target options")
     config = Config(project)
-    scenario_a = config.files[next(iter(config.files))]
+    scenario_a = next(config.all_files)
     variable_options = get_variable_options(project, scenario_a, None, {})
     if config.options is not None:
         variable_options += [
@@ -1684,6 +1684,10 @@ def scenario_specs(scenario_a, scenario_b, project):
     # Return a blank space if no parameters entry found
     config = Config(project)
     params = config.parameters
+
+    # If there are options, prevent update for now (large file list problem)
+    if config.options is not None:
+        raise PreventUpdate
 
     # Infer the names
     path_lookup = {str(value): key for key, value in config.files.items()}

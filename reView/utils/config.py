@@ -125,6 +125,16 @@ class Config:
             "var_file", default_fp=self.directory / "variable_options.csv"
         )
 
+    @cached_property
+    def outputs(self):
+        """Return a list of reView outputs derived in previous sessions."""
+        output_dir = self.directory.joinpath("review_outputs")
+        if output_dir.exists():
+            outputs = list(output_dir.glob("*"))
+        else:
+            outputs = []
+        return outputs
+
     @property
     def parameters(self):
         """dict: Parameters config dictionary."""
