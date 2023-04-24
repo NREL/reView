@@ -71,7 +71,7 @@ COMMON_CALLBACKS = [
     capacity_print(id_prefix="rev"),
     display_selected_tab_above_map(id_prefix="rev"),
 ]
-DEFAULT_PROJECT = "ATB Bespoke - FY23"
+DEFAULT_PROJECT = "PR100 - Forecasts"
 
 
 def build_scenario_dropdowns(groups, dropid=None, multi=False, dynamic=False,
@@ -100,6 +100,11 @@ def build_scenario_dropdowns(groups, dropid=None, multi=False, dynamic=False,
         else:
             dropid = f"dropdown_{'_'.join(group.split()).lower()}"
 
+        # Use the appropriate height
+        height = None
+        if len(group) > 13:
+            height = f"{80}px"
+
         # Build dropdown object
         dropdown = html.Div(
             children=[
@@ -114,12 +119,17 @@ def build_scenario_dropdowns(groups, dropid=None, multi=False, dynamic=False,
                             id=dropid,
                             options=options,
                             value=options[0]["value"],
-                            optionHeight=75,
-                            multi=multi
+                            optionHeight=50,
+                            multi=multi,
+                            style={
+                                "height": height,
+                            }
                         )
                     ],
                     className="nine columns",
-                    style={"margin-left": "-10px"},
+                    style={
+                        "margin-left": "-10px",
+                    },
                 ),
             ],
             style={"border-radius": "5px"},
