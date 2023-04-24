@@ -101,9 +101,9 @@ def build_scenario_dropdowns(groups, dropid=None, multi=False, dynamic=False,
             dropid = f"dropdown_{'_'.join(group.split()).lower()}"
 
         # Use the appropriate height
-        if len(group) > 26:
+        if len(group) > 30:
             height = f"{80}px"
-        elif len(group) > 13:
+        elif len(group) > 15:
             height = f"{58}px"
         else:
             height = None
