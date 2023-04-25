@@ -637,6 +637,10 @@ def to_geo(df, dst, layer):
     if "index" in df:
         del df["index"]
 
+    # Remove terrible cropland data layer field
+    if "2016_30m_cdls_rev90m" in df:
+        del df["2016_30m_cdls_rev90m"]
+
     # Remove stupid Unnamed columns
     for col in df.columns:
         if "Unnamed:" in col:
@@ -683,7 +687,6 @@ def to_geo(df, dst, layer):
     features.insert_rows(field_names, rows)
     del features
     del gpkg
-
 
 
 def to_sarray(df):

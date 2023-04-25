@@ -223,23 +223,22 @@ def composite_fname(paths, composite_function, composite_variable):
     names = [Path(path).name for path in paths]
     names = [strip_rev_filename_endings(name) for name in names]
 
-    # If it's less than 12 paths, use words. If not use hash
-    if len(paths) < 12:
-        # Remove any repeating elements in the adjusted names
-        parts = [list(name.split("_")) for name in names]
-        parts = [sublst for lst in parts for sublst in lst]
-        repeats = [part for part in parts if parts.count(part) > 1]
-        repeats = np.unique(repeats)
-        new_names = []
-        for repeat in repeats:
-            for name in names:
-                new_names.append(name.replace(repeat, ""))
+    # Remove any repeating elements in the adjusted names
+    parts = [list(name.split("_")) for name in names]
+    parts = [sublst for lst in parts for sublst in lst]
+    repeats = [part for part in parts if parts.count(part) > 1]
+    repeats = np.unique(repeats)
+    new_names = []
+    for repeat in repeats:
+        for name in names:
+            new_names.append(name.replace(repeat, ""))
 
-        # Join name parts for the tag
-        tag = "".join(new_names)
-        if tag.startswith("_"):
-            tag = tag[1:]
-    else:
+    # Join name parts for the tag
+    tag = "".join(new_names)
+    if tag.startswith("_"):
+        tag = tag[1:]
+    
+    if len(tag) > 75:
         tag = hashlib.sha1(str.encode(str(paths))).hexdigest()
 
     # Build full file name
@@ -608,8 +607,8 @@ def dropdown_scenarios(
         # Get filter list of files
         files_a = filter_files(project, filters_a, options)
         files_b = filter_files(project, filters_b, options)
-        files_a += outputs
-        files_b += outputs
+        # files_a += outputs
+        # files_b += outputs
 
     # If not return all files
     else:
@@ -1184,7 +1183,10 @@ def options_recalc_a(project, scenario, recalc_table):
     """Update the drop down options for each scenario."""
     # Prevent update if not recalcs
     recalc_table = json.loads(recalc_table)
-    values = [val for val in entry.values() for entry in recalc_table.values()]
+    values = []
+    for entry in recalc_table.values():
+        for value in entry.values():
+            values.append(value)
     if all([val is None for val in values]):
         raise PreventUpdate
 
@@ -1298,7 +1300,10 @@ def options_recalc_b(project, scenario, recalc_table):
     """Update the drop down options for each scenario."""
     # Prevent update if not recalcs
     recalc_table = json.loads(recalc_table)
-    values = [val for val in entry.values() for entry in recalc_table.values()]
+    values = []
+    for entry in recalc_table.values():
+        for value in entry.values():
+            values.append(value)
     if all([val is None for val in values]):
         raise PreventUpdate
 
