@@ -600,7 +600,12 @@ def dropdown_composite_variables(project):
     """Set the minimizing variable options."""
     logger.debug("Setting variable target options")
     config = Config(project)
-    scenario_a = next(config.all_files)
+
+    try:
+        scenario_a = next(config.all_files)
+    except StopIteration:
+        raise PreventUpdate
+
     variable_options = get_variable_options(project, scenario_a, None, {})
     if config.options is not None:
         variable_options += [
@@ -1864,33 +1869,6 @@ def toggle_rev_map_below_options(n_clicks, is_open):
 
 
 @app.callback(
-    Output("rev_additional_scenarios_time", "style"),
-    Input("rev_time_trace_options_tab", "value")
-)
-@calls.log
-def toggle_timeseries_above_options(trace):
-    """Open or close map below options."""
-    if trace == "bar":
-        style_a = {"display": "none"}
-    else:
-        style_a = {}
-    return style_a
-
-
-@app.callback(
-    Output("rev_time_below_options", "is_open"),
-    Input("rev_time_below_options_button", "n_clicks"),
-    State("rev_time_below_options", "is_open"),
-)
-@calls.log
-def toggle_timeseries_below_options(n_clicks, is_open):
-    """Open or close map below options."""
-    if n_clicks:
-        return not is_open
-    return is_open
-
-
-@app.callback(
     Output("scenario_a_filter_div", "style"),
     Output("scenario_b_filter_div", "style"),
     Output("composite_filter_div", "style"),
@@ -1971,8 +1949,39 @@ def toggle_scenario_b(difference, mask):
 @calls.log
 def toggle_timeseries(_, ___, scenario):
     """Toggle the timeseries component on/off in response to chose dataset."""
+    if isinstance(scenario, type(None)):
+        raise PreventUpdate
+
     if scenario.endswith(".h5"):
         style = {"margin-top": "50px"}
     else:
         style = {"display": "none"}
+
     return style
+
+
+@app.callback(
+    Output("rev_additional_scenarios_time", "style"),
+    Input("rev_time_trace_options_tab", "value")
+)
+@calls.log
+def toggle_timeseries_above_options(trace):
+    """Open or close map below options."""
+    if trace == "bar":
+        style_a = {"display": "none"}
+    else:
+        style_a = {}
+    return style_a
+
+
+@app.callback(
+    Output("rev_time_below_options", "is_open"),
+    Input("rev_time_below_options_button", "n_clicks"),
+    State("rev_time_below_options", "is_open"),
+)
+@calls.log
+def toggle_timeseries_below_options(n_clicks, is_open):
+    """Open or close map below options."""
+    if n_clicks:
+        return not is_open
+    return is_open
