@@ -1702,6 +1702,10 @@ def scenario_specs(scenario_a, scenario_b, project):
     if not project:
         raise PreventUpdate
 
+    # Scenario A might be None on startup
+    if scenario_a is None:
+        raise PreventUpdate
+
     # Return a blank space if no parameters entry found
     config = Config(project)
     params = config.parameters
