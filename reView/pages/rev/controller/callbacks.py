@@ -488,6 +488,79 @@ def dropdown_colors(__, variable, project, signal, ___):
 
 
 @app.callback(
+    Output("composite_plot_value", "options"),
+    Input("composite_options", "children"),
+    State("project", "value"),
+)
+@calls.log
+def dropdown_composite_plot_options(scenario_options, project):
+    """Set the minimizing plot options."""
+    if project is None:
+        raise PreventUpdate
+
+    logger.debug("Setting minimizing plot options")
+    config = Config(project)
+    path = choose_scenario(scenario_options, config)
+    plot_options = [{"label": "Scenario", "value": "scenario"}]
+
+    if path and os.path.exists(path):
+        data = read_file(path, nrows=1)
+        columns = [c for c in data.columns if c.lower() not in SKIP_VARS]
+        titles = {col: convert_to_title(col) for col in columns}
+        titles.update(config.titles)
+        if titles:
+            for key, val in titles.items():
+                plot_options.append({"label": val, "value": key})
+
+    return plot_options
+
+
+# pylint: disable=no-member,too-many-locals
+@app.callback(
+    Output("composite_scenarios", "options"),
+    Input("url", "pathname"),
+    Input("project", "value"),
+    Input("composite_variable", "value"),
+    Input({"type": "filter-dropdown-c", "index": ALL, "name": ALL}, "value"),
+    State({"type": "filter-dropdown-c", "index": ALL, "name": ALL}, "id"),
+    State("submit", "n_clicks"),
+)
+@calls.log
+def dropdown_composite_scenarios(
+        url, 
+        project,
+        composite_variable,
+        filters,
+        filter_ids,
+        __
+    ):
+    """Update the options given a project."""
+    logger.debug("URL: %s", url)
+    config = Config(project)
+
+    # Gather previously derived review outputs
+    outputs = [str(file) for file in config.outputs]
+
+    # If filters are provided, use them to downselect files
+    if config.options is not None:
+        # Get simple list of option names
+        options = [entry["name"] for entry in filter_ids]
+
+        # Get filter list of files
+        files = filter_files(project, filters, options)
+    else:
+        # Separate the output files, let's put those at the end
+        files = [str(file) for file in config.files.values()]
+        files = [str(file) for file in files if "review_outputs" not in file]
+        files += outputs
+        files.sort()
+
+    group = files_to_dropdown(files, typeid="c")
+
+    return group
+
+
+@app.callback(
     Output("composite_target", "options"),
     Output("composite_target", "value"),
     Input("composite_options", "children"),
@@ -495,9 +568,13 @@ def dropdown_colors(__, variable, project, signal, ___):
 )
 def dropdown_composite_targets(scenario_options, project):
     """Set the minimizing target options."""
+    if project is None:
+        raise PreventUpdate
+
     logger.debug("Setting minimizing target options")
     config = Config(project)
     path = choose_scenario(scenario_options, config)
+
     target_options = []
     if path and os.path.exists(path):
         data = read_file(path, nrows=1)
@@ -512,6 +589,29 @@ def dropdown_composite_targets(scenario_options, project):
         target_options = [{"label": "None", "value": "None"}]
 
     return target_options, target_options[-1]["value"]
+
+
+@app.callback(
+    Output("composite_variable", "options"),
+    Input("project", "value")
+)
+@calls.log
+def dropdown_composite_variables(project):
+    """Set the minimizing variable options."""
+    logger.debug("Setting variable target options")
+    config = Config(project)
+    scenario_a = next(config.all_files)
+    variable_options = get_variable_options(project, scenario_a, None, {})
+    if config.options is not None:
+        variable_options += [
+            {"label": col, "value": col}
+            for col in config.options.columns
+            if col not in {"name", "file"}
+        ]
+    low_cost_group_options = [
+        {"label": g, "value": g} for g in config.low_cost_groups
+    ]
+    return variable_options + low_cost_group_options
 
 
 @app.callback(
@@ -536,32 +636,6 @@ def dropdown_projects(__, ___):
         default_project = DEFAULT_PROJECT
 
     return project_options, default_project
-
-
-@app.callback(
-    Output("composite_plot_value", "options"),
-    Input("composite_options", "children"),
-    State("project", "value"),
-)
-@calls.log
-def dropdown_composite_plot_options(scenario_options, project):
-    """Set the minimizing plot options."""
-    logger.debug("Setting minimizing plot options")
-    config = Config(project)
-    path = choose_scenario(scenario_options, config)
-    plot_options = [
-        {"label": "Scenario", "value": "scenario"}
-    ]
-    if path and os.path.exists(path):
-        data = read_file(path, nrows=1)
-        columns = [c for c in data.columns if c.lower() not in SKIP_VARS]
-        titles = {col: convert_to_title(col) for col in columns}
-        titles.update(config.titles)
-        if titles:
-            for key, val in titles.items():
-                plot_options.append({"label": val, "value": key})
-
-    return plot_options
 
 
 # pylint: disable=too-many-locals
@@ -639,74 +713,6 @@ def dropdown_scenarios(
     placeholder = "All files filtered out"
 
     return group_a, group_b, group_a, group_a, value_a, value_b, placeholder, placeholder
-
-
-# pylint: disable=no-member,too-many-locals
-@app.callback(
-    Output("composite_scenarios", "options"),
-    Input("url", "pathname"),
-    Input("project", "value"),
-    Input("composite_variable", "value"),
-    Input({"type": "filter-dropdown-c", "index": ALL, "name": ALL}, "value"),
-    State({"type": "filter-dropdown-c", "index": ALL, "name": ALL}, "id"),
-    State("submit", "n_clicks"),
-)
-@calls.log
-def dropdown_scenarios_composite(
-        url, 
-        project,
-        composite_variable,
-        filters,
-        filter_ids,
-        __
-    ):
-    """Update the options given a project."""
-    logger.debug("URL: %s", url)
-    config = Config(project)
-
-    # Gather previously derived review outputs
-    outputs = config.outputs
-
-    # If filters are provided, use them to downselect files
-    if config.options is not None:
-        # Get simple list of option names
-        options = [entry["name"] for entry in filter_ids]
-
-        # Get filter list of files
-        files = filter_files(project, filters, options)
-    else:
-        # Separate the output files, let's put those at the end
-        files = [str(file) for file in config.files.values()]
-        files = [file for file in files if "review_outputs" not in file]
-        files += outputs
-        files.sort()
-
-    group = files_to_dropdown(files, typeid="c")
-
-    return group
-
-
-@app.callback(
-    Output("composite_variable", "options"),
-    Input("project", "value")
-)
-@calls.log
-def dropdown_composite_variables(project):
-    """Set the minimizing variable options."""
-    logger.debug("Setting variable target options")
-    config = Config(project)
-    scenario_a = next(config.all_files)
-    variable_options = get_variable_options(project, scenario_a, None, {})
-    if config.options is not None:
-        variable_options += [
-            {"label": col, "value": col}
-            for col in config.options.columns
-            if col not in {"name", "file"}
-        ]
-    low_cost_group_options = [
-        {"label": g, "value": g} for g in config.low_cost_groups
-    ]
-    return variable_options + low_cost_group_options
 
 
 @app.callback(

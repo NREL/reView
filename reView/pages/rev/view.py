@@ -77,10 +77,16 @@ layout = html.Div(
         html.Div(
             children=[
                 # The map
-                map_div(id_prefix="rev", class_name="six columns"),
+                map_div(
+                    id_prefix="rev",
+                    class_name="six columns"
+                ),
 
                 # The chart
-                chart_div(id_prefix="rev", class_name="six columns"),
+                chart_div(
+                    id_prefix="rev",
+                    class_name="six columns"
+                ),
 
                 # The timeseries if available
                 html.Div(

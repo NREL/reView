@@ -655,7 +655,7 @@ def to_geo(df, dst, layer):
         if "int" in dtype:
             ftype = SQLFieldTypes.integer
         elif "float" in dtype:
-            ftype = SQLFieldTypes.integer
+            ftype = SQLFieldTypes.float
         elif dtype == "object":
             ftype = SQLFieldTypes.text
         elif dtype == "bool":
@@ -667,8 +667,12 @@ def to_geo(df, dst, layer):
 
     # Create feature class
     layer = layer.replace("-", "_")
-    features = gpkg.create_feature_class(name=layer, srs=srs, fields=fields,
-                                         shape_type=GeometryType.point)
+    features = gpkg.create_feature_class(
+        name=layer,
+        srs=srs,
+        fields=fields,
+        shape_type=GeometryType.point
+    )
 
     # Build data rows
     header = make_gpkg_geom_header(features.srs.srs_id)
