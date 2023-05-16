@@ -50,7 +50,7 @@ def compare_images_approx(
     )
 
     max_diff_bits = int(np.ceil(hash_size * max_diff_pct))
-    print(expected_hash - out_hash/hash_size)
+    raise ValueError((expected_hash - out_hash) / hash_size)
     return expected_hash - out_hash < max_diff_bits
 
 
