@@ -44,7 +44,8 @@ setup(
             "reView-tools=reView.cli:main",
             "unpack-turbines=reView.cli:unpack_turbines",
             "unpack-characterizations=reView.cli:unpack_characterizations",
-            "make-maps=reView.cli:make_maps"
+            "make-maps=reView.cli:make_maps",
+            "map-column=reView.cli:map_column"
         ],
     },
     zip_safe=False,

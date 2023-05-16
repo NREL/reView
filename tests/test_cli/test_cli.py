@@ -10,9 +10,13 @@ from reView.cli import (
     main,
     unpack_turbines,
     unpack_characterizations,
-    make_maps
+    make_maps,
+    map_column
 )
-from tests.test_utils.test_plots import compare_images_approx, compare_images_exact
+from tests.test_utils.test_plots import (
+    compare_images_approx,
+    compare_images_exact
+)
 
 
 def test_main(test_cli_runner):
@@ -332,6 +336,78 @@ def test_make_maps_boundaries(
                 assert compare_images_approx(expected_png, out_png), \
                     "Output image does not match expected image " \
                     f"{expected_png}"
+
+
+@pytest.mark.filterwarnings("ignore:Skipping")
+@pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
+def test_map_column_happy(
+    test_map_supply_curve_solar, test_cli_runner, test_data_dir
+):
+    """
+    Happy path test for map_column() CLI. Tests that it produces the expected
+    image for a solar supply curve and the area_sq_km column.
+    """
+
+    with tempfile.TemporaryDirectory() as tempdir:
+        output_path = pathlib.Path(tempdir)
+        result = test_cli_runner.invoke(
+            map_column, [
+                '-i', test_map_supply_curve_solar.as_posix(),
+                '-c', 'area_sq_km',
+                '-o', output_path.as_posix(),
+                '--dpi', 75
+            ]
+        )
+        assert result.exit_code == 0
+
+        out_png_name = "area_sq_km.png"
+        expected_png = test_data_dir.joinpath(
+            "plots", out_png_name.replace(".png", "_happy.png")
+        )
+        out_png = output_path.joinpath(out_png_name)
+        images_match_exactly = compare_images_exact(expected_png, out_png)
+        if not images_match_exactly:
+            assert compare_images_approx(expected_png, out_png), \
+                "Output image does not match expected image " \
+                f"{expected_png}"
+
+
+@pytest.mark.filterwarnings("ignore:Skipping")
+@pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
+def test_map_column_formatting(
+    test_map_supply_curve_solar, test_cli_runner, test_data_dir
+):
+    """
+    Test that map_column() CLI produces the expected image when passed
+    formatting options.
+    """
+
+    with tempfile.TemporaryDirectory() as tempdir:
+        output_path = pathlib.Path(tempdir)
+        result = test_cli_runner.invoke(
+            map_column, [
+                '-i', test_map_supply_curve_solar.as_posix(),
+                '-c', 'area_sq_km',
+                '-C', 'Greens',
+                '-T', 'Developable Area (sq. km.)',
+                '-B', '[10, 20, 30, 40]',
+                '-o', output_path.as_posix(),
+                '--dpi', 75
+            ]
+        )
+        assert result.exit_code == 0
+
+        out_png_name = "area_sq_km.png"
+        expected_png = test_data_dir.joinpath(
+            "plots", out_png_name.replace(".png", "_formatting.png")
+        )
+        out_png = output_path.joinpath(out_png_name)
+        images_match_exactly = compare_images_exact(expected_png, out_png)
+        if not images_match_exactly:
+            assert compare_images_approx(expected_png, out_png), \
+                "Output image does not match expected image " \
+                f"{expected_png}"
+
 
 if __name__ == '__main__':
     pytest.main([__file__, '-s'])

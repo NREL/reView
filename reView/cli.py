@@ -143,27 +143,22 @@ def unpack_characterizations(
 
 @main.command()
 @click.option('--supply_curve_csv', '-i', required=True,
-              prompt='Path to supply curve CSV file.',
               type=click.Path(exists=True, dir_okay=False, file_okay=True),
               help='Path to supply curve CSV file.')
 @click.option("--tech",
               "-t",
               required=True,
-              prompt="Renewable technology of the supply curve.",
               type=click.Choice(TECH_CHOICES, case_sensitive=False),
               help="Technology choice for ordinances to export. "
               f"Valid options are: {TECH_CHOICES}.")
 @click.option('--out_folder', '-o', required=True,
-              prompt='Path to output folder for maps.',
               type=click.Path(exists=False, dir_okay=True, file_okay=False),
               help='Path to output folder for maps.')
 @click.option('--boundaries', '-b', required=False,
-              prompt='Path to vector dataset with the boundaries to map',
               type=click.Path(exists=True, dir_okay=False, file_okay=True),
               default=DEFAULT_BOUNDARIES,
               # noqa: E126
-              help=(
-                    'Path to vector dataset with the boundaries to map'
+              help=('Path to vector dataset with the boundaries to map'
                     'Default is to use state boundaries for CONUS from '
                     'Natural Earth (1:50m scale), which is suitable for CONUS '
                     'supply curves. For other region, it is recommended to '
@@ -171,7 +166,6 @@ def unpack_characterizations(
                 ))
 @click.option('--dpi', '-d', required=False,
               default=600,
-              prompt='Dots-per-inch (DPI) for output images.',
               type=click.IntRange(min=0),
               help='Dots-per-inch (DPI) for output images. Default is 600.')
 def make_maps(
@@ -276,3 +270,124 @@ def make_maps(
         out_png = out_path.joinpath(out_png_name)
         g.figure.savefig(out_png, dpi=dpi)
         plt.close(g.figure)
+
+
+@main.command()
+@click.option('--supply_curve_csv', '-i', required=True,
+              type=click.Path(exists=True, dir_okay=False, file_okay=True),
+              help='Path to supply curve CSV file.')
+@click.option('--out_folder', '-o', required=True,
+              type=click.Path(exists=False, dir_okay=True, file_okay=False),
+              help='Path to output folder for maps.')
+@click.option('--column', '-c', required=True,
+              type=str,
+              help='Column to map')
+@click.option('--colormap', '-C', required=False,
+              type=str,
+              default=None,
+              # noqa: E121
+              help=(
+                'Color map to use for the column. Refer to '
+                'https://matplotlib.org/stable/tutorials/colors/colormaps.html'
+                'for valid options. If not specified, the viridis colormap '
+                'will be applied.'))
+@click.option('--legend_title', '-T', required=False,
+              type=str,
+              default=None,
+              help=('Title to use for the map legend. '
+                    'If not provided, legend title will be the column name'))
+@click.option('--legend_breaks', '-B', required=False,
+              type=str,
+              default=None,
+              help=('Breaks to use for the map legend. Should be formatted '
+                    'like a list, e.g. : "[10, 50, 100, 150]". If not '
+                    'provided, a 5-class quantile classification will be used '
+                    'to derive the breaks.'))
+@click.option('--boundaries', '-b', required=False,
+              type=click.Path(exists=True, dir_okay=False, file_okay=True),
+              default=DEFAULT_BOUNDARIES,
+              # noqa: E126
+              help=('Path to vector dataset with the boundaries to map'
+                    'Default is to use state boundaries for CONUS from '
+                    'Natural Earth (1:50m scale), which is suitable for CONUS '
+                    'supply curves. For other region, it is recommended to '
+                    'provide a more appropriate boundaries dataset.'
+                    ))
+@click.option('--dpi', '-d', required=False,
+              default=600,
+              type=click.IntRange(min=0),
+              help='Dots-per-inch (DPI) for output images. Default is 600.')
+def map_column(
+    supply_curve_csv, out_folder, column, colormap=None, legend_title=None,
+    legend_breaks=None, boundaries=DEFAULT_BOUNDARIES, dpi=600
+):
+    """
+    Generates a single map from an input supply curve for the specified column,
+    with basic options for formatting.
+    """
+
+    out_path = Path(out_folder)
+    out_path.mkdir(exist_ok=True, parents=False)
+
+    supply_curve_df = pd.read_csv(supply_curve_csv)
+    if column not in supply_curve_df.columns:
+        raise KeyError(
+            f"Column {column} could not be found in input supply curve."
+        )
+    supply_curve_gdf = gpd.GeoDataFrame(
+        supply_curve_df,
+        geometry=gpd.points_from_xy(
+            x=supply_curve_df['longitude'], y=supply_curve_df['latitude']
+        ),
+        crs="EPSG:4326"
+    )
+
+    boundaries_gdf = gpd.read_file(boundaries)
+    boundaries_singlepart_gdf = boundaries_gdf.explode(index_parts=True)
+
+    boundaries_dissolved = boundaries_gdf.unary_union
+    background_gdf = gpd.GeoDataFrame(
+        {"geometry": [boundaries_dissolved]},
+        crs=boundaries_gdf.crs
+    ).explode(index_parts=False)
+
+    map_extent = background_gdf.buffer(0.01).total_bounds
+
+    if legend_breaks is None:
+        breaks = None
+    else:
+        try:
+            breaks = [float(b.strip()) for b in legend_breaks[1:-1].split(',')]
+        except Exception as e:
+            raise ValueError(
+                "Input legend_breaks could not be parsed as a list of floats. "
+                f"The following error was encountered: {e}"
+            )
+
+    if legend_title is None:
+        legend_title = column
+
+    g = plots.map_geodataframe_column(
+        supply_curve_gdf,
+        column,
+        color_map=colormap,
+        breaks=breaks,
+        map_title=None,
+        legend_title=legend_title,
+        background_df=background_gdf,
+        boundaries_df=boundaries_singlepart_gdf,
+        extent=map_extent,
+        layer_kwargs={"s": 1.25, "linewidth": 0, "marker": "o"},
+        legend_kwargs={
+            "marker": "s",
+            "frameon": False,
+            "bbox_to_anchor": (1, 0.5),
+            "loc": "center left"
+        }
+    )
+    plt.tight_layout()
+
+    out_png_name = f"{column}.png"
+    out_png = out_path.joinpath(out_png_name)
+    g.figure.savefig(out_png, dpi=dpi)
+    plt.close(g.figure)
