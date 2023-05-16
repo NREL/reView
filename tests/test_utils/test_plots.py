@@ -265,11 +265,6 @@ def test_map_geodataframe_column_repeat(
             assert compare_images_approx(expected_png, out_png), \
                 f"Output image does not match expected image {expected_png}"
 
-# TODO: add more style params to test_map_geodataframe_column_styling
-# TODO: write a test for map_geodataframe_column that tests polygons
-# TODO: add tests for a few other parameters of map_geodataframe_column
-# TODO: add more detailed examples in the docs
-# TODO: add cli with functionality for creating a standard set of maps for an input sc
-# (e.g., LCOE, capacity, ??)
+
 if __name__ == '__main__':
     pytest.main([__file__, '-s'])

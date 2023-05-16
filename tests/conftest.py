@@ -62,9 +62,9 @@ def test_config_dir(test_data_dir):
     return test_data_dir / "configs"
 
 
-# pylint: disable=redefined-outer-name
 @pytest.fixture(autouse=True)
 def test_configs(test_config_dir):
+    # pylint: disable=redefined-outer-name
     """Load test configs."""
     reView.utils.config.REVIEW_DATA_DIR = TEST_DATA_DIR
     old_configs = reView.utils.config.PROJECT_CONFIGS
@@ -74,6 +74,7 @@ def test_configs(test_config_dir):
     yield
 
     reView.utils.config.PROJECT_CONFIGS = old_configs
+
 
 @pytest.fixture
 def background_gdf():
