@@ -77,8 +77,8 @@ def compare_images_exact(image_1_path, image_2_path):
     return np.all(image_1 == image_2)
 
 
-# pylint: disable=invalid-name
 def test_YBFixedBounds_happy():
+    # pylint: disable=invalid-name
     """
     Happy path test for YBFixedBounds. Check that it correctly resets
     max() and min() methods to return preset values rather than actual min
@@ -97,8 +97,8 @@ def test_YBFixedBounds_happy():
     assert yb.min() == preset_min
 
 
-# pylint: disable=invalid-name
 def test_YBFixedBounds_mapclassify():
+    # pylint: disable=invalid-name
     """
     Test YBFixedBounds works as expected when used to overwrite the yb
     property of a mapclassify classifier.
@@ -124,27 +124,18 @@ def test_map_geodataframe_column_happy(
 ):
     """
     Happy path test for map_geodataframe_column. Test that when run
-    with known inputs and default style settings, the output image matches
+    with basic inputs and default settings, the output image matches
     the expected image.
     """
     col_name = "capacity"
-    color_map = "GnBu"
-
-    breaks = [500, 1000, 1500, 2000]
-    map_extent = states_gdf.buffer(1.5).total_bounds
 
     with tempfile.TemporaryDirectory() as tempdir:
 
         g = map_geodataframe_column(
             supply_curve_gdf,
             col_name,
-            color_map=color_map,
-            breaks=breaks,
-            map_title="Happy Map",
-            legend_title=col_name,
             background_df=background_gdf,
-            boundaries_df=states_gdf,
-            extent=map_extent
+            boundaries_df=states_gdf
         )
         plt.tight_layout()
 
@@ -183,16 +174,17 @@ def test_map_geodataframe_column_styling(
             col_name,
             color_map=color_map,
             breaks=breaks,
-            map_title="Happy Map",
-            legend_title=col_name,
+            map_title="Styling Map",
+            legend_title=col_name.title(),
             background_df=background_gdf,
             boundaries_df=states_gdf,
             extent=map_extent,
             layer_kwargs={"s": 4, "linewidth": 0, "marker": "o"},
             legend_kwargs={
-                "frameon": False,
-                "bbox_to_anchor": (1, 0.5),
-                "loc": "center left"
+                "marker": "o",
+                "frameon": True,
+                "bbox_to_anchor": (1, 0),
+                "loc": "upper left"
             }
         )
         plt.tight_layout()
@@ -221,35 +213,21 @@ def test_map_geodataframe_column_repeat(
     sequence.
     """
     col_name = "capacity"
-    color_map = "GnBu"
-
-    breaks = [500, 1000, 1500, 2000]
-    map_extent = states_gdf.buffer(1.5).total_bounds
 
     with tempfile.TemporaryDirectory() as tempdir:
 
         g = map_geodataframe_column(
             supply_curve_gdf,
             col_name,
-            color_map=color_map,
-            breaks=breaks,
-            map_title="Happy Map",
-            legend_title=col_name,
             background_df=background_gdf,
-            boundaries_df=states_gdf,
-            extent=map_extent
+            boundaries_df=states_gdf
         )
         plt.tight_layout()
         g = map_geodataframe_column(
             supply_curve_gdf,
             col_name,
-            color_map=color_map,
-            breaks=breaks,
-            map_title="Happy Map",
-            legend_title=col_name,
             background_df=background_gdf,
-            boundaries_df=states_gdf,
-            extent=map_extent
+            boundaries_df=states_gdf
         )
         plt.tight_layout()
 
