@@ -97,6 +97,26 @@ def background_gdf():
 
 
 @pytest.fixture
+def county_background_gdf():
+    """
+    Return a geopandas geodataframe that is the dissolved boundaries from
+    counties.geojson. To be used as the "background" layer for
+    utils.plots.map_geodataframe_column() tests.
+    """
+
+    county_boundaries_path = Path(TEST_DATA_DIR).joinpath(
+        "plots", "counties.geojson"
+    )
+    counties_gdf = gpd.read_file(county_boundaries_path)
+    counties_dissolved = counties_gdf.unary_union
+    counties_dissolved_gdf = gpd.GeoDataFrame(
+        {"geometry": [counties_dissolved]},
+        crs=counties_gdf.crs).explode(index_parts=False)
+
+    return counties_dissolved_gdf
+
+
+@pytest.fixture
 def states_gdf():
     """
     Return a geopandas geodataframe that is the states boundaries from
@@ -111,6 +131,23 @@ def states_gdf():
     states_singlepart_gdf = states_gdf.explode(index_parts=True)
 
     return states_singlepart_gdf
+
+
+@pytest.fixture
+def counties_gdf():
+    """
+    Return a geopandas geodataframe that is the counties boundaries from
+    counties.geojson. To be used as the in utils.plots.map_geodataframe_column() tests.
+    """
+
+    county_boundaries_path = Path(TEST_DATA_DIR).joinpath(
+        "plots", "counties.geojson"
+    )
+    counties_gdf = gpd.read_file(county_boundaries_path)
+    counties_gdf.columns = [s.lower() for s in counties_gdf.columns]
+    counties_gdf["cnty_fips"] = counties_gdf["cnty_fips"].astype(int)
+
+    return counties_gdf
 
 
 @pytest.fixture

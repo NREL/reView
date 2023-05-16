@@ -165,7 +165,7 @@ def test_map_geodataframe_column_styling(
     color_map = "GnBu"
 
     breaks = [500, 1000, 1500, 2000]
-    map_extent = states_gdf.buffer(1.5).total_bounds
+    map_extent = states_gdf.buffer(0.05).total_bounds
 
     with tempfile.TemporaryDirectory() as tempdir:
 
@@ -190,7 +190,7 @@ def test_map_geodataframe_column_styling(
         plt.tight_layout()
 
         out_png_name = "styling_map.png"
-        out_png = Path(tempdir).joinpath("styling_map.png")
+        out_png = Path(tempdir).joinpath(out_png_name)
         g.figure.savefig(out_png, dpi=600)
         plt.close(g.figure)
 
@@ -232,7 +232,66 @@ def test_map_geodataframe_column_repeat(
         plt.tight_layout()
 
         out_png_name = "happy_map.png"
-        out_png = Path(tempdir).joinpath("happy_map.png")
+        out_png = Path(tempdir).joinpath(out_png_name)
+        g.figure.savefig(out_png, dpi=600)
+        plt.close(g.figure)
+
+        expected_png = test_data_dir.joinpath("plots", out_png_name)
+
+        images_match_exactly = compare_images_exact(expected_png, out_png)
+        if not images_match_exactly:
+            assert compare_images_approx(expected_png, out_png), \
+                f"Output image does not match expected image {expected_png}"
+
+
+@pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
+def test_map_geodataframe_polygons(
+    test_data_dir, supply_curve_gdf, county_background_gdf, states_gdf,
+    counties_gdf
+):
+
+    county_capacity_df = supply_curve_gdf.groupby(
+        "cnty_fips"
+    )["capacity"].sum().reset_index()
+    county_capacity_gdf = counties_gdf.merge(
+        county_capacity_df, how="inner", on="cnty_fips"
+    )
+
+    col_name = "capacity"
+    color_map = "YlOrRd"
+
+    breaks = [5000, 10000, 15000, 20000]
+    map_extent = county_background_gdf.buffer(0.05).total_bounds
+
+    with tempfile.TemporaryDirectory() as tempdir:
+
+        g = map_geodataframe_column(
+            county_capacity_gdf,
+            col_name,
+            color_map=color_map,
+            breaks=breaks,
+            map_title="Polygons Map",
+            legend_title=col_name.title(),
+            background_df=county_background_gdf,
+            boundaries_df=states_gdf,
+            extent=map_extent,
+            layer_kwargs={"edgecolor": "gray", "linewidth": 0.5},
+            boundaries_kwargs={
+                "linewidth": 1,
+                "zorder": 2,
+                "edgecolor": "black",
+            },
+            legend_kwargs={
+                "marker": "s",
+                "frameon": False,
+                "bbox_to_anchor": (1, 0.5),
+                "loc": "center left"
+            }
+        )
+        plt.tight_layout()
+
+        out_png_name = "polygons_map.png"
+        out_png = Path(tempdir).joinpath(out_png_name)
         g.figure.savefig(out_png, dpi=600)
         plt.close(g.figure)
 
