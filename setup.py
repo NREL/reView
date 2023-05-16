@@ -43,7 +43,8 @@ setup(
             "reView=reView.index:main",
             "reView-tools=reView.cli:main",
             "unpack-turbines=reView.cli:unpack_turbines",
-            "unpack-characterizations=reView.cli:unpack_characterizations"
+            "unpack-characterizations=reView.cli:unpack_characterizations",
+            "make-maps=reView.cli:make_maps"
         ],
     },
     zip_safe=False,

@@ -4,12 +4,17 @@ reView command line interface (CLI).
 """
 import json
 import logging
-import pathlib
+from pathlib import Path
 import click
+
 import pandas as pd
+import geopandas as gpd
+import matplotlib.pyplot as plt
+import tqdm
+
 from reView.utils.bespoke import batch_unpack_from_supply_curve
-from reView.utils import characterizations
-from reView import __version__
+from reView.utils import characterizations, plots
+from reView import __version__, REVIEW_DATA_DIR
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +22,11 @@ CONTEXT_SETTINGS = {
     "max_content_width": 9999,
     "terminal_width": 9999
 }
+TECH_CHOICES = ["wind", "solar"]
+DEFAULT_BOUNDARIES = Path(REVIEW_DATA_DIR).joinpath(
+    "boundaries",
+    "ne_50m_admin_1_states_provinces_lakes_conus.geojson"
+)
 
 
 @click.group(context_settings=CONTEXT_SETTINGS)
@@ -63,7 +73,7 @@ def unpack_turbines(
     supply curve CSV, produced using "bespoke" (i.e., SROM) turbine placement.
     """
 
-    supply_curve_csv_path = pathlib.Path(supply_curve_csv)
+    supply_curve_csv_path = Path(supply_curve_csv)
     if not supply_curve_csv_path.exists:
         raise FileExistsError(
             f"Input supply_curve_csv {supply_curve_csv} does not exist."
@@ -73,7 +83,7 @@ def unpack_turbines(
     turbines_gdf = batch_unpack_from_supply_curve(
         supply_curve_df, n_workers=n_workers)
 
-    out_gpkg_path = pathlib.Path(out_gpkg)
+    out_gpkg_path = Path(out_gpkg)
     if out_gpkg_path.exists() and overwrite is False:
         raise FileExistsError(
             f"Output geopackage {out_gpkg} already exists. "
@@ -129,3 +139,140 @@ def unpack_characterizations(
     if overwrite is True:
         out_csv.unlink(missing_ok=True)
     char_df.to_csv(out_csv, header=True, index=False, mode="x")
+
+
+@main.command()
+@click.option('--supply_curve_csv', '-i', required=True,
+              prompt='Path to supply curve CSV file.',
+              type=click.Path(exists=True, dir_okay=False, file_okay=True),
+              help='Path to supply curve CSV file.')
+@click.option("--tech",
+              "-t",
+              required=True,
+              prompt="Renewable technology of the supply curve.",
+              type=click.Choice(TECH_CHOICES, case_sensitive=False),
+              help="Technology choice for ordinances to export. "
+              f"Valid options are: {TECH_CHOICES}.")
+@click.option('--out_folder', '-o', required=True,
+              prompt='Path to output folder for maps.',
+              type=click.Path(exists=False, dir_okay=True, file_okay=False),
+              help='Path to output folder for maps.')
+@click.option('--boundaries', '-b', required=False,
+              prompt='Path to vector dataset with the boundaries to map',
+              type=click.Path(exists=True, dir_okay=False, file_okay=True),
+              default=DEFAULT_BOUNDARIES,
+              # noqa: E126
+              help=(
+                    'Path to vector dataset with the boundaries to map'
+                    'Default is to use state boundaries for CONUS from '
+                    'Natural Earth (1:50m scale), which is suitable for CONUS '
+                    'supply curves. For other region, it is recommended to '
+                    'provide a more appropriate boundaries dataset.'
+                ))
+@click.option('--dpi', '-d', required=False,
+              default=600,
+              prompt='Dots-per-inch (DPI) for output images.',
+              type=click.IntRange(min=0),
+              help='Dots-per-inch (DPI) for output images. Default is 600.')
+def make_maps(
+    supply_curve_csv, tech, out_folder, boundaries, dpi
+):
+    """
+    Generates standardized, presentation-quality maps for the input supply
+    curve, including maps for each of the following attributes:
+        - Capacity (``capacity``)
+        - All-in LCOE (``total_lcoe``)
+        - Project LCOE (``mean_lcoe``)
+        - LCOT (``lcot``)
+        - Capacity Density (derived column) [wind only]
+    """
+
+    out_path = Path(out_folder)
+    out_path.mkdir(exist_ok=True, parents=False)
+
+    supply_curve_df = pd.read_csv(supply_curve_csv)
+    supply_curve_gdf = gpd.GeoDataFrame(
+        supply_curve_df,
+        geometry=gpd.points_from_xy(
+            x=supply_curve_df['longitude'], y=supply_curve_df['latitude']
+        ),
+        crs="EPSG:4326"
+    )
+
+    boundaries_gdf = gpd.read_file(boundaries)
+    boundaries_singlepart_gdf = boundaries_gdf.explode(index_parts=True)
+
+    boundaries_dissolved = boundaries_gdf.unary_union
+    background_gdf = gpd.GeoDataFrame(
+        {"geometry": [boundaries_dissolved]},
+        crs=boundaries_gdf.crs
+    ).explode(index_parts=False)
+
+    map_extent = background_gdf.buffer(0.01).total_bounds
+
+    map_vars = {
+        "total_lcoe": {
+            "breaks": [25, 30, 35, 40, 45, 50, 60, 70],
+            "cmap": 'YlGn',
+            "legend_title": "All-in LCOE ($/MWh)"
+        },
+        "mean_lcoe": {
+            "breaks": [25, 30, 35, 40, 45, 50, 60, 70],
+            "cmap": 'YlGn',
+            "legend_title": "Project LCOE ($/MWh)"
+        },
+        "lcot": {
+            "breaks": [5, 10, 15, 20, 25, 30, 35, 40, 50],
+            "cmap": 'YlGn',
+            "legend_title": "LCOT ($/MWh)",
+        }
+    }
+    if tech == "solar":
+        map_vars.update({
+            "capacity": {
+                "breaks": [100, 500, 1000, 2000, 3000, 4000],
+                "cmap": 'YlOrRd',
+                "legend_title": "Capacity (MW)"
+            }
+        })
+    elif tech == "wind":
+        supply_curve_gdf["capacity_density"] = (
+            supply_curve_gdf["capacity"] / supply_curve_gdf["area_sq_km"]
+        )
+        map_vars.update({
+            "capacity": {
+                "breaks": [100, 500, 1000, 2000, 3000, 4000],
+                "cmap": 'Blues',
+                "legend_title": "Capacity (MW)"
+            },
+            "capacity_density": {
+                "breaks": [2, 3, 4, 5, 6, 10],
+                "cmap": 'Blues',
+                "legend_title": "Capacity Density (MW/sq km)"
+            }
+        })
+    for map_var, map_settings in tqdm.tqdm(map_vars.items()):
+        g = plots.map_geodataframe_column(
+            supply_curve_gdf,
+            map_var,
+            color_map=map_settings.get("cmap"),
+            breaks=map_settings.get("breaks"),
+            map_title=None,
+            legend_title=map_settings.get("legend_title"),
+            background_df=background_gdf,
+            boundaries_df=boundaries_singlepart_gdf,
+            extent=map_extent,
+            layer_kwargs={"s": 1.25, "linewidth": 0, "marker": "o"},
+            legend_kwargs={
+                "marker": "s",
+                "frameon": False,
+                "bbox_to_anchor": (1, 0.5),
+                "loc": "center left"
+            }
+        )
+        plt.tight_layout()
+
+        out_png_name = f"{map_var}_{tech}.png"
+        out_png = out_path.joinpath(out_png_name)
+        g.figure.savefig(out_png, dpi=dpi)
+        plt.close(g.figure)

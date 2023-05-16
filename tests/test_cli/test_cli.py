@@ -9,8 +9,10 @@ from pandas.testing import assert_frame_equal
 from reView.cli import (
     main,
     unpack_turbines,
-    unpack_characterizations
+    unpack_characterizations,
+    make_maps
 )
+from tests.test_utils.test_plots import compare_images_approx, compare_images_exact
 
 
 def test_main(test_cli_runner):
@@ -212,6 +214,124 @@ def test_unpack_characterizations_no_overwrite(
         assert result.exit_code == 1
         assert isinstance(result.exception, FileExistsError)
 
+
+@pytest.mark.filterwarnings("ignore:Skipping")
+@pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
+def test_make_maps_solar(
+    test_map_supply_curve_solar, test_cli_runner, test_data_dir
+):
+    """
+    Happy path test for make_maps() CLI. Tests that it produces the expected
+    images for a solar supply curve.
+    """
+
+    with tempfile.TemporaryDirectory() as tempdir:
+        output_path = pathlib.Path(tempdir)
+        result = test_cli_runner.invoke(
+            make_maps, [
+                '-i', test_map_supply_curve_solar.as_posix(),
+                '-t', "solar",
+                '-o', output_path.as_posix(),
+                '--dpi', 75
+            ]
+        )
+        assert result.exit_code == 0
+
+        out_png_names = [
+            "capacity_solar.png",
+            "lcot_solar.png",
+            "mean_lcoe_solar.png",
+            "total_lcoe_solar.png"
+        ]
+        for out_png_name in out_png_names:
+            expected_png = test_data_dir.joinpath("plots", out_png_name)
+            out_png = output_path.joinpath(out_png_name)
+            images_match_exactly = compare_images_exact(expected_png, out_png)
+            if not images_match_exactly:
+                assert compare_images_approx(expected_png, out_png), \
+                    "Output image does not match expected image " \
+                    f"{expected_png}"
+
+
+@pytest.mark.filterwarnings("ignore:Skipping")
+@pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
+@pytest.mark.filterwarnings("ignore:invalid value encountered in ")
+def test_make_maps_wind(
+    test_map_supply_curve_wind, test_cli_runner, test_data_dir
+):
+    """
+    Happy path test for make_maps() CLI. Tests that it produces the expected
+    images for a wind supply curve.
+    """
+
+    with tempfile.TemporaryDirectory() as tempdir:
+        output_path = pathlib.Path(tempdir)
+        result = test_cli_runner.invoke(
+            make_maps, [
+                '-i', test_map_supply_curve_wind.as_posix(),
+                '-t', "wind",
+                '-o', output_path.as_posix(),
+                '--dpi', 75
+            ]
+        )
+        assert result.exit_code == 0
+
+        out_png_names = [
+            "capacity_wind.png",
+            "lcot_wind.png",
+            "mean_lcoe_wind.png",
+            "total_lcoe_wind.png",
+            "capacity_density_wind.png",
+        ]
+        for out_png_name in out_png_names:
+            expected_png = test_data_dir.joinpath("plots", out_png_name)
+            out_png = output_path.joinpath(out_png_name)
+            images_match_exactly = compare_images_exact(expected_png, out_png)
+            if not images_match_exactly:
+                assert compare_images_approx(expected_png, out_png), \
+                    "Output image does not match expected image " \
+                    f"{expected_png}"
+
+
+@pytest.mark.filterwarnings("ignore:Skipping")
+@pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
+def test_make_maps_boundaries(
+    test_map_supply_curve_solar, test_cli_runner, test_data_dir,
+    states_subset_path
+):
+    """
+    Test that make_maps() CLI works with an input boundaries file.
+    """
+
+    with tempfile.TemporaryDirectory() as tempdir:
+        output_path = pathlib.Path(tempdir)
+        result = test_cli_runner.invoke(
+            make_maps, [
+                '-i', test_map_supply_curve_solar.as_posix(),
+                '-t', "solar",
+                '-b', states_subset_path.as_posix(),
+                '-o', output_path.as_posix(),
+                '--dpi', 75
+            ]
+        )
+        assert result.exit_code == 0
+
+        out_png_names = [
+            "capacity_solar.png",
+            "lcot_solar.png",
+            "mean_lcoe_solar.png",
+            "total_lcoe_solar.png"
+        ]
+        for out_png_name in out_png_names:
+            expected_png = test_data_dir.joinpath(
+                "plots", out_png_name.replace(".png", "_boundaries.png")
+            )
+            out_png = output_path.joinpath(out_png_name)
+            images_match_exactly = compare_images_exact(expected_png, out_png)
+            if not images_match_exactly:
+                assert compare_images_approx(expected_png, out_png), \
+                    "Output image does not match expected image " \
+                    f"{expected_png}"
 
 if __name__ == '__main__':
     pytest.main([__file__, '-s'])

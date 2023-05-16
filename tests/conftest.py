@@ -39,6 +39,26 @@ def test_characterization_supply_curve():
 
 
 @pytest.fixture
+def test_map_supply_curve_solar():
+    """Return plots/map-supply-curve-solar.csv as a `Path` object."""
+    csv_path = Path(TEST_DATA_DIR).joinpath(
+        "plots", "map-supply-curve-solar.csv"
+    )
+
+    return csv_path
+
+
+@pytest.fixture
+def test_map_supply_curve_wind():
+    """Return plots/map-supply-curve-wind.csv as a `Path` object."""
+    csv_path = Path(TEST_DATA_DIR).joinpath(
+        "plots", "map-supply-curve-wind.csv"
+    )
+
+    return csv_path
+
+
+@pytest.fixture
 def char_map():
     """Return characterization map"""
 
@@ -117,6 +137,20 @@ def county_background_gdf():
 
 
 @pytest.fixture
+def states_subset_path():
+    """
+    Returns path to states boundaries from states.geojson. This is a subset of
+    states to be used for testing the make-maps CLI.
+    """
+
+    state_boundaries_path = Path(TEST_DATA_DIR).joinpath(
+        "plots", "states.geojson"
+    )
+
+    return state_boundaries_path
+
+
+@pytest.fixture
 def states_gdf():
     """
     Return a geopandas geodataframe that is the states boundaries from
@@ -158,13 +192,13 @@ def supply_curve_gdf():
     """
 
     supply_curve_path = Path(TEST_DATA_DIR).joinpath(
-        "plots", "map-supply-curve.csv"
+        "plots", "map-supply-curve-solar.csv"
     )
     supply_curve_df = pd.read_csv(supply_curve_path)
     supply_curve_gdf = gpd.GeoDataFrame(
         supply_curve_df,
         geometry=gpd.points_from_xy(
-            supply_curve_df['longitude'], supply_curve_df['latitude']
+            x=supply_curve_df['longitude'], y=supply_curve_df['latitude']
         ),
         crs="EPSG:4326"
     )
