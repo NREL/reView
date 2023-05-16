@@ -1,8 +1,8 @@
 {
-    "project_name": "Hydrogen",
-    "directory": "~/review_datasets/hydrogen/",
-    "var_file": "~/hydrogen/review/variable_options.csv",
-    "demand_file": "~/hydrogen/review/h2_demand_600_sites.csv",
+    "project_name": "Hydrogen - FY22",
+    "directory": "/shared-projects/rev/projects/weto/fy22/hydrogen/rev",
+    "var_file": "/shared-projects/rev/projects/weto/fy22/hydrogen/review/variable_options.csv",
+    "demand_file": "/shared-projects/rev/projects/weto/fy22/hydrogen/review/h2_demand_600_sites.csv",
     "units": {
         "wind_lcoh_component": "USD/kg",
         "solar_lcoh_component": "USD/kg",
@@ -12,5 +12,9 @@
         "no_pipe_lcoh_fcr": "USD/kg",
         "total_lcoh_fcr": "USD/kg"
     },
-    "characterizations_cols": ["usa_mrlc_nlcd2011", "fed_land_owner", "2016_30m_cdls_rev90m"]
+    "characterizations_cols": [
+        "usa_mrlc_nlcd2011",
+        "fed_land_owner",
+        "2016_30m_cdls_rev90m"
+    ]
 }

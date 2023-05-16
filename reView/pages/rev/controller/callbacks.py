@@ -71,7 +71,7 @@ COMMON_CALLBACKS = [
     capacity_print(id_prefix="rev"),
     display_selected_tab_above_map(id_prefix="rev"),
 ]
-DEFAULT_PROJECT = "ATB Bespoke - FY23"
+DEFAULT_PROJECT = "PR100 - Forecasts"
 
 
 def build_scenario_dropdowns(groups, dropid=None, multi=False, dynamic=False,
@@ -100,6 +100,17 @@ def build_scenario_dropdowns(groups, dropid=None, multi=False, dynamic=False,
         else:
             dropid = f"dropdown_{'_'.join(group.split()).lower()}"
 
+        # Use the appropriate cell height for each dropdown
+        if len(group) > 30:
+            height = f"{80}px"
+        elif len(group) > 15:
+            height = f"{58}px"
+        else:
+            height = None
+
+        # Don't use "all" as the default value (large file list problem)
+        values = [op["value"] for op in options if op["value"] != "all"]
+
         # Build dropdown object
         dropdown = html.Div(
             children=[
@@ -113,13 +124,18 @@ def build_scenario_dropdowns(groups, dropid=None, multi=False, dynamic=False,
                         dcc.Dropdown(
                             id=dropid,
                             options=options,
-                            value=options[0]["value"],
-                            optionHeight=75,
-                            multi=multi
+                            value=values[0],
+                            optionHeight=50,
+                            multi=multi,
+                            style={
+                                "height": height,
+                            }
                         )
                     ],
                     className="nine columns",
-                    style={"margin-left": "-10px"},
+                    style={
+                        "margin-left": "-10px",
+                    },
                 ),
             ],
             style={"border-radius": "5px"},
@@ -207,23 +223,22 @@ def composite_fname(paths, composite_function, composite_variable):
     names = [Path(path).name for path in paths]
     names = [strip_rev_filename_endings(name) for name in names]
 
-    # If it's less than 12 paths, use words. If not use hash
-    if len(paths) < 12:
-        # Remove any repeating elements in the adjusted names
-        parts = [list(name.split("_")) for name in names]
-        parts = [sublst for lst in parts for sublst in lst]
-        repeats = [part for part in parts if parts.count(part) > 1]
-        repeats = np.unique(repeats)
-        new_names = []
-        for repeat in repeats:
-            for name in names:
-                new_names.append(name.replace(repeat, ""))
+    # Remove any repeating elements in the adjusted names
+    parts = [list(name.split("_")) for name in names]
+    parts = [sublst for lst in parts for sublst in lst]
+    repeats = [part for part in parts if parts.count(part) > 1]
+    repeats = np.unique(repeats)
+    new_names = []
+    for repeat in repeats:
+        for name in names:
+            new_names.append(name.replace(repeat, ""))
 
-        # Join name parts for the tag
-        tag = "".join(new_names)
-        if tag.startswith("_"):
-            tag = tag[1:]
-    else:
+    # Join name parts for the tag
+    tag = "".join(new_names)
+    if tag.startswith("_"):
+        tag = tag[1:]
+    
+    if len(tag) > 75:
         tag = hashlib.sha1(str.encode(str(paths))).hexdigest()
 
     # Build full file name
@@ -473,6 +488,79 @@ def dropdown_colors(__, variable, project, signal, ___):
 
 
 @app.callback(
+    Output("composite_plot_value", "options"),
+    Input("composite_options", "children"),
+    State("project", "value"),
+)
+@calls.log
+def dropdown_composite_plot_options(scenario_options, project):
+    """Set the minimizing plot options."""
+    if project is None:
+        raise PreventUpdate
+
+    logger.debug("Setting minimizing plot options")
+    config = Config(project)
+    path = choose_scenario(scenario_options, config)
+    plot_options = [{"label": "Scenario", "value": "scenario"}]
+
+    if path and os.path.exists(path):
+        data = read_file(path, nrows=1)
+        columns = [c for c in data.columns if c.lower() not in SKIP_VARS]
+        titles = {col: convert_to_title(col) for col in columns}
+        titles.update(config.titles)
+        if titles:
+            for key, val in titles.items():
+                plot_options.append({"label": val, "value": key})
+
+    return plot_options
+
+
+# pylint: disable=no-member,too-many-locals
+@app.callback(
+    Output("composite_scenarios", "options"),
+    Input("url", "pathname"),
+    Input("project", "value"),
+    Input("composite_variable", "value"),
+    Input({"type": "filter-dropdown-c", "index": ALL, "name": ALL}, "value"),
+    State({"type": "filter-dropdown-c", "index": ALL, "name": ALL}, "id"),
+    State("submit", "n_clicks"),
+)
+@calls.log
+def dropdown_composite_scenarios(
+        url, 
+        project,
+        composite_variable,
+        filters,
+        filter_ids,
+        __
+    ):
+    """Update the options given a project."""
+    logger.debug("URL: %s", url)
+    config = Config(project)
+
+    # Gather previously derived review outputs
+    outputs = [str(file) for file in config.outputs]
+
+    # If filters are provided, use them to downselect files
+    if config.options is not None:
+        # Get simple list of option names
+        options = [entry["name"] for entry in filter_ids]
+
+        # Get filter list of files
+        files = filter_files(project, filters, options)
+    else:
+        # Separate the output files, let's put those at the end
+        files = [str(file) for file in config.files.values()]
+        files = [str(file) for file in files if "review_outputs" not in file]
+        files += outputs
+        files.sort()
+
+    group = files_to_dropdown(files, typeid="c")
+
+    return group
+
+
+@app.callback(
     Output("composite_target", "options"),
     Output("composite_target", "value"),
     Input("composite_options", "children"),
@@ -480,9 +568,13 @@ def dropdown_colors(__, variable, project, signal, ___):
 )
 def dropdown_composite_targets(scenario_options, project):
     """Set the minimizing target options."""
+    if project is None:
+        raise PreventUpdate
+
     logger.debug("Setting minimizing target options")
     config = Config(project)
     path = choose_scenario(scenario_options, config)
+
     target_options = []
     if path and os.path.exists(path):
         data = read_file(path, nrows=1)
@@ -497,6 +589,34 @@ def dropdown_composite_targets(scenario_options, project):
         target_options = [{"label": "None", "value": "None"}]
 
     return target_options, target_options[-1]["value"]
+
+
+@app.callback(
+    Output("composite_variable", "options"),
+    Input("project", "value")
+)
+@calls.log
+def dropdown_composite_variables(project):
+    """Set the minimizing variable options."""
+    logger.debug("Setting variable target options")
+    config = Config(project)
+
+    try:
+        scenario_a = next(config.all_files)
+    except StopIteration:
+        raise PreventUpdate
+
+    variable_options = get_variable_options(project, scenario_a, None, {})
+    if config.options is not None:
+        variable_options += [
+            {"label": col, "value": col}
+            for col in config.options.columns
+            if col not in {"name", "file"}
+        ]
+    low_cost_group_options = [
+        {"label": g, "value": g} for g in config.low_cost_groups
+    ]
+    return variable_options + low_cost_group_options
 
 
 @app.callback(
@@ -521,32 +641,6 @@ def dropdown_projects(__, ___):
         default_project = DEFAULT_PROJECT
 
     return project_options, default_project
-
-
-@app.callback(
-    Output("composite_plot_value", "options"),
-    Input("composite_options", "children"),
-    State("project", "value"),
-)
-@calls.log
-def dropdown_composite_plot_options(scenario_options, project):
-    """Set the minimizing plot options."""
-    logger.debug("Setting minimizing plot options")
-    config = Config(project)
-    path = choose_scenario(scenario_options, config)
-    plot_options = [
-        {"label": "Scenario", "value": "scenario"}
-    ]
-    if path and os.path.exists(path):
-        data = read_file(path, nrows=1)
-        columns = [c for c in data.columns if c.lower() not in SKIP_VARS]
-        titles = {col: convert_to_title(col) for col in columns}
-        titles.update(config.titles)
-        if titles:
-            for key, val in titles.items():
-                plot_options.append({"label": val, "value": key})
-
-    return plot_options
 
 
 # pylint: disable=too-many-locals
@@ -581,12 +675,8 @@ def dropdown_scenarios(
     # Find all available project files
     config = Config(project)
 
-    # Separate the output files, let's put those at the end
-    files = [str(file) for file in config.files.values()]
-    originals = [file for file in files if "review_outputs" not in file]
-    outputs = [file for file in files if "review_outputs" in file]
-    originals.sort()
-    outputs.sort()
+    # Gather previously derived review outputs
+    outputs = config.outputs
 
     # If filters are provided, use them to downselect files
     if config.options is not None:
@@ -596,11 +686,17 @@ def dropdown_scenarios(
         # Get filter list of files
         files_a = filter_files(project, filters_a, options)
         files_b = filter_files(project, filters_b, options)
-        files_a += outputs
-        files_b += outputs
+        # files_a += outputs
+        # files_b += outputs
 
     # If not return all files
     else:
+        # Separate the output files, let's put those at the end
+        files = [str(file) for file in config.files.values()]  # This is causing a huge slow down!
+        originals = [file for file in files if "review_outputs" not in file]
+        originals.sort()
+        outputs.sort()
+
         # Recombine orginal and output paths
         files_a = files_b = originals + outputs
 
@@ -622,70 +718,6 @@ def dropdown_scenarios(
     placeholder = "All files filtered out"
 
     return group_a, group_b, group_a, group_a, value_a, value_b, placeholder, placeholder
-
-
-# pylint: disable=no-member,too-many-locals
-@app.callback(
-    Output("composite_scenarios", "options"),
-    Input("url", "pathname"),
-    Input("project", "value"),
-    Input("composite_variable", "value"),
-    Input({"type": "filter-dropdown-c", "index": ALL, "name": ALL}, "value"),
-    State({"type": "filter-dropdown-c", "index": ALL, "name": ALL}, "id"),
-    State("submit", "n_clicks"),
-)
-@calls.log
-def dropdown_scenarios_composite(
-        url, 
-        project,
-        composite_variable,
-        filters,
-        filter_ids,
-        __
-    ):
-    """Update the options given a project."""
-    logger.debug("URL: %s", url)
-    config = Config(project)
-
-    # Separate the output files, let's put those at the end
-    files = [str(file) for file in config.files.values()]
-    files = [file for file in files if "review_outputs" not in file]
-    files.sort()
-
-    # If filters are provided, use them to downselect files
-    if config.options is not None:
-        # Get simple list of option names
-        options = [entry["name"] for entry in filter_ids]
-
-        # Get filter list of files
-        files = filter_files(project, filters, options)
-
-    group = files_to_dropdown(files, typeid="c")
-
-    return group
-
-
-@app.callback(
-    Output("composite_variable", "options"),
-    Input("project", "value")
-)
-@calls.log
-def dropdown_composite_variables(project):
-    """Set the minimizing variable options."""
-    logger.debug("Setting variable target options")
-    config = Config(project)
-    scenario_a = config.files[next(iter(config.files))]
-    variable_options = get_variable_options(project, scenario_a, None, {})
-    if config.options is not None:
-        variable_options += [
-            {"label": col, "value": col}
-            for col in config.options.columns
-            if col not in {"name", "file"}
-        ]
-    low_cost_group_options = [
-        {"label": g, "value": g} for g in config.low_cost_groups
-    ]
-    return variable_options + low_cost_group_options
 
 
 @app.callback(
@@ -1160,9 +1192,17 @@ def figure_timeseries(
 @calls.log
 def options_recalc_a(project, scenario, recalc_table):
     """Update the drop down options for each scenario."""
+    # Prevent update if not recalcs
+    recalc_table = json.loads(recalc_table)
+    values = []
+    for entry in recalc_table.values():
+        for value in entry.values():
+            values.append(value)
+    if all([val is None for val in values]):
+        raise PreventUpdate
+
     config = Config(project)
     data = ReCalculatedData(config)
-    recalc_table = json.loads(recalc_table)
     scenario = os.path.basename(scenario).replace("_sc.csv", "")
 
     if scenario not in config.scenarios:
@@ -1269,9 +1309,17 @@ def options_recalc_a(project, scenario, recalc_table):
 @calls.log
 def options_recalc_b(project, scenario, recalc_table):
     """Update the drop down options for each scenario."""
+    # Prevent update if not recalcs
+    recalc_table = json.loads(recalc_table)
+    values = []
+    for entry in recalc_table.values():
+        for value in entry.values():
+            values.append(value)
+    if all([val is None for val in values]):
+        raise PreventUpdate
+
     config = Config(project)
     data = ReCalculatedData(config)
-    recalc_table = json.loads(recalc_table)
     scenario = os.path.basename(scenario).replace("_sc.csv", "")
 
     if scenario not in config.scenarios:
@@ -1659,9 +1707,17 @@ def scenario_specs(scenario_a, scenario_b, project):
     if not project:
         raise PreventUpdate
 
+    # Scenario A might be None on startup
+    if scenario_a is None:
+        raise PreventUpdate
+
     # Return a blank space if no parameters entry found
     config = Config(project)
     params = config.parameters
+
+    # If there are options, prevent update for now (large file list problem)
+    if config.options is not None:
+        raise PreventUpdate
 
     # Infer the names
     path_lookup = {str(value): key for key, value in config.files.items()}
@@ -1813,33 +1869,6 @@ def toggle_rev_map_below_options(n_clicks, is_open):
 
 
 @app.callback(
-    Output("rev_additional_scenarios_time", "style"),
-    Input("rev_time_trace_options_tab", "value")
-)
-@calls.log
-def toggle_timeseries_above_options(trace):
-    """Open or close map below options."""
-    if trace == "bar":
-        style_a = {"display": "none"}
-    else:
-        style_a = {}
-    return style_a
-
-
-@app.callback(
-    Output("rev_time_below_options", "is_open"),
-    Input("rev_time_below_options_button", "n_clicks"),
-    State("rev_time_below_options", "is_open"),
-)
-@calls.log
-def toggle_timeseries_below_options(n_clicks, is_open):
-    """Open or close map below options."""
-    if n_clicks:
-        return not is_open
-    return is_open
-
-
-@app.callback(
     Output("scenario_a_filter_div", "style"),
     Output("scenario_b_filter_div", "style"),
     Output("composite_filter_div", "style"),
@@ -1860,9 +1889,7 @@ def toggle_scenario_filters(project):
         df = odf.copy()
         for i, col in enumerate(cols):
             # pylint: disable=unsubscriptable-object
-            options = df[col].unique()
-            options = ["all"] + list(options)
-
+            options = ["all"] + list(df[col].unique())
             dropdown_options = []
             for option in options:
                 label = str(option)
@@ -1922,8 +1949,39 @@ def toggle_scenario_b(difference, mask):
 @calls.log
 def toggle_timeseries(_, ___, scenario):
     """Toggle the timeseries component on/off in response to chose dataset."""
+    if isinstance(scenario, type(None)):
+        raise PreventUpdate
+
     if scenario.endswith(".h5"):
         style = {"margin-top": "50px"}
     else:
         style = {"display": "none"}
+
     return style
+
+
+@app.callback(
+    Output("rev_additional_scenarios_time", "style"),
+    Input("rev_time_trace_options_tab", "value")
+)
+@calls.log
+def toggle_timeseries_above_options(trace):
+    """Open or close map below options."""
+    if trace == "bar":
+        style_a = {"display": "none"}
+    else:
+        style_a = {}
+    return style_a
+
+
+@app.callback(
+    Output("rev_time_below_options", "is_open"),
+    Input("rev_time_below_options_button", "n_clicks"),
+    State("rev_time_below_options", "is_open"),
+)
+@calls.log
+def toggle_timeseries_below_options(n_clicks, is_open):
+    """Open or close map below options."""
+    if n_clicks:
+        return not is_open
+    return is_open

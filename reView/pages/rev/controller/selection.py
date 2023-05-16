@@ -120,7 +120,7 @@ def choose_scenario(scenario_options, config):
     if not selected_options:
         # TODO what if `files` is empty?
         # How to tell user no files found in dir?
-        return list(config.files.values())[0]
+        return next(config.all_files)
 
     if "Scenario" in selected_options:
         return selected_options["Scenario"]["value"]

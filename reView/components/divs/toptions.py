@@ -62,13 +62,15 @@ COMPOSITE_DIV = html.Div(
                         multi=True
                     )
                 ),
-                html.H6("Scenario Filters"),
                 html.Div(
                     id="composite_filter_div",
-                    children=html.Div(
-                        id="composite_filters",
-                        children=[]                   
-                    )
+                    children=[
+                        html.H6("Scenario Filters"),
+                        html.Div(
+                            id="composite_filters",
+                            children=[]                   
+                        )
+                    ]
                 )
             ],
             className="four columns",
