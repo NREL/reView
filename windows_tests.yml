@@ -1,0 +1,9 @@
+name: windows_tests
+channels:
+  - conda-forge
+dependencies:
+  - python=3.9
+  - cartopy
+  - pip>=23.0.1,<23.1
+  - pip:
+    - -r requirements.txt
