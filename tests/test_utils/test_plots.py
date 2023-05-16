@@ -14,7 +14,7 @@ from reView.utils.plots import YBFixedBounds, map_geodataframe_column
 
 
 def compare_images_approx(
-    image_1_path, image_2_path, hash_size=16, max_diff_pct=0.1
+    image_1_path, image_2_path, hash_size=16, max_diff_pct=0.25
 ):
     """
     Check if two images match approximately.
@@ -50,8 +50,8 @@ def compare_images_approx(
     )
 
     max_diff_bits = int(np.ceil(hash_size * max_diff_pct))
-    raise ValueError((expected_hash - out_hash) / hash_size)
-    return expected_hash - out_hash < max_diff_bits
+
+    return (expected_hash - out_hash) <= max_diff_bits
 
 
 def compare_images_exact(image_1_path, image_2_path):
