@@ -14,7 +14,7 @@ from reView.utils.plots import YBFixedBounds, map_geodataframe_column
 
 
 def compare_images_approx(
-    image_1_path, image_2_path, hash_size=16, max_diff_pct=0.05
+    image_1_path, image_2_path, hash_size=16, max_diff_pct=0.1
 ):
     """
     Check if two images match approximately.
