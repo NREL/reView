@@ -5,8 +5,9 @@ reView command line interface (CLI).
 import json
 import logging
 from pathlib import Path
-import click
+import warnings
 
+import click
 import pandas as pd
 import geopandas as gpd
 import matplotlib.pyplot as plt
@@ -194,7 +195,9 @@ def make_maps(
         crs=boundaries_gdf.crs
     ).explode(index_parts=False)
 
-    map_extent = background_gdf.buffer(0.01).total_bounds
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=UserWarning)
+        map_extent = background_gdf.buffer(0.01).total_bounds
 
     map_vars = {
         "total_lcoe": {
@@ -227,7 +230,7 @@ def make_maps(
         )
         map_vars.update({
             "capacity": {
-                "breaks": [100, 500, 1000, 2000, 3000, 4000],
+                "breaks": [100, 200, 250, 300, 350, 500],
                 "cmap": 'Blues',
                 "legend_title": "Capacity (MW)"
             },

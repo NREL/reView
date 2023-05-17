@@ -3,6 +3,8 @@
 
 @author: Mike Gleason
 """
+import warnings
+
 import numpy as np
 import mapclassify as mc
 from matplotlib.patheffects import SimpleLineShadow, Normal
@@ -184,7 +186,9 @@ def map_geodataframe_column(
         # add inf as the last break to ensure consistent breaks between maps
         if breaks[-1] != np.inf:
             breaks.append(np.inf)
-        scheme = mc.UserDefined(data_df[column], bins=breaks)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=RuntimeWarning)
+            scheme = mc.UserDefined(data_df[column], bins=breaks)
         scheme.yb = YBFixedBounds(scheme.yb, preset_max=scheme.k, preset_min=0)
 
     if background_df is not None:
