@@ -409,5 +409,95 @@ def test_map_column_formatting(
                 f"{expected_png}"
 
 
+@pytest.mark.filterwarnings("ignore:Skipping")
+@pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
+def test_map_column_bad_breaks(
+    test_map_supply_curve_solar, test_cli_runner
+):
+    """
+    Test that map_column() CLI raises a ValueError for badly formed inputs for
+    legend_breaks.
+    """
+    bad_breaks = [
+        '10, 20, 30, 40]',
+        '[10, 20, 30, 40',
+        '[10,20 30,40]',
+        "not-breaks",
+        10
+    ]
+    with tempfile.TemporaryDirectory() as tempdir:
+        output_path = pathlib.Path(tempdir)
+        for breaks in bad_breaks:
+            result = test_cli_runner.invoke(
+                map_column, [
+                    '-i', test_map_supply_curve_solar.as_posix(),
+                    '-c', 'area_sq_km',
+                    '-B', breaks,
+                    '-o', output_path.as_posix(),
+                    '--dpi', 75
+                ]
+            )
+            assert result.exit_code == 1
+            assert isinstance(result.exception, ValueError)
+
+
+@pytest.mark.filterwarnings("ignore:Skipping")
+@pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
+def test_map_column_bad_column(
+    test_map_supply_curve_solar, test_cli_runner
+):
+    """
+    Test that map_column() CLI raises a KeyError for an input column that doesn't
+    exist in the supply curve dataset.
+    """
+
+    with tempfile.TemporaryDirectory() as tempdir:
+        output_path = pathlib.Path(tempdir)
+        result = test_cli_runner.invoke(
+            map_column, [
+                '-i', test_map_supply_curve_solar.as_posix(),
+                '-c', 'not-a-column',
+                '-o', output_path.as_posix(),
+                '--dpi', 75
+            ]
+        )
+        assert result.exit_code == 1
+        assert isinstance(result.exception, KeyError)
+
+
+@pytest.mark.filterwarnings("ignore:Skipping")
+@pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
+def test_map_column_boundaries(
+    test_map_supply_curve_solar, test_cli_runner, test_data_dir,
+    states_subset_path
+):
+    """
+    Test that map_column() CLI works with an input boundaries file.
+    """
+
+    with tempfile.TemporaryDirectory() as tempdir:
+        output_path = pathlib.Path(tempdir)
+        result = test_cli_runner.invoke(
+            map_column, [
+                '-i', test_map_supply_curve_solar.as_posix(),
+                '-c', 'area_sq_km',
+                '-o', output_path.as_posix(),
+                '-b', states_subset_path,
+                '--dpi', 75
+            ]
+        )
+        assert result.exit_code == 0
+
+        out_png_name = "area_sq_km.png"
+        expected_png = test_data_dir.joinpath(
+            "plots", out_png_name.replace(".png", "_boundaries.png")
+        )
+        out_png = output_path.joinpath(out_png_name)
+        images_match_exactly = compare_images_exact(expected_png, out_png)
+        if not images_match_exactly:
+            assert compare_images_approx(expected_png, out_png), \
+                "Output image does not match expected image " \
+                f"{expected_png}"
+
 if __name__ == '__main__':
     pytest.main([__file__, '-s'])

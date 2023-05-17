@@ -321,6 +321,7 @@ def map_column(
     supply_curve_csv, out_folder, column, colormap=None, legend_title=None,
     legend_breaks=None, boundaries=DEFAULT_BOUNDARIES, dpi=600
 ):
+    # pylint: disable=raise-missing-from
     """
     Generates a single map from an input supply curve for the specified column,
     with basic options for formatting.
@@ -357,7 +358,13 @@ def map_column(
         breaks = None
     else:
         try:
-            breaks = [float(b.strip()) for b in legend_breaks[1:-1].split(',')]
+            if not legend_breaks.startswith('['):
+                raise ValueError("Invalid input: does not start with '['.")
+            if not legend_breaks.endswith("]"):
+                raise ValueError("Invalid input: does not start with ']'.")
+            breaks = [
+                float(b.strip()) for b in legend_breaks[1:-1].split(',')
+            ]
         except Exception as e:
             raise ValueError(
                 "Input legend_breaks could not be parsed as a list of floats. "
