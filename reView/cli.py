@@ -230,7 +230,7 @@ def make_maps(
         )
         map_vars.update({
             "capacity": {
-                "breaks": [100, 200, 250, 300, 350, 500],
+                "breaks": [100, 125, 150, 175, 200, 225],
                 "cmap": 'Blues',
                 "legend_title": "Capacity (MW)"
             },
