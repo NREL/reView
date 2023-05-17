@@ -45,11 +45,9 @@ def main(ctx, verbose):
 
 @main.command()
 @click.option('--supply_curve_csv', '-i', required=True,
-              prompt='Path to input bespoke wind supply curve CSV file',
               type=click.Path(exists=True),
               help='Path to bespoke wind supply curve CSV file created by reV')
 @click.option('--out_gpkg', '-o', required=True,
-              prompt='Path to output geopackage.',
               type=click.Path(),
               help='Path to regions shapefile containing labeled geometries')
 @click.option('--n_workers', '-n', default=1, type=int,
@@ -97,15 +95,12 @@ def unpack_turbines(
 
 @main.command()
 @click.option('--supply_curve_csv', '-i', required=True,
-              prompt='Path to input bespoke wind supply curve CSV file',
               type=click.Path(exists=True, dir_okay=False, file_okay=True),
               help='Path to bespoke wind supply curve CSV file created by reV')
 @click.option('--char_map', '-m', required=True,
-              prompt='Path to JSON file storing characterization map',
               type=click.Path(exists=True, dir_okay=False, file_okay=True),
               help='Path to JSON file storing characterization map')
 @click.option('--out_csv', '-o', required=True,
-              prompt='Path to output csv.',
               type=click.Path(dir_okay=False),
               help='Path to CSV to store results')
 @click.option('--cell_size', '-c', required=False,
@@ -158,7 +153,7 @@ def unpack_characterizations(
               type=click.Path(exists=True, dir_okay=False, file_okay=True),
               default=DEFAULT_BOUNDARIES,
               # noqa: E126
-              help=('Path to vector dataset with the boundaries to map'
+              help=('Path to vector dataset with the boundaries to map. '
                     'Default is to use state boundaries for CONUS from '
                     'Natural Earth (1:50m scale), which is suitable for CONUS '
                     'supply curves. For other region, it is recommended to '
@@ -174,11 +169,8 @@ def make_maps(
     """
     Generates standardized, presentation-quality maps for the input supply
     curve, including maps for each of the following attributes:
-        - Capacity (``capacity``)
-        - All-in LCOE (``total_lcoe``)
-        - Project LCOE (``mean_lcoe``)
-        - LCOT (``lcot``)
-        - Capacity Density (derived column) [wind only]
+    Capacity (capacity), All-in LCOE (total_lcoe), Project LCOE (mean_lcoe),
+    LCOT (lcot), Capacity Density (derived column) [wind only]
     """
 
     out_path = Path(out_folder)
@@ -289,7 +281,7 @@ def make_maps(
               help=(
                 'Color map to use for the column. Refer to '
                 'https://matplotlib.org/stable/tutorials/colors/colormaps.html'
-                'for valid options. If not specified, the viridis colormap '
+                ' for valid options. If not specified, the viridis colormap '
                 'will be applied.'))
 @click.option('--legend_title', '-T', required=False,
               type=str,
@@ -307,7 +299,7 @@ def make_maps(
               type=click.Path(exists=True, dir_okay=False, file_okay=True),
               default=DEFAULT_BOUNDARIES,
               # noqa: E126
-              help=('Path to vector dataset with the boundaries to map'
+              help=('Path to vector dataset with the boundaries to map. '
                     'Default is to use state boundaries for CONUS from '
                     'Natural Earth (1:50m scale), which is suitable for CONUS '
                     'supply curves. For other region, it is recommended to '
