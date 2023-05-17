@@ -171,7 +171,8 @@ def states_gdf():
 def counties_gdf():
     """
     Return a geopandas geodataframe that is the counties boundaries from
-    counties.geojson. To be used as the in utils.plots.map_geodataframe_column() tests.
+    counties.geojson. To be used as the in
+    utils.plots.map_geodataframe_column() tests.
     """
 
     county_boundaries_path = Path(TEST_DATA_DIR).joinpath(

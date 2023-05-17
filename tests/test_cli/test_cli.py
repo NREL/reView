@@ -447,8 +447,8 @@ def test_map_column_bad_column(
     test_map_supply_curve_solar, test_cli_runner
 ):
     """
-    Test that map_column() CLI raises a KeyError for an input column that doesn't
-    exist in the supply curve dataset.
+    Test that map_column() CLI raises a KeyError for an input column that
+    doesn't exist in the supply curve dataset.
     """
 
     with tempfile.TemporaryDirectory() as tempdir:

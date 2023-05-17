@@ -249,6 +249,10 @@ def test_map_geodataframe_polygons(
     test_data_dir, supply_curve_gdf, county_background_gdf, states_gdf,
     counties_gdf
 ):
+    """
+    Test that map_geodataframe_column() produces expected output image
+    for a polygon input layer.
+    """
 
     county_capacity_df = supply_curve_gdf.groupby(
         "cnty_fips"
