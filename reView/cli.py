@@ -158,7 +158,7 @@ def unpack_characterizations(
                     'Natural Earth (1:50m scale), which is suitable for CONUS '
                     'supply curves. For other region, it is recommended to '
                     'provide a more appropriate boundaries dataset.'
-                ))
+                    ))
 @click.option('--dpi', '-d', required=False,
               default=600,
               type=click.IntRange(min=0),
@@ -277,12 +277,10 @@ def make_maps(
 @click.option('--colormap', '-C', required=False,
               type=str,
               default=None,
-              # noqa: E121
-              help=(
-                'Color map to use for the column. Refer to '
-                'https://matplotlib.org/stable/tutorials/colors/colormaps.html'
-                ' for valid options. If not specified, the viridis colormap '
-                'will be applied.'))
+              help=('Color map to use for the column. Refer to https://'
+                    'matplotlib.org/stable/tutorials/colors/colormaps.html'
+                    ' for valid options. If not specified, the viridis '
+                    'colormap will be applied.'))
 @click.option('--legend_title', '-T', required=False,
               type=str,
               default=None,

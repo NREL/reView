@@ -499,5 +499,6 @@ def test_map_column_boundaries(
                 "Output image does not match expected image " \
                 f"{expected_png}"
 
+
 if __name__ == '__main__':
     pytest.main([__file__, '-s'])
