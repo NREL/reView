@@ -52,6 +52,7 @@ from reView.pages.rev.model import (
     calc_least_cost,
     ReCalculatedData
 )
+from reView.pages.rev.view import DEFAULT_PROJECT
 from reView.utils.bespoke import BespokeUnpacker
 from reView.utils.constants import SKIP_VARS
 from reView.utils.functions import (
@@ -71,7 +72,6 @@ COMMON_CALLBACKS = [
     capacity_print(id_prefix="rev"),
     display_selected_tab_above_map(id_prefix="rev"),
 ]
-DEFAULT_PROJECT = "PR100 - Forecasts"
 
 
 def build_scenario_dropdowns(groups, dropid=None, multi=False, dynamic=False,
@@ -1008,6 +1008,7 @@ def figure_chart(
     Input("rev_map", "clickData"),
     Input("map_signal", "children"),
     State("project", "value"),
+    State("last_project", "children"),
     State("map_function", "value"),
     State("rev_chart_x_var_options", "value"),
     State("rev_chart_options", "value"),
@@ -1025,6 +1026,7 @@ def figure_map(
     map_click,
     signal,
     project,
+    last_project,
     map_function,
     x_var,
     chart_type
@@ -1064,6 +1066,7 @@ def figure_map(
     filters = signal_dict["filters"]
     df = apply_filters(df, filters)
 
+    # Unpack bespoke turbines if needed
     if "clickData" in callback_trigger() and "turbine_y_coords" in df:
         unpacker = BespokeUnpacker(df, map_click)
         df = unpacker.unpack_turbines()
@@ -1074,9 +1077,13 @@ def figure_map(
     else:
         color_var = y_var
 
+    # Build the title
     title_builder = Title(df, signal_dict, color_var, project,
                           map_selection=map_selection)
     title = title_builder.map_title
+
+    # Should we reset the map layout (override uirevision)?
+    print(f"\n last_projects: {project}, {last_project}\n")
 
     # Build figure
     map_builder = Map(
@@ -1088,7 +1095,8 @@ def figure_map(
         colorscale=color,
         color_min=color_ymin,
         color_max=color_ymax,
-        demand_data=None
+        demand_data=None,
+        last_project=last_project
     )
     figure = map_builder.figure(
         point_size=point_size,
@@ -1238,6 +1246,7 @@ def options_recalc_a(project, scenario, recalc_table):
             ],
             className="row",
         ),
+
         # CAPEX A
         html.Div(
             [
@@ -1257,6 +1266,7 @@ def options_recalc_a(project, scenario, recalc_table):
             ],
             className="row",
         ),
+
         # OPEX A
         html.Div(
             [
@@ -1276,6 +1286,7 @@ def options_recalc_a(project, scenario, recalc_table):
             ],
             className="row",
         ),
+
         # Losses A
         html.Div(
             [
@@ -1460,6 +1471,7 @@ def retrieve_filters(__, ___, var1, var2, var3, var4, q1, q2, q3, q4):
 # pylint: disable=too-many-statements
 @app.callback(
     Output("map_signal", "children"),
+    Output("last_project", "children"),
     Output("pca_plot_1", "clickData"),
     Output("pca_plot_2", "clickData"),
     Input("submit", "n_clicks"),
@@ -1491,11 +1503,11 @@ def retrieve_filters(__, ___, var1, var2, var3, var4, q1, q2, q3, q4):
 )
 @calls.log
 def retrieve_signal(
-    __,
+    submit,
     states,
     regions,
-    ___,
-    ____,
+    _,
+    __,
     x,
     scenarios,
     filter_store,
@@ -1634,10 +1646,10 @@ def retrieve_signal(
             "diff_units": diff_units,
             "states": states,
             "x": x,
-            "y": y,
+            "y": y
         }
 
-    return json.dumps(signal), None, None
+    return json.dumps(signal), project, None, None
 
 
 @app.callback(
