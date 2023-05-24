@@ -96,8 +96,8 @@ def build_scenario_dropdowns(groups, dropid=None, multi=False, dynamic=False,
 
         # Set dropid (is this needed?)
         if dynamic:
-            dropid={"index": ind, "type": f"filter-dropdown-{typeid}",
-                    "name": group}
+            dropid = {"index": ind, "type": f"filter-dropdown-{typeid}",
+                      "name": group}
         else:
             dropid = f"dropdown_{'_'.join(group.split()).lower()}"
 
@@ -531,7 +531,7 @@ def dropdown_composite_scenarios(
         project,
         filters,
         filter_ids,
-        __
+        _
     ):
     """Update the options given a project."""
     logger.debug("URL: %s", url)
@@ -602,8 +602,8 @@ def dropdown_composite_variables(project):
 
     try:
         scenario_a = next(config.all_files)
-    except StopIteration:
-        raise PreventUpdate
+    except StopIteration as exc:
+        raise PreventUpdate from exc
 
     variable_options = get_variable_options(project, scenario_a, None, {})
 
@@ -1167,8 +1167,8 @@ def figure_timeseries(
                 chart_selection,
                 map_click
             )
-        except (KeyError, ValueError):
-            raise PreventUpdate
+        except (KeyError, ValueError) as exc:
+            raise PreventUpdate from exc
         datasets[name] = data
 
     # Build Title
