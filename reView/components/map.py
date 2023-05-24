@@ -44,11 +44,11 @@ MAP_LAYOUT.update(
                 "aWlwcHZvdzdoIn0.9pxpgXxyyhM6qEF_dcyjIQ"
             ),
             "style": "satellite-streets",
-            "center": {
-                "lon": -97.5,
-                "lat": 39.5
-            },
-            "zoom": 2.75,
+            # "center": {
+            #     "lon": -97.5,
+            #     "lat": 39.5
+            # },
+            # "zoom": 2.75,
         },
         "uirevision": True,
     }
@@ -205,7 +205,7 @@ class Title:
             weights = df["wind_area_sq_km"]
         elif "solar" in self.color_var:
             weights = df["solar_area_sq_km"]
-        elif "area_sq_km" not in df:  # Quick fix, change when we get to bespoke hybrids
+        elif "area_sq_km" not in df:  # Quick fix change for bespoke hybrids
             weights = df["capacity"]
         else:
             weights = df["area_sq_km"]
@@ -258,9 +258,9 @@ class Map:
         project=None,
         basemap="light",
         colorscale="Viridis",
-        color_min=None,
-        color_max=None,
+        color_range=None,
         demand_data=None,
+        last_project=None
     ):
         """Initialize ScatterPlot object."""
         self.df = df
@@ -270,9 +270,11 @@ class Map:
         self.basemap = basemap
         self.colorscale = colorscale
         self.cmin, self.cmax = ColorRange(
-            df, color_var, project, color_min, color_max
+            df, color_var, project, color_range[0], color_range[1]
         )
         self.demand_data = demand_data
+        self.last_project = last_project
+
         if project:
             self.config = Config(project)
 
@@ -394,8 +396,10 @@ class Map:
     def hover_text(self):
         """Return hover text column."""
         # Convert NaNs to strings for international projects
-        self.df["state"][self.df["state"].isnull()] = "nan"
-        self.df["county"][self.df["county"].isnull()] = "nan"
+        if "state" in self.df:
+            self.df["state"][self.df["state"].isnull()] = "nan"
+        if "county" in self.df:
+            self.df["county"][self.df["county"].isnull()] = "nan"
 
         if self.demand_data is not None:
             text = (
@@ -466,11 +470,28 @@ class Map:
     @property
     def layout(self):
         """Build the map data layout dictionary."""
+        # Setup initial elements
         layout = copy.deepcopy(MAP_LAYOUT)
         layout["mapbox"]["style"] = self.basemap
         layout["showlegend"] = self.show_legend
         layout["title"]["text"] = self.plot_title
         layout["yaxis"] = {"range": [self.cmin, self.cmax]}
+        layout["uirevision"] = self.last_project
+
+        # Set initial view for a project
+        lats = self.df["latitude"]
+        lons = self.df["longitude"]
+        center = {
+            "lon": lons.mean(),
+            "lat": lats.mean()
+        }
+        bounds = max(
+            abs(lons.max() - lons.min()), abs(lats.max() - lats.min())
+        )
+        zoom = 11.5 - np.log(bounds * 111)
+        layout["mapbox"]["center"] = center
+        layout["mapbox"]["zoom"] = zoom
+
         return layout
 
     def marker(self, point_size, reverse_color=False):

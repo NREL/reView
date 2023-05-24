@@ -52,6 +52,7 @@ from reView.pages.rev.model import (
     calc_least_cost,
     ReCalculatedData
 )
+from reView.pages.rev.view import DEFAULT_PROJECT
 from reView.utils.bespoke import BespokeUnpacker
 from reView.utils.constants import SKIP_VARS
 from reView.utils.functions import (
@@ -71,9 +72,9 @@ COMMON_CALLBACKS = [
     capacity_print(id_prefix="rev"),
     display_selected_tab_above_map(id_prefix="rev"),
 ]
-DEFAULT_PROJECT = "PR100 - Forecasts"
 
 
+# pylint: disable=too-many-locals
 def build_scenario_dropdowns(groups, dropid=None, multi=False, dynamic=False,
                              typeid="a"):
     """Return list of dropdown options for a project's file selection."""
@@ -87,16 +88,16 @@ def build_scenario_dropdowns(groups, dropid=None, multi=False, dynamic=False,
     for ind, (group, options) in enumerate(groups.items()):
         # Set style
         color = colors[ind % 2]
-        style = {"background-color": color, "margin-right": "-1px"}   
+        style = {"background-color": color, "margin-right": "-1px"}
         if ind == 0:
-            style["border-top-left-radius"] = "5px"   
+            style["border-top-left-radius"] = "5px"
         if ind == len(groups) - 1:
-            style["border-bottom-left-radius"] = "5px"   
+            style["border-bottom-left-radius"] = "5px"
 
         # Set dropid (is this needed?)
         if dynamic:
-            dropid={"index": ind, "type": f"filter-dropdown-{typeid}",
-                    "name": group}
+            dropid = {"index": ind, "type": f"filter-dropdown-{typeid}",
+                      "name": group}
         else:
             dropid = f"dropdown_{'_'.join(group.split()).lower()}"
 
@@ -237,7 +238,7 @@ def composite_fname(paths, composite_function, composite_variable):
     tag = "".join(new_names)
     if tag.startswith("_"):
         tag = tag[1:]
-    
+
     if len(tag) > 75:
         tag = hashlib.sha1(str.encode(str(paths))).hexdigest()
 
@@ -296,7 +297,7 @@ def filter_files(project, filters, options):
     if config.options is None:
         raise ValueError(f"{project} has no variable options CSV.")
 
-    # Simplify the div dictionary 
+    # Simplify the div dictionary
     filters = dict(zip(options, filters))
 
     # Apply filters to the options data frame
@@ -308,7 +309,7 @@ def filter_files(project, filters, options):
     return list(options["file"].values)
 
 
-def files_to_dropdown(files, typeid="a"):
+def files_to_dropdown(files):
     """Convert a list of files to a list of dropdowns."""
     names = [Path(file).name for file in files]
     names = [strip_rev_filename_endings(name) for name in names]
@@ -520,19 +521,17 @@ def dropdown_composite_plot_options(scenario_options, project):
     Output("composite_scenarios", "options"),
     Input("url", "pathname"),
     Input("project", "value"),
-    Input("composite_variable", "value"),
     Input({"type": "filter-dropdown-c", "index": ALL, "name": ALL}, "value"),
     State({"type": "filter-dropdown-c", "index": ALL, "name": ALL}, "id"),
     State("submit", "n_clicks"),
 )
 @calls.log
 def dropdown_composite_scenarios(
-        url, 
+        url,
         project,
-        composite_variable,
         filters,
         filter_ids,
-        __
+        _
     ):
     """Update the options given a project."""
     logger.debug("URL: %s", url)
@@ -555,7 +554,7 @@ def dropdown_composite_scenarios(
         files += outputs
         files.sort()
 
-    group = files_to_dropdown(files, typeid="c")
+    group = files_to_dropdown(files)
 
     return group
 
@@ -603,10 +602,11 @@ def dropdown_composite_variables(project):
 
     try:
         scenario_a = next(config.all_files)
-    except StopIteration:
-        raise PreventUpdate
+    except StopIteration as exc:
+        raise PreventUpdate from exc
 
     variable_options = get_variable_options(project, scenario_a, None, {})
+
     if config.options is not None:
         variable_options += [
             {"label": col, "value": col}
@@ -692,7 +692,7 @@ def dropdown_scenarios(
     # If not return all files
     else:
         # Separate the output files, let's put those at the end
-        files = [str(file) for file in config.files.values()]  # This is causing a huge slow down!
+        files = [str(file) for file in config.files.values()]  # Slow
         originals = [file for file in files if "review_outputs" not in file]
         originals.sort()
         outputs.sort()
@@ -701,8 +701,8 @@ def dropdown_scenarios(
         files_a = files_b = originals + outputs
 
     # Convert to dropdowns
-    group_a = files_to_dropdown(files_a, typeid="a")
-    group_b = files_to_dropdown(files_b, typeid="b")
+    group_a = files_to_dropdown(files_a)
+    group_b = files_to_dropdown(files_b)
 
     # Populate with initial values
     if not group_a:
@@ -717,7 +717,11 @@ def dropdown_scenarios(
     # Placeholder for when all files are filtered out
     placeholder = "All files filtered out"
 
-    return group_a, group_b, group_a, group_a, value_a, value_b, placeholder, placeholder
+    # Create a single return tuple
+    return_package = (group_a, group_b, group_a, group_a, value_a, value_b,
+                      placeholder, placeholder)
+
+    return return_package
 
 
 @app.callback(
@@ -1008,6 +1012,7 @@ def figure_chart(
     Input("rev_map", "clickData"),
     Input("map_signal", "children"),
     State("project", "value"),
+    State("last_project", "children"),
     State("map_function", "value"),
     State("rev_chart_x_var_options", "value"),
     State("rev_chart_options", "value"),
@@ -1025,6 +1030,7 @@ def figure_map(
     map_click,
     signal,
     project,
+    last_project,
     map_function,
     x_var,
     chart_type
@@ -1064,6 +1070,7 @@ def figure_map(
     filters = signal_dict["filters"]
     df = apply_filters(df, filters)
 
+    # Unpack bespoke turbines if needed
     if "clickData" in callback_trigger() and "turbine_y_coords" in df:
         unpacker = BespokeUnpacker(df, map_click)
         df = unpacker.unpack_turbines()
@@ -1074,9 +1081,13 @@ def figure_map(
     else:
         color_var = y_var
 
+    # Build the title
     title_builder = Title(df, signal_dict, color_var, project,
                           map_selection=map_selection)
     title = title_builder.map_title
+
+    # Should we reset the map layout (override uirevision)?
+    print(f"\n last_projects: {project}, {last_project}\n")
 
     # Build figure
     map_builder = Map(
@@ -1086,9 +1097,9 @@ def figure_map(
         project=project,
         basemap=basemap,
         colorscale=color,
-        color_min=color_ymin,
-        color_max=color_ymax,
-        demand_data=None
+        color_range=[color_ymin, color_ymax],
+        demand_data=None,
+        last_project=last_project
     )
     figure = map_builder.figure(
         point_size=point_size,
@@ -1156,8 +1167,8 @@ def figure_timeseries(
                 chart_selection,
                 map_click
             )
-        except (KeyError, ValueError):
-            raise PreventUpdate
+        except (KeyError, ValueError) as exc:
+            raise PreventUpdate from exc
         datasets[name] = data
 
     # Build Title
@@ -1198,7 +1209,7 @@ def options_recalc_a(project, scenario, recalc_table):
     for entry in recalc_table.values():
         for value in entry.values():
             values.append(value)
-    if all([val is None for val in values]):
+    if all(val is None for val in values):
         raise PreventUpdate
 
     config = Config(project)
@@ -1238,6 +1249,7 @@ def options_recalc_a(project, scenario, recalc_table):
             ],
             className="row",
         ),
+
         # CAPEX A
         html.Div(
             [
@@ -1257,6 +1269,7 @@ def options_recalc_a(project, scenario, recalc_table):
             ],
             className="row",
         ),
+
         # OPEX A
         html.Div(
             [
@@ -1276,6 +1289,7 @@ def options_recalc_a(project, scenario, recalc_table):
             ],
             className="row",
         ),
+
         # Losses A
         html.Div(
             [
@@ -1315,7 +1329,7 @@ def options_recalc_b(project, scenario, recalc_table):
     for entry in recalc_table.values():
         for value in entry.values():
             values.append(value)
-    if all([val is None for val in values]):
+    if all(val is None for val in values):
         raise PreventUpdate
 
     config = Config(project)
@@ -1460,6 +1474,7 @@ def retrieve_filters(__, ___, var1, var2, var3, var4, q1, q2, q3, q4):
 # pylint: disable=too-many-statements
 @app.callback(
     Output("map_signal", "children"),
+    Output("last_project", "children"),
     Output("pca_plot_1", "clickData"),
     Output("pca_plot_2", "clickData"),
     Input("submit", "n_clicks"),
@@ -1491,11 +1506,11 @@ def retrieve_filters(__, ___, var1, var2, var3, var4, q1, q2, q3, q4):
 )
 @calls.log
 def retrieve_signal(
-    __,
+    submit,
     states,
     regions,
-    ___,
-    ____,
+    _,
+    __,
     x,
     scenarios,
     filter_store,
@@ -1634,10 +1649,10 @@ def retrieve_signal(
             "diff_units": diff_units,
             "states": states,
             "x": x,
-            "y": y,
+            "y": y
         }
 
-    return json.dumps(signal), None, None
+    return json.dumps(signal), project, None, None
 
 
 @app.callback(
@@ -1887,7 +1902,7 @@ def toggle_scenario_filters(project):
         # Build the filtering dictionary
         groups = {}
         df = odf.copy()
-        for i, col in enumerate(cols):
+        for col in cols:
             # pylint: disable=unsubscriptable-object
             options = ["all"] + list(df[col].unique())
             dropdown_options = []

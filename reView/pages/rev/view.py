@@ -21,7 +21,10 @@ from reView.components import (
 from reView.utils.config import Config
 
 
-DEFAULT_CONFIG = Config(sorted(Config.projects)[0])
+DEFAULT_PROJECT = "PR100 - Forecasts"
+if DEFAULT_PROJECT not in list(Config.projects):
+    DEFAULT_PROJECT = sorted(Config.projects)[0]
+DEFAULT_CONFIG = Config(DEFAULT_PROJECT)
 DEFAULT_SIGNAL = {
     "filters": [],
     "mask": "off",
@@ -94,7 +97,7 @@ layout = html.Div(
                     children=time_div(
                         id_prefix="rev",
                         class_name="twelve columns"
-                    )        
+                    )
                 ),
             ],
         ),
@@ -104,6 +107,9 @@ layout = html.Div(
 
         # To store option names for the chart title
         html.Div(id="chosen_chart_options", style={"display": "none"}),
+
+        # To tell if the project has changed for initial map layout update
+        html.Div(id="last_project", style={"display": "none"}),
 
         # For storing the data frame path and triggering updates
         html.Div(id="map_data_path", style={"display": "none"}),
