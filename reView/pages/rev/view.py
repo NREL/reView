@@ -97,7 +97,7 @@ layout = html.Div(
                     children=time_div(
                         id_prefix="rev",
                         class_name="twelve columns"
-                    )        
+                    )
                 ),
             ],
         ),

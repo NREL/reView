@@ -145,8 +145,7 @@ for i in [1, 2]:
             plot_title=title,
             basemap=basemap,
             colorscale=color,
-            color_min=color_ymin,
-            color_max=color_ymax,
+            color_range=[color_ymin, color_ymax],
         )
         figure = mapper.figure(
             point_size=point_size,

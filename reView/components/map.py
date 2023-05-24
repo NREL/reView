@@ -205,7 +205,7 @@ class Title:
             weights = df["wind_area_sq_km"]
         elif "solar" in self.color_var:
             weights = df["solar_area_sq_km"]
-        elif "area_sq_km" not in df:  # Quick fix, change when we get to bespoke hybrids
+        elif "area_sq_km" not in df:  # Quick fix change for bespoke hybrids
             weights = df["capacity"]
         else:
             weights = df["area_sq_km"]
@@ -258,8 +258,7 @@ class Map:
         project=None,
         basemap="light",
         colorscale="Viridis",
-        color_min=None,
-        color_max=None,
+        color_range=None,
         demand_data=None,
         last_project=None
     ):
@@ -271,7 +270,7 @@ class Map:
         self.basemap = basemap
         self.colorscale = colorscale
         self.cmin, self.cmax = ColorRange(
-            df, color_var, project, color_min, color_max
+            df, color_var, project, color_range[0], color_range[1]
         )
         self.demand_data = demand_data
         self.last_project = last_project
@@ -489,7 +488,7 @@ class Map:
         bounds = max(
             abs(lons.max() - lons.min()), abs(lats.max() - lats.min())
         )
-        zoom = (11.5 - np.log(bounds * 111))
+        zoom = 11.5 - np.log(bounds * 111)
         layout["mapbox"]["center"] = center
         layout["mapbox"]["zoom"] = zoom
 

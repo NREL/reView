@@ -74,6 +74,7 @@ COMMON_CALLBACKS = [
 ]
 
 
+# pylint: disable=too-many-locals
 def build_scenario_dropdowns(groups, dropid=None, multi=False, dynamic=False,
                              typeid="a"):
     """Return list of dropdown options for a project's file selection."""
@@ -87,11 +88,11 @@ def build_scenario_dropdowns(groups, dropid=None, multi=False, dynamic=False,
     for ind, (group, options) in enumerate(groups.items()):
         # Set style
         color = colors[ind % 2]
-        style = {"background-color": color, "margin-right": "-1px"}   
+        style = {"background-color": color, "margin-right": "-1px"}
         if ind == 0:
-            style["border-top-left-radius"] = "5px"   
+            style["border-top-left-radius"] = "5px"
         if ind == len(groups) - 1:
-            style["border-bottom-left-radius"] = "5px"   
+            style["border-bottom-left-radius"] = "5px"
 
         # Set dropid (is this needed?)
         if dynamic:
@@ -237,7 +238,7 @@ def composite_fname(paths, composite_function, composite_variable):
     tag = "".join(new_names)
     if tag.startswith("_"):
         tag = tag[1:]
-    
+
     if len(tag) > 75:
         tag = hashlib.sha1(str.encode(str(paths))).hexdigest()
 
@@ -296,7 +297,7 @@ def filter_files(project, filters, options):
     if config.options is None:
         raise ValueError(f"{project} has no variable options CSV.")
 
-    # Simplify the div dictionary 
+    # Simplify the div dictionary
     filters = dict(zip(options, filters))
 
     # Apply filters to the options data frame
@@ -308,7 +309,7 @@ def filter_files(project, filters, options):
     return list(options["file"].values)
 
 
-def files_to_dropdown(files, typeid="a"):
+def files_to_dropdown(files):
     """Convert a list of files to a list of dropdowns."""
     names = [Path(file).name for file in files]
     names = [strip_rev_filename_endings(name) for name in names]
@@ -520,16 +521,14 @@ def dropdown_composite_plot_options(scenario_options, project):
     Output("composite_scenarios", "options"),
     Input("url", "pathname"),
     Input("project", "value"),
-    Input("composite_variable", "value"),
     Input({"type": "filter-dropdown-c", "index": ALL, "name": ALL}, "value"),
     State({"type": "filter-dropdown-c", "index": ALL, "name": ALL}, "id"),
     State("submit", "n_clicks"),
 )
 @calls.log
 def dropdown_composite_scenarios(
-        url, 
+        url,
         project,
-        composite_variable,
         filters,
         filter_ids,
         __
@@ -555,7 +554,7 @@ def dropdown_composite_scenarios(
         files += outputs
         files.sort()
 
-    group = files_to_dropdown(files, typeid="c")
+    group = files_to_dropdown(files)
 
     return group
 
@@ -607,6 +606,7 @@ def dropdown_composite_variables(project):
         raise PreventUpdate
 
     variable_options = get_variable_options(project, scenario_a, None, {})
+
     if config.options is not None:
         variable_options += [
             {"label": col, "value": col}
@@ -692,7 +692,7 @@ def dropdown_scenarios(
     # If not return all files
     else:
         # Separate the output files, let's put those at the end
-        files = [str(file) for file in config.files.values()]  # This is causing a huge slow down!
+        files = [str(file) for file in config.files.values()]  # Slow
         originals = [file for file in files if "review_outputs" not in file]
         originals.sort()
         outputs.sort()
@@ -701,8 +701,8 @@ def dropdown_scenarios(
         files_a = files_b = originals + outputs
 
     # Convert to dropdowns
-    group_a = files_to_dropdown(files_a, typeid="a")
-    group_b = files_to_dropdown(files_b, typeid="b")
+    group_a = files_to_dropdown(files_a)
+    group_b = files_to_dropdown(files_b)
 
     # Populate with initial values
     if not group_a:
@@ -717,7 +717,11 @@ def dropdown_scenarios(
     # Placeholder for when all files are filtered out
     placeholder = "All files filtered out"
 
-    return group_a, group_b, group_a, group_a, value_a, value_b, placeholder, placeholder
+    # Create a single return tuple
+    return_package = (group_a, group_b, group_a, group_a, value_a, value_b,
+                      placeholder, placeholder)
+
+    return return_package
 
 
 @app.callback(
@@ -1093,8 +1097,7 @@ def figure_map(
         project=project,
         basemap=basemap,
         colorscale=color,
-        color_min=color_ymin,
-        color_max=color_ymax,
+        color_range=[color_ymin, color_ymax],
         demand_data=None,
         last_project=last_project
     )
@@ -1206,7 +1209,7 @@ def options_recalc_a(project, scenario, recalc_table):
     for entry in recalc_table.values():
         for value in entry.values():
             values.append(value)
-    if all([val is None for val in values]):
+    if all(val is None for val in values):
         raise PreventUpdate
 
     config = Config(project)
@@ -1326,7 +1329,7 @@ def options_recalc_b(project, scenario, recalc_table):
     for entry in recalc_table.values():
         for value in entry.values():
             values.append(value)
-    if all([val is None for val in values]):
+    if all(val is None for val in values):
         raise PreventUpdate
 
     config = Config(project)
@@ -1899,7 +1902,7 @@ def toggle_scenario_filters(project):
         # Build the filtering dictionary
         groups = {}
         df = odf.copy()
-        for i, col in enumerate(cols):
+        for col in cols:
             # pylint: disable=unsubscriptable-object
             options = ["all"] + list(df[col].unique())
             dropdown_options = []
