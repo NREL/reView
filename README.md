@@ -74,8 +74,7 @@
 
 ## Command-Line Tools
 
-Additional command-line tools are available as part of this package. A list of these tools can be accessed using the command `reView-tools`. More information on usage of these command-line tools can be found in the [Usage](USAGE.md) documentation.
-----
+Additional command-line tools are available as part of this package. A list of these tools can be accessed using the command `reView-tools`. More information on the usage of these tools can be found in the [Usage](USAGE.md) documentation.
 
 ## Development
 
