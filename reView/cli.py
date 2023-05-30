@@ -89,7 +89,7 @@ def unpack_turbines(
             "Use --overwrite to overwrite the existing dataset.")
 
     if overwrite is True:
-        out_gpkg_path.unlink(missing_ok=True)
+        Path(out_gpkg_path).unlink(missing_ok=True)
 
     turbines_gdf.to_file(out_gpkg_path, driver='GPKG')
 
@@ -133,7 +133,7 @@ def unpack_characterizations(
     )
 
     if overwrite is True:
-        out_csv.unlink(missing_ok=True)
+        Path(out_csv).unlink(missing_ok=True)
     char_df.to_csv(out_csv, header=True, index=False, mode="x")
 
 
@@ -230,7 +230,7 @@ def make_maps(
         )
         map_vars.update({
             "capacity": {
-                "breaks": [100, 125, 150, 175, 200, 225],
+                "breaks": [60, 120, 180, 240, 275],
                 "cmap": 'Blues',
                 "legend_title": "Capacity (MW)"
             },
@@ -293,9 +293,9 @@ def make_maps(
               type=str,
               default=None,
               help=('Breaks to use for the map legend. Should be formatted '
-                    'like a list, e.g. : "[10, 50, 100, 150]". If not '
-                    'provided, a 5-class quantile classification will be used '
-                    'to derive the breaks.'))
+                    'like a list in quotes, e.g. : "[10, 50, 100, 150]". If '
+                    'not provided, a 5-class quantile classification will be '
+                    'used to derive the breaks.'))
 @click.option('--boundaries', '-b', required=False,
               type=click.Path(exists=True, dir_okay=False, file_okay=True),
               default=DEFAULT_BOUNDARIES,
@@ -345,7 +345,9 @@ def map_column(
         crs=boundaries_gdf.crs
     ).explode(index_parts=False)
 
-    map_extent = background_gdf.buffer(0.01).total_bounds
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=UserWarning)
+        map_extent = background_gdf.buffer(0.01).total_bounds
 
     if legend_breaks is None:
         breaks = None
