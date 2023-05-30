@@ -28,6 +28,7 @@ DEFAULT_BOUNDARIES = Path(REVIEW_DATA_DIR).joinpath(
     "boundaries",
     "ne_50m_admin_1_states_provinces_lakes_conus.geojson"
 )
+IMAGE_FORMAT_CHOICES = ["png", "pdf", "svg", "jpg"]
 
 
 @click.group(context_settings=CONTEXT_SETTINGS)
@@ -161,17 +162,22 @@ def unpack_characterizations(
                     'provide a more appropriate boundaries dataset. The input '
                     'vector dataset can be in CRS.'
                     ))
-@click.option('--dpi', '-d', required=False,
-              default=600,
-              type=click.IntRange(min=0),
-              help='Dots-per-inch (DPI) for output images. Default is 600.')
 @click.option('--keep-zero', '-K', default=False,
               required=False,
               is_flag=True,
               help='Keep zero capacity supply curve project sites. These '
                    'sites are dropped by default.')
+@click.option('--dpi', '-d', required=False,
+              default=600,
+              type=click.IntRange(min=0),
+              help='Dots-per-inch (DPI) for output images. Default is 600.')
+@click.option("--out-format", "-F", required=False,
+              default="png",
+              type=click.Choice(IMAGE_FORMAT_CHOICES, case_sensitive=True),
+              help="Output format for images. Default is ``png`` "
+              f"Valid options are: {IMAGE_FORMAT_CHOICES}.")
 def make_maps(
-    supply_curve_csv, tech, out_folder, boundaries, dpi, keep_zero
+    supply_curve_csv, tech, out_folder, boundaries, keep_zero, dpi, out_format
 ):
     """
     Generates standardized, presentation-quality maps for the input supply
@@ -281,9 +287,9 @@ def make_maps(
         )
         plt.tight_layout()
 
-        out_png_name = f"{map_var}_{tech}.png"
-        out_png = out_path.joinpath(out_png_name)
-        g.figure.savefig(out_png, dpi=dpi)
+        out_image_name = f"{map_var}_{tech}.{out_format}"
+        out_image_path = out_path.joinpath(out_image_name)
+        g.figure.savefig(out_image_path, dpi=dpi)
         plt.close(g.figure)
 
 
@@ -327,18 +333,23 @@ def make_maps(
                     'provide a more appropriate boundaries dataset. The input '
                     'vector dataset can be in CRS.'
                     ))
-@click.option('--dpi', '-d', required=False,
-              default=600,
-              type=click.IntRange(min=0),
-              help='Dots-per-inch (DPI) for output images. Default is 600.')
 @click.option('--keep_zero', '-K', default=False,
               required=False,
               is_flag=True,
               help='Keep zero capacity supply curve project sites. These '
                    'Sites are dropped by default.')
+@click.option('--dpi', '-d', required=False,
+              default=600,
+              type=click.IntRange(min=0),
+              help='Dots-per-inch (DPI) for output images. Default is 600.')
+@click.option("--out-format", "-F", required=False,
+              default="png",
+              type=click.Choice(IMAGE_FORMAT_CHOICES, case_sensitive=True),
+              help="Output format for images. Default is ``png`` "
+                   f"Valid options are: {IMAGE_FORMAT_CHOICES}.")
 def map_column(
     supply_curve_csv, out_folder, column, colormap, legend_title,
-    legend_breaks, boundaries, dpi, keep_zero
+    legend_breaks, boundaries, keep_zero, dpi, out_format
 ):
     # pylint: disable=raise-missing-from
     """
@@ -425,7 +436,7 @@ def map_column(
     )
     plt.tight_layout()
 
-    out_png_name = f"{column}.png"
-    out_png = out_path.joinpath(out_png_name)
-    g.figure.savefig(out_png, dpi=dpi)
+    out_image_name = f"{column}.{out_format}"
+    out_image_path = out_path.joinpath(out_image_name)
+    g.figure.savefig(out_image_path, dpi=dpi)
     plt.close(g.figure)

@@ -344,6 +344,44 @@ def test_make_maps_boundaries(
 
 @pytest.mark.filterwarnings("ignore:Skipping")
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
+def test_make_maps_pdf(map_supply_curve_solar, cli_runner):
+    """
+    Test that make_maps() CLI correctly outputs pdfs when specified as the
+    out_format.
+    """
+
+    with tempfile.TemporaryDirectory() as tempdir:
+        output_path = pathlib.Path(tempdir)
+        result = cli_runner.invoke(
+            make_maps, [
+                '-i', map_supply_curve_solar.as_posix(),
+                '-t', "solar",
+                '-o', output_path.as_posix(),
+                '--dpi', 75,
+                '-F', 'pdf'
+            ]
+        )
+        assert result.exit_code == 0
+
+        out_pdf_names = [
+            "capacity_solar.pdf",
+            "capacity_density_solar.pdf",
+            "lcot_solar.pdf",
+            "mean_lcoe_solar.pdf",
+            "total_lcoe_solar.pdf"
+        ]
+        # it's not easy to open and check pdf contents, so just check
+        # the file was created successfully and is not empty
+        for out_pdf_name in out_pdf_names:
+            out_pdf = output_path.joinpath(out_pdf_name)
+            assert out_pdf.exists(), \
+                f"Output pdf could not be found: {out_pdf_name}"
+            assert out_pdf.stat().st_size > 0, \
+                f"Output pdf appears to be an empty file: {out_pdf_name}"
+
+
+@pytest.mark.filterwarnings("ignore:Skipping")
+@pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_map_column_happy(
     map_supply_curve_solar, cli_runner, data_dir_test
 ):
@@ -496,6 +534,35 @@ def test_map_column_boundaries(
         assert compare_images_approx(expected_png, out_png), \
             "Output image does not match expected image " \
             f"{expected_png}"
+
+
+@pytest.mark.filterwarnings("ignore:Skipping")
+@pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
+def test_map_column_pdf(map_supply_curve_solar, cli_runner):
+    """
+    Test that map_column() CLI correctly outputs a pdf when specified as the
+    out-format.
+    """
+
+    with tempfile.TemporaryDirectory() as tempdir:
+        output_path = pathlib.Path(tempdir)
+        result = cli_runner.invoke(
+            map_column, [
+                '-i', map_supply_curve_solar.as_posix(),
+                '-c', 'area_sq_km',
+                '-o', output_path.as_posix(),
+                '--dpi', 75,
+                '-F', 'pdf'
+            ]
+        )
+        assert result.exit_code == 0
+
+        out_pdf_name = "area_sq_km.pdf"
+        out_pdf = output_path.joinpath(out_pdf_name)
+        assert out_pdf.exists(), \
+            f"Output pdf could not be found: {out_pdf_name}"
+        assert out_pdf.stat().st_size > 0, \
+            f"Output pdf appears to be an empty file: {out_pdf_name}"
 
 
 if __name__ == '__main__':

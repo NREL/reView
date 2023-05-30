@@ -51,9 +51,6 @@ def compare_images_approx(
 
     max_diff_bits = int(np.ceil(hash_size * max_diff_pct))
 
-    if (expected_hash - out_hash) > max_diff_bits:
-        raise ValueError((expected_hash - out_hash))
-
     return (expected_hash - out_hash) <= max_diff_bits
 
 
@@ -121,7 +118,7 @@ def test_map_geodataframe_column_happy(
 
         out_png_name = "happy_map.png"
         out_png = Path(tempdir).joinpath("happy_map.png")
-        g.figure.savefig(out_png, dpi=600)
+        g.figure.savefig(out_png, dpi=75)
         plt.close(g.figure)
 
         expected_png = data_dir_test.joinpath("plots", out_png_name)
@@ -169,7 +166,7 @@ def test_map_geodataframe_column_styling(
 
         out_png_name = "styling_map.png"
         out_png = Path(tempdir).joinpath(out_png_name)
-        g.figure.savefig(out_png, dpi=600)
+        g.figure.savefig(out_png, dpi=75)
         plt.close(g.figure)
 
         expected_png = data_dir_test.joinpath("plots", out_png_name)
@@ -199,6 +196,8 @@ def test_map_geodataframe_column_repeat(
             boundaries_df=states_gdf
         )
         plt.tight_layout()
+        plt.close(g.figure)
+
         g = map_geodataframe_column(
             supply_curve_gdf,
             col_name,
@@ -209,7 +208,7 @@ def test_map_geodataframe_column_repeat(
 
         out_png_name = "happy_map.png"
         out_png = Path(tempdir).joinpath(out_png_name)
-        g.figure.savefig(out_png, dpi=600)
+        g.figure.savefig(out_png, dpi=75)
         plt.close(g.figure)
 
         expected_png = data_dir_test.joinpath("plots", out_png_name)
@@ -270,7 +269,7 @@ def test_map_geodataframe_polygons(
 
         out_png_name = "polygons_map.png"
         out_png = Path(tempdir).joinpath(out_png_name)
-        g.figure.savefig(out_png, dpi=600)
+        g.figure.savefig(out_png, dpi=75)
         plt.close(g.figure)
 
         expected_png = data_dir_test.joinpath("plots", out_png_name)
