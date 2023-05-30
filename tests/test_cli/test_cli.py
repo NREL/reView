@@ -13,10 +13,7 @@ from reView.cli import (
     make_maps,
     map_column
 )
-from tests.test_utils.test_plots import (
-    compare_images_approx,
-    compare_images_exact
-)
+from tests.test_utils.test_plots import compare_images_approx
 
 
 def test_main(test_cli_runner):
@@ -250,11 +247,9 @@ def test_make_maps_solar(
         for out_png_name in out_png_names:
             expected_png = test_data_dir.joinpath("plots", out_png_name)
             out_png = output_path.joinpath(out_png_name)
-            images_match_exactly = compare_images_exact(expected_png, out_png)
-            if not images_match_exactly:
-                assert compare_images_approx(expected_png, out_png), \
-                    "Output image does not match expected image " \
-                    f"{expected_png}"
+            assert compare_images_approx(expected_png, out_png), \
+                "Output image does not match expected image " \
+                f"{expected_png}"
 
 
 @pytest.mark.filterwarnings("ignore:Skipping")
@@ -290,11 +285,9 @@ def test_make_maps_wind(
         for out_png_name in out_png_names:
             expected_png = test_data_dir.joinpath("plots", out_png_name)
             out_png = output_path.joinpath(out_png_name)
-            images_match_exactly = compare_images_exact(expected_png, out_png)
-            if not images_match_exactly:
-                assert compare_images_approx(expected_png, out_png), \
-                    "Output image does not match expected image " \
-                    f"{expected_png}"
+            assert compare_images_approx(expected_png, out_png), \
+                "Output image does not match expected image " \
+                f"{expected_png}"
 
 
 @pytest.mark.filterwarnings("ignore:Skipping")
@@ -333,11 +326,9 @@ def test_make_maps_wind_keep_zero(
                 "plots", out_png_name.replace(".png", "_kz.png")
             )
             out_png = output_path.joinpath(out_png_name)
-            images_match_exactly = compare_images_exact(expected_png, out_png)
-            if not images_match_exactly:
-                assert compare_images_approx(expected_png, out_png), \
-                    "Output image does not match expected image " \
-                    f"{expected_png}"
+            assert compare_images_approx(expected_png, out_png), \
+                "Output image does not match expected image " \
+                f"{expected_png}"
 
 
 @pytest.mark.filterwarnings("ignore:Skipping")
@@ -374,11 +365,9 @@ def test_make_maps_boundaries(
                 "plots", out_png_name.replace(".png", "_boundaries.png")
             )
             out_png = output_path.joinpath(out_png_name)
-            images_match_exactly = compare_images_exact(expected_png, out_png)
-            if not images_match_exactly:
-                assert compare_images_approx(expected_png, out_png), \
-                    "Output image does not match expected image " \
-                    f"{expected_png}"
+            assert compare_images_approx(expected_png, out_png), \
+                "Output image does not match expected image " \
+                f"{expected_png}"
 
 
 @pytest.mark.filterwarnings("ignore:Skipping")
@@ -408,11 +397,9 @@ def test_map_column_happy(
             "plots", out_png_name.replace(".png", "_happy.png")
         )
         out_png = output_path.joinpath(out_png_name)
-        images_match_exactly = compare_images_exact(expected_png, out_png)
-        if not images_match_exactly:
-            assert compare_images_approx(expected_png, out_png), \
-                "Output image does not match expected image " \
-                f"{expected_png}"
+        assert compare_images_approx(expected_png, out_png), \
+            "Output image does not match expected image " \
+            f"{expected_png}"
 
 
 @pytest.mark.filterwarnings("ignore:Skipping")
@@ -445,11 +432,9 @@ def test_map_column_formatting(
             "plots", out_png_name.replace(".png", "_formatting.png")
         )
         out_png = output_path.joinpath(out_png_name)
-        images_match_exactly = compare_images_exact(expected_png, out_png)
-        if not images_match_exactly:
-            assert compare_images_approx(expected_png, out_png), \
-                "Output image does not match expected image " \
-                f"{expected_png}"
+        assert compare_images_approx(expected_png, out_png), \
+            "Output image does not match expected image " \
+            f"{expected_png}"
 
 
 @pytest.mark.filterwarnings("ignore:Skipping")
@@ -536,11 +521,9 @@ def test_map_column_boundaries(
             "plots", out_png_name.replace(".png", "_boundaries.png")
         )
         out_png = output_path.joinpath(out_png_name)
-        images_match_exactly = compare_images_exact(expected_png, out_png)
-        if not images_match_exactly:
-            assert compare_images_approx(expected_png, out_png), \
-                "Output image does not match expected image " \
-                f"{expected_png}"
+        assert compare_images_approx(expected_png, out_png), \
+            "Output image does not match expected image " \
+            f"{expected_png}"
 
 
 if __name__ == '__main__':

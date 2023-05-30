@@ -54,29 +54,6 @@ def compare_images_approx(
     return (expected_hash - out_hash) <= max_diff_bits
 
 
-def compare_images_exact(image_1_path, image_2_path):
-    """
-    Check if two images match exactly.
-
-    Parameters
-    ----------
-    image_1_path : pathlib.Path
-        File path to first image.
-    image_2_path : pathlib.Path
-        File path to first image.
-
-    Returns
-    -------
-    bool
-        Returns true if the images match approximately, false if not.
-    """
-
-    image_1 = np.asarray(PIL.Image.open(image_1_path))
-    image_2 = np.asarray(PIL.Image.open(image_2_path))
-
-    return np.all(image_1 == image_2)
-
-
 def test_YBFixedBounds_happy():
     # pylint: disable=invalid-name
     """
@@ -146,10 +123,8 @@ def test_map_geodataframe_column_happy(
 
         expected_png = test_data_dir.joinpath("plots", out_png_name)
 
-        images_match_exactly = compare_images_exact(expected_png, out_png)
-        if not images_match_exactly:
-            assert compare_images_approx(expected_png, out_png), \
-                f"Output image does not match expected image {expected_png}"
+        assert compare_images_approx(expected_png, out_png), \
+            f"Output image does not match expected image {expected_png}"
 
 
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
@@ -196,10 +171,8 @@ def test_map_geodataframe_column_styling(
 
         expected_png = test_data_dir.joinpath("plots", out_png_name)
 
-        images_match_exactly = compare_images_exact(expected_png, out_png)
-        if not images_match_exactly:
-            assert compare_images_approx(expected_png, out_png), \
-                f"Output image does not match expected image {expected_png}"
+        assert compare_images_approx(expected_png, out_png), \
+            f"Output image does not match expected image {expected_png}"
 
 
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
@@ -238,10 +211,8 @@ def test_map_geodataframe_column_repeat(
 
         expected_png = test_data_dir.joinpath("plots", out_png_name)
 
-        images_match_exactly = compare_images_exact(expected_png, out_png)
-        if not images_match_exactly:
-            assert compare_images_approx(expected_png, out_png), \
-                f"Output image does not match expected image {expected_png}"
+        assert compare_images_approx(expected_png, out_png), \
+            f"Output image does not match expected image {expected_png}"
 
 
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
@@ -301,10 +272,8 @@ def test_map_geodataframe_polygons(
 
         expected_png = test_data_dir.joinpath("plots", out_png_name)
 
-        images_match_exactly = compare_images_exact(expected_png, out_png)
-        if not images_match_exactly:
-            assert compare_images_approx(expected_png, out_png), \
-                f"Output image does not match expected image {expected_png}"
+        assert compare_images_approx(expected_png, out_png), \
+            f"Output image does not match expected image {expected_png}"
 
 
 if __name__ == '__main__':
