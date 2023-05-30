@@ -97,7 +97,7 @@ def test_YBFixedBounds_mapclassify():
 
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_map_geodataframe_column_happy(
-    test_data_dir, supply_curve_gdf, background_gdf, states_gdf
+    data_dir_test, supply_curve_gdf, background_gdf, states_gdf
 ):
     """
     Happy path test for map_geodataframe_column. Test that when run
@@ -121,7 +121,7 @@ def test_map_geodataframe_column_happy(
         g.figure.savefig(out_png, dpi=600)
         plt.close(g.figure)
 
-        expected_png = test_data_dir.joinpath("plots", out_png_name)
+        expected_png = data_dir_test.joinpath("plots", out_png_name)
 
         assert compare_images_approx(expected_png, out_png), \
             f"Output image does not match expected image {expected_png}"
@@ -129,7 +129,7 @@ def test_map_geodataframe_column_happy(
 
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_map_geodataframe_column_styling(
-    test_data_dir, supply_curve_gdf, background_gdf, states_gdf
+    data_dir_test, supply_curve_gdf, background_gdf, states_gdf
 ):
     """
     Test that map_geodataframe_column() produces expected output image when
@@ -169,7 +169,7 @@ def test_map_geodataframe_column_styling(
         g.figure.savefig(out_png, dpi=600)
         plt.close(g.figure)
 
-        expected_png = test_data_dir.joinpath("plots", out_png_name)
+        expected_png = data_dir_test.joinpath("plots", out_png_name)
 
         assert compare_images_approx(expected_png, out_png), \
             f"Output image does not match expected image {expected_png}"
@@ -177,7 +177,7 @@ def test_map_geodataframe_column_styling(
 
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_map_geodataframe_column_repeat(
-    test_data_dir, supply_curve_gdf, background_gdf, states_gdf
+    data_dir_test, supply_curve_gdf, background_gdf, states_gdf
 ):
     """
     Test that running map_geodataframe_column twice exactly the same produces
@@ -209,7 +209,7 @@ def test_map_geodataframe_column_repeat(
         g.figure.savefig(out_png, dpi=600)
         plt.close(g.figure)
 
-        expected_png = test_data_dir.joinpath("plots", out_png_name)
+        expected_png = data_dir_test.joinpath("plots", out_png_name)
 
         assert compare_images_approx(expected_png, out_png), \
             f"Output image does not match expected image {expected_png}"
@@ -217,7 +217,7 @@ def test_map_geodataframe_column_repeat(
 
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_map_geodataframe_polygons(
-    test_data_dir, supply_curve_gdf, county_background_gdf, states_gdf,
+    data_dir_test, supply_curve_gdf, county_background_gdf, states_gdf,
     counties_gdf
 ):
     """
@@ -270,7 +270,7 @@ def test_map_geodataframe_polygons(
         g.figure.savefig(out_png, dpi=600)
         plt.close(g.figure)
 
-        expected_png = test_data_dir.joinpath("plots", out_png_name)
+        expected_png = data_dir_test.joinpath("plots", out_png_name)
 
         assert compare_images_approx(expected_png, out_png), \
             f"Output image does not match expected image {expected_png}"

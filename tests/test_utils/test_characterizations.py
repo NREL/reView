@@ -15,17 +15,17 @@ from reView.utils.characterizations import (
 
 @pytest.mark.filterwarnings("ignore:Skipping")
 def test_unpack_characterizations_happy(
-    test_characterization_supply_curve, test_data_dir, char_map
+    characterization_supply_curve, data_dir_test, char_map
 ):
     """
     Happy path unit test for unpack_characterizations() function. Check that it
     produces expected output for provided input and characterization map.
     """
 
-    in_df = pd.read_csv(test_characterization_supply_curve)
+    in_df = pd.read_csv(characterization_supply_curve)
     output_df = unpack_characterizations(in_df, char_map, cell_size_m=90)
 
-    correct_results_src = test_data_dir.joinpath(
+    correct_results_src = data_dir_test.joinpath(
         'unpacked-characterization-supply-curve.csv'
     )
     correct_df = pd.read_csv(correct_results_src)
@@ -35,7 +35,7 @@ def test_unpack_characterizations_happy(
 
 @pytest.mark.filterwarnings("ignore:Skipping")
 def test_unpack_characterizations_bad_method(
-    test_characterization_supply_curve, char_map
+    characterization_supply_curve, char_map
 ):
     """
     Test that unpack_characterizations() function correctly raises a ValueError
@@ -44,7 +44,7 @@ def test_unpack_characterizations_bad_method(
     characterization map, which are tested more thoroughly in other unit tests.
     """
 
-    in_df = pd.read_csv(test_characterization_supply_curve)
+    in_df = pd.read_csv(characterization_supply_curve)
 
     char_map["nlcd_2019_90x90"]["method"] = "not-a-valid-method"
     with pytest.raises(ValueError):
@@ -53,28 +53,28 @@ def test_unpack_characterizations_bad_method(
 
 @pytest.mark.filterwarnings("ignore:Skipping")
 def test_validate_characterization_remapper_happy(
-    test_characterization_supply_curve, char_map
+    characterization_supply_curve, char_map
 ):
     """
     Happy path test for validate_characterization_remapper(). Make sure it
     succeeds without raising errors for known test data and char map.
     """
 
-    in_df = pd.read_csv(test_characterization_supply_curve)
+    in_df = pd.read_csv(characterization_supply_curve)
 
     validate_characterization_remapper(char_map, in_df)
 
 
 @pytest.mark.filterwarnings("ignore:Skipping")
 def test_validate_characterization_remapper_key_error(
-    test_characterization_supply_curve, char_map
+    characterization_supply_curve, char_map
 ):
     """
     Test that validate_characterization_remapper() will raise a KeyError
     when passed a map column that does not exist in the input dataframe.
     """
 
-    in_df = pd.read_csv(test_characterization_supply_curve)
+    in_df = pd.read_csv(characterization_supply_curve)
     in_df.drop(columns=["fed_land_owner"], inplace=True)
 
     with pytest.raises(KeyError):
@@ -83,14 +83,14 @@ def test_validate_characterization_remapper_key_error(
 
 @pytest.mark.filterwarnings("ignore:Skipping")
 def test_validate_characterization_remapper_value_error(
-    test_characterization_supply_curve, char_map
+    characterization_supply_curve, char_map
 ):
     """
     Test that validate_characterization_remapper() will raise a ValueError
     when passed various invalid combinations of mappings.
     """
 
-    in_df = pd.read_csv(test_characterization_supply_curve)
+    in_df = pd.read_csv(characterization_supply_curve)
 
     # not a valid method
     char_map_bad = char_map.copy()

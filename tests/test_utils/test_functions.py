@@ -59,10 +59,10 @@ def test_strip_rev_filename_endings_unknown_ending():
     )
 
 
-def test_load_project_configs(test_config_dir):
+def test_load_project_configs(config_dir_test):
     """Test `load_project_configs`."""
 
-    configs = load_project_configs(test_config_dir)
+    configs = load_project_configs(config_dir_test)
     assert len(configs) >= 2
     assert "Test No Name" in configs
     assert "A test_project" in configs

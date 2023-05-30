@@ -6,15 +6,15 @@ from reView.pages.rev.model import Difference
 from reView.utils.functions import common_numeric_columns
 
 
-def test_difference_calc(test_data_dir):
+def test_difference_calc(data_dir_test):
     """Test `Difference` class calc method."""
 
     diff = Difference('sc_point_gid')
     df1 = pd.read_csv(
-        test_data_dir / 'hydrogen' / 'sample_data' / 'scenario_0.csv'
+        data_dir_test / 'hydrogen' / 'sample_data' / 'scenario_0.csv'
     )
     df2 = pd.read_csv(
-        test_data_dir / 'hydrogen' / 'sample_data' / 'scenario_1.csv'
+        data_dir_test / 'hydrogen' / 'sample_data' / 'scenario_1.csv'
     )
     common_cols = common_numeric_columns(df1, df2)
 

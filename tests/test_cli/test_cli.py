@@ -16,22 +16,22 @@ from reView.cli import (
 from tests.test_utils.test_plots import compare_images_approx
 
 
-def test_main(test_cli_runner):
+def test_main(cli_runner):
     """Test main() CLI command."""
-    result = test_cli_runner.invoke(main)
+    result = cli_runner.invoke(main)
     assert result.exit_code == 0
 
 
 def test_unpack_turbines_happy(
-    test_bespoke_supply_curve, test_cli_runner
+    bespoke_supply_curve, cli_runner
 ):
     """Happy-path test for unpack_turbines() CLI command."""
 
     with tempfile.TemporaryDirectory() as tempdir:
         output_gpkg = pathlib.Path(tempdir).joinpath("bespoke.gpkg")
-        result = test_cli_runner.invoke(
+        result = cli_runner.invoke(
             unpack_turbines, [
-                '-i', test_bespoke_supply_curve.as_posix(),
+                '-i', bespoke_supply_curve.as_posix(),
                 '-o', output_gpkg,
                 '-n', 1
             ]
@@ -40,15 +40,15 @@ def test_unpack_turbines_happy(
 
 
 def test_unpack_turbines_parallel(
-    test_bespoke_supply_curve, test_cli_runner
+    bespoke_supply_curve, cli_runner
 ):
     """Test unpack_turbines() CLI command with parallel processing."""
 
     with tempfile.TemporaryDirectory() as tempdir:
         output_gpkg = pathlib.Path(tempdir).joinpath("bespoke.gpkg")
-        result = test_cli_runner.invoke(
+        result = cli_runner.invoke(
             unpack_turbines, [
-                '-i', test_bespoke_supply_curve.as_posix(),
+                '-i', bespoke_supply_curve.as_posix(),
                 '-o', output_gpkg,
                 '-n', 2
             ]
@@ -57,7 +57,7 @@ def test_unpack_turbines_parallel(
 
 
 def test_unpack_turbines_no_overwrite(
-    test_bespoke_supply_curve, test_cli_runner
+    bespoke_supply_curve, cli_runner
 ):
     """Test unpack_turbines() CLI command correctly
         raises FileExistsError when output geopackage exists
@@ -67,9 +67,9 @@ def test_unpack_turbines_no_overwrite(
         output_gpkg = pathlib.Path(tempdir).joinpath("bespoke.gpkg")
         with open(output_gpkg, 'wb'):
             pass
-        result = test_cli_runner.invoke(
+        result = cli_runner.invoke(
             unpack_turbines, [
-                '-i', test_bespoke_supply_curve.as_posix(),
+                '-i', bespoke_supply_curve.as_posix(),
                 '-o', output_gpkg,
                 '-n', 1
             ]
@@ -79,7 +79,7 @@ def test_unpack_turbines_no_overwrite(
 
 
 def test_unpack_turbines_overwrite(
-    test_bespoke_supply_curve, test_cli_runner
+    bespoke_supply_curve, cli_runner
 ):
     """Test unpack_turbines() CLI command correctly
         overwrites when output geopackage exists
@@ -89,9 +89,9 @@ def test_unpack_turbines_overwrite(
         output_gpkg = pathlib.Path(tempdir).joinpath("bespoke.gpkg")
         with open(output_gpkg, 'wb'):
             pass
-        result = test_cli_runner.invoke(
+        result = cli_runner.invoke(
             unpack_turbines, [
-                '-i', test_bespoke_supply_curve.as_posix(),
+                '-i', bespoke_supply_curve.as_posix(),
                 '-o', output_gpkg,
                 '-n', 1,
                 '--overwrite'
@@ -101,20 +101,20 @@ def test_unpack_turbines_overwrite(
 
 
 def test_unpack_turbines_results(
-    test_bespoke_supply_curve, test_cli_runner, test_data_dir
+    bespoke_supply_curve, cli_runner, data_dir_test
 ):
     """Test that the data produced by unpack_turbines() CLI
         command matches known output file."""
 
-    correct_results_gpkg = test_data_dir.joinpath(
+    correct_results_gpkg = data_dir_test.joinpath(
         'bespoke-supply-curve-turbines.gpkg')
     correct_df = gpd.read_file(correct_results_gpkg)
 
     with tempfile.TemporaryDirectory() as tempdir:
         output_gpkg = pathlib.Path(tempdir).joinpath("bespoke.gpkg")
-        result = test_cli_runner.invoke(
+        result = cli_runner.invoke(
             unpack_turbines, [
-                '-i', test_bespoke_supply_curve.as_posix(),
+                '-i', bespoke_supply_curve.as_posix(),
                 '-o', output_gpkg,
                 '-n', 1
             ]
@@ -139,22 +139,22 @@ def test_unpack_turbines_results(
 
 @pytest.mark.filterwarnings("ignore:Skipping")
 def test_unpack_characterizations(
-    test_characterization_supply_curve, test_cli_runner, test_data_dir
+    characterization_supply_curve, cli_runner, data_dir_test
 ):
     """Test that the data produced by unpack_characterizations() CLI
        command matches known output file."""
 
-    char_map_path = test_data_dir.joinpath("characterization-map.json")
+    char_map_path = data_dir_test.joinpath("characterization-map.json")
 
-    correct_results_src = test_data_dir.joinpath(
+    correct_results_src = data_dir_test.joinpath(
         'unpacked-characterization-supply-curve.csv')
     correct_df = pd.read_csv(correct_results_src)
 
     with tempfile.TemporaryDirectory() as tempdir:
         output_csv = pathlib.Path(tempdir).joinpath("characterizations.csv")
-        result = test_cli_runner.invoke(
+        result = cli_runner.invoke(
             unpack_characterizations, [
-                '-i', test_characterization_supply_curve.as_posix(),
+                '-i', characterization_supply_curve.as_posix(),
                 '-m', char_map_path.as_posix(),
                 '-o', output_csv
             ]
@@ -168,20 +168,20 @@ def test_unpack_characterizations(
 
 @pytest.mark.filterwarnings("ignore:Skipping")
 def test_unpack_characterizations_overwrite(
-    test_characterization_supply_curve, test_cli_runner, test_data_dir
+    characterization_supply_curve, cli_runner, data_dir_test
 ):
     """Test unpack_characterizations() CLI command correctly overwrites when
         output CSV exists and overwrite flag is used."""
 
-    char_map_path = test_data_dir.joinpath("characterization-map.json")
+    char_map_path = data_dir_test.joinpath("characterization-map.json")
 
     with tempfile.TemporaryDirectory() as tempdir:
         output_csv = pathlib.Path(tempdir).joinpath("characterizations.csv")
         with open(output_csv, 'w'):
             pass
-        result = test_cli_runner.invoke(
+        result = cli_runner.invoke(
             unpack_characterizations, [
-                '-i', test_characterization_supply_curve.as_posix(),
+                '-i', characterization_supply_curve.as_posix(),
                 '-m', char_map_path.as_posix(),
                 '-o', output_csv,
                 '--overwrite'
@@ -192,22 +192,22 @@ def test_unpack_characterizations_overwrite(
 
 @pytest.mark.filterwarnings("ignore:Skipping")
 def test_unpack_characterizations_no_overwrite(
-    test_characterization_supply_curve, test_cli_runner, test_data_dir
+    characterization_supply_curve, cli_runner, data_dir_test
 ):
     """
     Test unpack_characterizations() CLI command correctly raises
     FileExistsError whe output CSV exists and overwrite flag is not used.
     """
 
-    char_map_path = test_data_dir.joinpath("characterization-map.json")
+    char_map_path = data_dir_test.joinpath("characterization-map.json")
 
     with tempfile.TemporaryDirectory() as tempdir:
         output_csv = pathlib.Path(tempdir).joinpath("characterizations.csv")
         with open(output_csv, 'w'):
             pass
-        result = test_cli_runner.invoke(
+        result = cli_runner.invoke(
             unpack_characterizations, [
-                '-i', test_characterization_supply_curve.as_posix(),
+                '-i', characterization_supply_curve.as_posix(),
                 '-m', char_map_path.as_posix(),
                 '-o', output_csv
             ]
@@ -219,7 +219,7 @@ def test_unpack_characterizations_no_overwrite(
 @pytest.mark.filterwarnings("ignore:Skipping")
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_make_maps_solar(
-    test_map_supply_curve_solar, test_cli_runner, test_data_dir
+    map_supply_curve_solar, cli_runner, data_dir_test
 ):
     """
     Happy path test for make_maps() CLI. Tests that it produces the expected
@@ -228,9 +228,9 @@ def test_make_maps_solar(
 
     with tempfile.TemporaryDirectory() as tempdir:
         output_path = pathlib.Path(tempdir)
-        result = test_cli_runner.invoke(
+        result = cli_runner.invoke(
             make_maps, [
-                '-i', test_map_supply_curve_solar.as_posix(),
+                '-i', map_supply_curve_solar.as_posix(),
                 '-t', "solar",
                 '-o', output_path.as_posix(),
                 '--dpi', 75
@@ -245,7 +245,7 @@ def test_make_maps_solar(
             "total_lcoe_solar.png"
         ]
         for out_png_name in out_png_names:
-            expected_png = test_data_dir.joinpath("plots", out_png_name)
+            expected_png = data_dir_test.joinpath("plots", out_png_name)
             out_png = output_path.joinpath(out_png_name)
             assert compare_images_approx(expected_png, out_png), \
                 "Output image does not match expected image " \
@@ -256,7 +256,7 @@ def test_make_maps_solar(
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 @pytest.mark.filterwarnings("ignore:invalid value encountered in ")
 def test_make_maps_wind(
-    test_map_supply_curve_wind, test_cli_runner, test_data_dir
+    map_supply_curve_wind, cli_runner, data_dir_test
 ):
     """
     Happy path test for make_maps() CLI. Tests that it produces the expected
@@ -265,9 +265,9 @@ def test_make_maps_wind(
 
     with tempfile.TemporaryDirectory() as tempdir:
         output_path = pathlib.Path(tempdir)
-        result = test_cli_runner.invoke(
+        result = cli_runner.invoke(
             make_maps, [
-                '-i', test_map_supply_curve_wind.as_posix(),
+                '-i', map_supply_curve_wind.as_posix(),
                 '-t', "wind",
                 '-o', output_path.as_posix(),
                 '--dpi', 75
@@ -283,7 +283,7 @@ def test_make_maps_wind(
             "capacity_density_wind.png",
         ]
         for out_png_name in out_png_names:
-            expected_png = test_data_dir.joinpath("plots", out_png_name)
+            expected_png = data_dir_test.joinpath("plots", out_png_name)
             out_png = output_path.joinpath(out_png_name)
             assert compare_images_approx(expected_png, out_png), \
                 "Output image does not match expected image " \
@@ -294,7 +294,7 @@ def test_make_maps_wind(
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 @pytest.mark.filterwarnings("ignore:invalid value encountered in ")
 def test_make_maps_wind_keep_zero(
-    test_map_supply_curve_wind, test_cli_runner, test_data_dir
+    map_supply_curve_wind, cli_runner, data_dir_test
 ):
     """
     Test that make_maps() CLI produces the expected images for a wind supply
@@ -303,9 +303,9 @@ def test_make_maps_wind_keep_zero(
 
     with tempfile.TemporaryDirectory() as tempdir:
         output_path = pathlib.Path(tempdir)
-        result = test_cli_runner.invoke(
+        result = cli_runner.invoke(
             make_maps, [
-                '-i', test_map_supply_curve_wind.as_posix(),
+                '-i', map_supply_curve_wind.as_posix(),
                 '-t', "wind",
                 '-o', output_path.as_posix(),
                 '--dpi', 75,
@@ -322,7 +322,7 @@ def test_make_maps_wind_keep_zero(
             "capacity_density_wind.png",
         ]
         for out_png_name in out_png_names:
-            expected_png = test_data_dir.joinpath(
+            expected_png = data_dir_test.joinpath(
                 "plots", out_png_name.replace(".png", "_kz.png")
             )
             out_png = output_path.joinpath(out_png_name)
@@ -334,7 +334,7 @@ def test_make_maps_wind_keep_zero(
 @pytest.mark.filterwarnings("ignore:Skipping")
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_make_maps_boundaries(
-    test_map_supply_curve_solar, test_cli_runner, test_data_dir,
+    map_supply_curve_solar, cli_runner, data_dir_test,
     states_subset_path
 ):
     """
@@ -343,9 +343,9 @@ def test_make_maps_boundaries(
 
     with tempfile.TemporaryDirectory() as tempdir:
         output_path = pathlib.Path(tempdir)
-        result = test_cli_runner.invoke(
+        result = cli_runner.invoke(
             make_maps, [
-                '-i', test_map_supply_curve_solar.as_posix(),
+                '-i', map_supply_curve_solar.as_posix(),
                 '-t', "solar",
                 '-b', states_subset_path.as_posix(),
                 '-o', output_path.as_posix(),
@@ -361,7 +361,7 @@ def test_make_maps_boundaries(
             "total_lcoe_solar.png"
         ]
         for out_png_name in out_png_names:
-            expected_png = test_data_dir.joinpath(
+            expected_png = data_dir_test.joinpath(
                 "plots", out_png_name.replace(".png", "_boundaries.png")
             )
             out_png = output_path.joinpath(out_png_name)
@@ -373,7 +373,7 @@ def test_make_maps_boundaries(
 @pytest.mark.filterwarnings("ignore:Skipping")
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_map_column_happy(
-    test_map_supply_curve_solar, test_cli_runner, test_data_dir
+    map_supply_curve_solar, cli_runner, data_dir_test
 ):
     """
     Happy path test for map_column() CLI. Tests that it produces the expected
@@ -382,9 +382,9 @@ def test_map_column_happy(
 
     with tempfile.TemporaryDirectory() as tempdir:
         output_path = pathlib.Path(tempdir)
-        result = test_cli_runner.invoke(
+        result = cli_runner.invoke(
             map_column, [
-                '-i', test_map_supply_curve_solar.as_posix(),
+                '-i', map_supply_curve_solar.as_posix(),
                 '-c', 'area_sq_km',
                 '-o', output_path.as_posix(),
                 '--dpi', 75
@@ -393,7 +393,7 @@ def test_map_column_happy(
         assert result.exit_code == 0
 
         out_png_name = "area_sq_km.png"
-        expected_png = test_data_dir.joinpath(
+        expected_png = data_dir_test.joinpath(
             "plots", out_png_name.replace(".png", "_happy.png")
         )
         out_png = output_path.joinpath(out_png_name)
@@ -405,7 +405,7 @@ def test_map_column_happy(
 @pytest.mark.filterwarnings("ignore:Skipping")
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_map_column_formatting(
-    test_map_supply_curve_solar, test_cli_runner, test_data_dir
+    map_supply_curve_solar, cli_runner, data_dir_test
 ):
     """
     Test that map_column() CLI produces the expected image when passed
@@ -414,9 +414,9 @@ def test_map_column_formatting(
 
     with tempfile.TemporaryDirectory() as tempdir:
         output_path = pathlib.Path(tempdir)
-        result = test_cli_runner.invoke(
+        result = cli_runner.invoke(
             map_column, [
-                '-i', test_map_supply_curve_solar.as_posix(),
+                '-i', map_supply_curve_solar.as_posix(),
                 '-c', 'area_sq_km',
                 '-C', 'Greens',
                 '-T', 'Developable Area (sq. km.)',
@@ -428,7 +428,7 @@ def test_map_column_formatting(
         assert result.exit_code == 0
 
         out_png_name = "area_sq_km.png"
-        expected_png = test_data_dir.joinpath(
+        expected_png = data_dir_test.joinpath(
             "plots", out_png_name.replace(".png", "_formatting.png")
         )
         out_png = output_path.joinpath(out_png_name)
@@ -440,7 +440,7 @@ def test_map_column_formatting(
 @pytest.mark.filterwarnings("ignore:Skipping")
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_map_column_bad_breaks(
-    test_map_supply_curve_solar, test_cli_runner
+    map_supply_curve_solar, cli_runner
 ):
     """
     Test that map_column() CLI raises a ValueError for badly formed inputs for
@@ -456,9 +456,9 @@ def test_map_column_bad_breaks(
     with tempfile.TemporaryDirectory() as tempdir:
         output_path = pathlib.Path(tempdir)
         for breaks in bad_breaks:
-            result = test_cli_runner.invoke(
+            result = cli_runner.invoke(
                 map_column, [
-                    '-i', test_map_supply_curve_solar.as_posix(),
+                    '-i', map_supply_curve_solar.as_posix(),
                     '-c', 'area_sq_km',
                     '-B', breaks,
                     '-o', output_path.as_posix(),
@@ -472,7 +472,7 @@ def test_map_column_bad_breaks(
 @pytest.mark.filterwarnings("ignore:Skipping")
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_map_column_bad_column(
-    test_map_supply_curve_solar, test_cli_runner
+    map_supply_curve_solar, cli_runner
 ):
     """
     Test that map_column() CLI raises a KeyError for an input column that
@@ -481,9 +481,9 @@ def test_map_column_bad_column(
 
     with tempfile.TemporaryDirectory() as tempdir:
         output_path = pathlib.Path(tempdir)
-        result = test_cli_runner.invoke(
+        result = cli_runner.invoke(
             map_column, [
-                '-i', test_map_supply_curve_solar.as_posix(),
+                '-i', map_supply_curve_solar.as_posix(),
                 '-c', 'not-a-column',
                 '-o', output_path.as_posix(),
                 '--dpi', 75
@@ -496,7 +496,7 @@ def test_map_column_bad_column(
 @pytest.mark.filterwarnings("ignore:Skipping")
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_map_column_boundaries(
-    test_map_supply_curve_solar, test_cli_runner, test_data_dir,
+    map_supply_curve_solar, cli_runner, data_dir_test,
     states_subset_path
 ):
     """
@@ -505,9 +505,9 @@ def test_map_column_boundaries(
 
     with tempfile.TemporaryDirectory() as tempdir:
         output_path = pathlib.Path(tempdir)
-        result = test_cli_runner.invoke(
+        result = cli_runner.invoke(
             map_column, [
-                '-i', test_map_supply_curve_solar.as_posix(),
+                '-i', map_supply_curve_solar.as_posix(),
                 '-c', 'area_sq_km',
                 '-o', output_path.as_posix(),
                 '-b', states_subset_path,
@@ -517,7 +517,7 @@ def test_map_column_boundaries(
         assert result.exit_code == 0
 
         out_png_name = "area_sq_km.png"
-        expected_png = test_data_dir.joinpath(
+        expected_png = data_dir_test.joinpath(
             "plots", out_png_name.replace(".png", "_boundaries.png")
         )
         out_png = output_path.joinpath(out_png_name)

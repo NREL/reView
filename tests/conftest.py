@@ -15,13 +15,13 @@ from reView.utils.functions import load_project_configs
 
 
 @pytest.fixture
-def test_data_dir():
+def data_dir_test():
     """Return TEST_DATA_DIR as a `Path` object."""
     return Path(TEST_DATA_DIR)
 
 
 @pytest.fixture
-def test_bespoke_supply_curve():
+def bespoke_supply_curve():
     """Return bespoke-supply-curve.csv as a `Path` object."""
     bespoke_csv = Path(TEST_DATA_DIR).joinpath('bespoke-supply-curve.csv')
 
@@ -29,7 +29,7 @@ def test_bespoke_supply_curve():
 
 
 @pytest.fixture
-def test_characterization_supply_curve():
+def characterization_supply_curve():
     """Return characterization-supply-curve.csv as a `Path` object."""
     char_csv = Path(TEST_DATA_DIR).joinpath(
         'characterization-supply-curve.csv'
@@ -39,7 +39,7 @@ def test_characterization_supply_curve():
 
 
 @pytest.fixture
-def test_map_supply_curve_solar():
+def map_supply_curve_solar():
     """Return plots/map-supply-curve-solar.csv as a `Path` object."""
     csv_path = Path(TEST_DATA_DIR).joinpath(
         "plots", "map-supply-curve-solar.csv"
@@ -49,7 +49,7 @@ def test_map_supply_curve_solar():
 
 
 @pytest.fixture
-def test_map_supply_curve_wind():
+def map_supply_curve_wind():
     """Return plots/map-supply-curve-wind.csv as a `Path` object."""
     csv_path = Path(TEST_DATA_DIR).joinpath(
         "plots", "map-supply-curve-wind.csv"
@@ -70,25 +70,25 @@ def char_map():
 
 
 @pytest.fixture
-def test_cli_runner():
+def cli_runner():
     """Return a click CliRunner for testing commands"""
     return CliRunner()
 
 
 # pylint: disable=redefined-outer-name
 @pytest.fixture
-def test_config_dir(test_data_dir):
+def config_dir_test(data_dir_test):
     """Return test config directory as a `Path` object."""
-    return test_data_dir / "configs"
+    return data_dir_test / "configs"
 
 
 @pytest.fixture(autouse=True)
-def test_configs(test_config_dir):
+def configs_test(config_dir_test):
     # pylint: disable=redefined-outer-name
     """Load test configs."""
     reView.utils.config.REVIEW_DATA_DIR = TEST_DATA_DIR
     old_configs = reView.utils.config.PROJECT_CONFIGS
-    test_configs_ = load_project_configs(test_config_dir)
+    test_configs_ = load_project_configs(config_dir_test)
     reView.utils.config.PROJECT_CONFIGS = test_configs_
 
     yield
