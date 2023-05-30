@@ -64,7 +64,7 @@ class YBFixedBounds(np.ndarray):
         return self._preset_min
 
 
-# pylint: disable=dangerous-default-value,too-many-arguments,too-many-branches
+# pylint: disable=too-many-arguments,too-many-branches
 def map_geodataframe_column(
     data_df,
     column,
@@ -75,10 +75,9 @@ def map_geodataframe_column(
     background_df=None,
     boundaries_df=None,
     extent=None,
-    boundaries_kwargs={"linewidth": 0.75, "zorder": 1, "edgecolor": "white"},
-    layer_kwargs={},
-    legend_kwargs={"marker": "s", "frameon": False, "bbox_to_anchor": (1, 0.5),
-                   "loc": "center left"},
+    boundaries_kwargs=None,
+    layer_kwargs=None,
+    legend_kwargs=None,
     projection=gplt.crs.AlbersEqualArea()
 ):
     """
@@ -139,27 +138,29 @@ def map_geodataframe_column(
         [xmin, ymin, xmax, ymax] in the CRS units of data_df. By defaut, this
         is None, which will result in the extent of the map being set based on
         background_df (if provided) or data_df.
-    boundaries_kwargs : dict, optional
+    boundaries_kwargs : [dict, None], optional
         Keyword arguments that can be used to configure display of the
-        boundaries layer. The default value (``{"linewidth": 0.75, "zorder": 1,
-        "edgecolor": "white"}``) will result in thin white boundaries being
-        plotted underneath the data layer. To place these on top, change
-        ``zorder`` to ``2``. For other options, refer to
+        boundaries layer. If not specified (=None), it will default to use
+        (``{"linewidth": 0.75, "zorder": 1, "edgecolor": "white"}``), which
+        will result in thin white boundaries being plotted underneath the data
+        layer. To place these on top, change ``zorder`` to ``2``. For other
+        options, refer to
         https://residentmario.github.io/geoplot/user_guide/
         Customizing_Plots.html and https://matplotlib.org/stable/api/_as_gen/
         matplotlib.patches.Polygon.html#matplotlib.patches.Polygon.
-    layer_kwargs : dict, optional
-        Optional styling to be applied to the data layer. By default {}, which
-        results in the layer being plotted using the input breaks and colormap
-        and no other changes. As an example, you could change the edge color
-        and line width of a polygon data layer using by specifying
+    layer_kwargs : [dict, None], optional
+        Optional styling to be applied to the data layer. By default None,
+        which results in the layer being plotted using the input breaks and
+        colormap and no other changes. As an example, you could change the edge
+        color and line width of a polygon data layer using by specifying
         ``layer_kwargs={"edgecolor": "gray", "linewidth": 0.5}``. Refer to
         https://residentmario.github.io/geoplot/user_guide/
         Customizing_Plots.html#Cosmetic-parameters for other options.
-    legend_kwargs: dict, optional
+    legend_kwargs: [dict, None], optional
         Keyword arguments that can be used to configure display of the
-        legend. The default value is (``legend_kwargs={"marker": "s",
-        "frameon": False, "bbox_to_anchor": (1, 0.5), "loc": "center left"}``).
+        legend. If not specified (=None), it will default to use
+        (``legend_kwargs={"marker": "s", "frameon": False,
+        "bbox_to_anchor": (1, 0.5), "loc": "center left"}``).
         For more information on the options available, refer to
         https://residentmario.github.io/geoplot/user_guide/
         Customizing_Plots.html#Legend.
@@ -223,9 +224,25 @@ def map_geodataframe_column(
         ax = None
 
     input_geom_types = list(set(data_df.geom_type))
+
+    if boundaries_kwargs is None:
+        boundaries_kwargs = {
+            "linewidth": 0.75,
+            "zorder": 1,
+            "edgecolor": "white"
+        }
+
+    if legend_kwargs is None:
+        legend_kwargs = {
+            "marker": "s",
+            "frameon": False,
+            "bbox_to_anchor": (1, 0.5),
+            "loc": "center left"
+        }
     legend_kwargs["title"] = legend_title
+
     if input_geom_types == ["Point"]:
-        if layer_kwargs == {}:
+        if layer_kwargs is None:
             layer_kwargs = {
                 "s": 1.25,  # point size
                 "linewidth": 0,
