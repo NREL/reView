@@ -189,7 +189,9 @@ def map_geodataframe_column(
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", category=RuntimeWarning)
             scheme = mc.UserDefined(data_df[column], bins=breaks)
-        scheme.yb = YBFixedBounds(scheme.yb, preset_max=scheme.k, preset_min=0)
+        scheme.yb = YBFixedBounds(
+            scheme.yb, preset_max=scheme.k-1, preset_min=0
+        )
 
     if background_df is not None:
         drop_shadow_effects = [
