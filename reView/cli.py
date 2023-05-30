@@ -164,8 +164,13 @@ def unpack_characterizations(
               default=600,
               type=click.IntRange(min=0),
               help='Dots-per-inch (DPI) for output images. Default is 600.')
+@click.option('--keep-zero', '-K', default=False,
+              required=False,
+              is_flag=True,
+              help='Keep zero capacity supply curve project sites. These '
+                   'sites are dropped by default.')
 def make_maps(
-    supply_curve_csv, tech, out_folder, boundaries, dpi
+    supply_curve_csv, tech, out_folder, boundaries, dpi, keep_zero
 ):
     """
     Generates standardized, presentation-quality maps for the input supply
@@ -178,10 +183,18 @@ def make_maps(
     out_path.mkdir(exist_ok=True, parents=False)
 
     supply_curve_df = pd.read_csv(supply_curve_csv)
+    if keep_zero:
+        supply_curve_subset_df = supply_curve_df
+    else:
+        supply_curve_subset_df = supply_curve_df[
+            supply_curve_df["capacity"] > 0
+        ].copy()
+
     supply_curve_gdf = gpd.GeoDataFrame(
-        supply_curve_df,
+        supply_curve_subset_df,
         geometry=gpd.points_from_xy(
-            x=supply_curve_df['longitude'], y=supply_curve_df['latitude']
+            x=supply_curve_subset_df['longitude'],
+            y=supply_curve_subset_df['latitude']
         ),
         crs="EPSG:4326"
     )
@@ -310,9 +323,14 @@ def make_maps(
               default=600,
               type=click.IntRange(min=0),
               help='Dots-per-inch (DPI) for output images. Default is 600.')
+@click.option('--keep_zero', '-K', default=False,
+              required=False,
+              is_flag=True,
+              help='Keep zero capacity supply curve project sites. These '
+                   'Sites are dropped by default.')
 def map_column(
-    supply_curve_csv, out_folder, column, colormap=None, legend_title=None,
-    legend_breaks=None, boundaries=DEFAULT_BOUNDARIES, dpi=600
+    supply_curve_csv, out_folder, column, colormap, legend_title,
+    legend_breaks, boundaries, dpi, keep_zero
 ):
     # pylint: disable=raise-missing-from
     """
@@ -328,10 +346,19 @@ def map_column(
         raise KeyError(
             f"Column {column} could not be found in input supply curve."
         )
+
+    if keep_zero:
+        supply_curve_subset_df = supply_curve_df
+    else:
+        supply_curve_subset_df = supply_curve_df[
+            supply_curve_df["capacity"] > 0
+        ].copy()
+
     supply_curve_gdf = gpd.GeoDataFrame(
-        supply_curve_df,
+        supply_curve_subset_df,
         geometry=gpd.points_from_xy(
-            x=supply_curve_df['longitude'], y=supply_curve_df['latitude']
+            x=supply_curve_subset_df['longitude'],
+            y=supply_curve_subset_df['latitude']
         ),
         crs="EPSG:4326"
     )

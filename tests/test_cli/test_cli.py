@@ -299,6 +299,49 @@ def test_make_maps_wind(
 
 @pytest.mark.filterwarnings("ignore:Skipping")
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
+@pytest.mark.filterwarnings("ignore:invalid value encountered in ")
+def test_make_maps_wind_keep_zero(
+    test_map_supply_curve_wind, test_cli_runner, test_data_dir
+):
+    """
+    Test that make_maps() CLI produces the expected images for a wind supply
+    curve when the --keep-zero flag is enabled.
+    """
+
+    with tempfile.TemporaryDirectory() as tempdir:
+        output_path = pathlib.Path(tempdir)
+        result = test_cli_runner.invoke(
+            make_maps, [
+                '-i', test_map_supply_curve_wind.as_posix(),
+                '-t', "wind",
+                '-o', output_path.as_posix(),
+                '--dpi', 75,
+                '--keep-zero'
+            ]
+        )
+        assert result.exit_code == 0
+
+        out_png_names = [
+            "capacity_wind.png",
+            "lcot_wind.png",
+            "mean_lcoe_wind.png",
+            "total_lcoe_wind.png",
+            "capacity_density_wind.png",
+        ]
+        for out_png_name in out_png_names:
+            expected_png = test_data_dir.joinpath(
+                "plots", out_png_name.replace(".png", "_kz.png")
+            )
+            out_png = output_path.joinpath(out_png_name)
+            images_match_exactly = compare_images_exact(expected_png, out_png)
+            if not images_match_exactly:
+                assert compare_images_approx(expected_png, out_png), \
+                    "Output image does not match expected image " \
+                    f"{expected_png}"
+
+
+@pytest.mark.filterwarnings("ignore:Skipping")
+@pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_make_maps_boundaries(
     test_map_supply_curve_solar, test_cli_runner, test_data_dir,
     states_subset_path
