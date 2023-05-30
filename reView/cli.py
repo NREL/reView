@@ -324,7 +324,7 @@ def make_maps(
                     'Default is to use state boundaries for CONUS from '
                     'Natural Earth (1:50m scale), which is suitable for CONUS '
                     'supply curves. For other region, it is recommended to '
-                    'provide a more appropriate boundaries dataset.  The input '
+                    'provide a more appropriate boundaries dataset. The input '
                     'vector dataset can be in CRS.'
                     ))
 @click.option('--dpi', '-d', required=False,

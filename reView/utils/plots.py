@@ -191,7 +191,7 @@ def map_geodataframe_column(
             warnings.simplefilter("ignore", category=RuntimeWarning)
             scheme = mc.UserDefined(data_df[column], bins=breaks)
         scheme.yb = YBFixedBounds(
-            scheme.yb, preset_max=scheme.k-1, preset_min=0
+            scheme.yb, preset_max=scheme.k - 1, preset_min=0
         )
 
     if background_df is not None:
