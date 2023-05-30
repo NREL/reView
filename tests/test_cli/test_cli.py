@@ -11,7 +11,8 @@ from reView.cli import (
     unpack_turbines,
     unpack_characterizations,
     make_maps,
-    map_column
+    map_column,
+    TECH_CHOICES
 )
 from tests.test_utils.test_plots import compare_images_approx
 
@@ -218,76 +219,46 @@ def test_unpack_characterizations_no_overwrite(
 
 @pytest.mark.filterwarnings("ignore:Skipping")
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
-def test_make_maps_solar(
-    map_supply_curve_solar, cli_runner, data_dir_test
-):
-    """
-    Happy path test for make_maps() CLI. Tests that it produces the expected
-    images for a solar supply curve.
-    """
-
-    with tempfile.TemporaryDirectory() as tempdir:
-        output_path = pathlib.Path(tempdir)
-        result = cli_runner.invoke(
-            make_maps, [
-                '-i', map_supply_curve_solar.as_posix(),
-                '-t', "solar",
-                '-o', output_path.as_posix(),
-                '--dpi', 75
-            ]
-        )
-        assert result.exit_code == 0
-
-        out_png_names = [
-            "capacity_solar.png",
-            "lcot_solar.png",
-            "mean_lcoe_solar.png",
-            "total_lcoe_solar.png"
-        ]
-        for out_png_name in out_png_names:
-            expected_png = data_dir_test.joinpath("plots", out_png_name)
-            out_png = output_path.joinpath(out_png_name)
-            assert compare_images_approx(expected_png, out_png), \
-                "Output image does not match expected image " \
-                f"{expected_png}"
-
-
-@pytest.mark.filterwarnings("ignore:Skipping")
-@pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 @pytest.mark.filterwarnings("ignore:invalid value encountered in ")
-def test_make_maps_wind(
-    map_supply_curve_wind, cli_runner, data_dir_test
+def test_make_maps(
+    map_supply_curve_wind, map_supply_curve_solar, cli_runner, data_dir_test
 ):
     """
     Happy path test for make_maps() CLI. Tests that it produces the expected
-    images for a wind supply curve.
+    images for both wind and solar supply curves.
     """
 
-    with tempfile.TemporaryDirectory() as tempdir:
-        output_path = pathlib.Path(tempdir)
-        result = cli_runner.invoke(
-            make_maps, [
-                '-i', map_supply_curve_wind.as_posix(),
-                '-t', "wind",
-                '-o', output_path.as_posix(),
-                '--dpi', 75
-            ]
-        )
-        assert result.exit_code == 0
+    for tech in TECH_CHOICES:
+        if tech == "wind":
+            supply_curve_file = map_supply_curve_wind.as_posix()
+        elif tech == "solar":
+            supply_curve_file = map_supply_curve_solar.as_posix()
 
-        out_png_names = [
-            "capacity_wind.png",
-            "lcot_wind.png",
-            "mean_lcoe_wind.png",
-            "total_lcoe_wind.png",
-            "capacity_density_wind.png",
-        ]
-        for out_png_name in out_png_names:
-            expected_png = data_dir_test.joinpath("plots", out_png_name)
-            out_png = output_path.joinpath(out_png_name)
-            assert compare_images_approx(expected_png, out_png), \
-                "Output image does not match expected image " \
-                f"{expected_png}"
+        with tempfile.TemporaryDirectory() as tempdir:
+            output_path = pathlib.Path(tempdir)
+            result = cli_runner.invoke(
+                make_maps, [
+                    '-i', supply_curve_file,
+                    '-t', tech,
+                    '-o', output_path.as_posix(),
+                    '--dpi', 75
+                ]
+            )
+            assert result.exit_code == 0
+
+            out_png_names = [
+                f"capacity_{tech}.png",
+                f"lcot_{tech}.png",
+                f"mean_lcoe_{tech}.png",
+                f"total_lcoe_{tech}.png",
+                f"capacity_density_{tech}.png",
+            ]
+            for out_png_name in out_png_names:
+                expected_png = data_dir_test.joinpath("plots", out_png_name)
+                out_png = output_path.joinpath(out_png_name)
+                assert compare_images_approx(expected_png, out_png), \
+                    "Output image does not match expected image " \
+                    f"{expected_png}"
 
 
 @pytest.mark.filterwarnings("ignore:Skipping")
@@ -298,7 +269,8 @@ def test_make_maps_wind_keep_zero(
 ):
     """
     Test that make_maps() CLI produces the expected images for a wind supply
-    curve when the --keep-zero flag is enabled.
+    curve when the --keep-zero flag is enabled. Only tests wind because
+    solar supply curve does not have sites with zero capacity.
     """
 
     with tempfile.TemporaryDirectory() as tempdir:

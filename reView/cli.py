@@ -199,6 +199,9 @@ def make_maps(
         ),
         crs="EPSG:4326"
     )
+    supply_curve_gdf["capacity_density"] = (
+        supply_curve_gdf["capacity"] / supply_curve_gdf["area_sq_km"]
+    )
 
     boundaries_gdf = gpd.read_file(boundaries)
     boundaries_gdf.to_crs("EPSG:4326", inplace=True)
@@ -237,12 +240,14 @@ def make_maps(
                 "breaks": [100, 500, 1000, 2000, 3000, 4000],
                 "cmap": 'YlOrRd',
                 "legend_title": "Capacity (MW)"
+            },
+            "capacity_density": {
+                "breaks": [30, 40, 50, 60, 70],
+                "cmap": 'YlOrRd',
+                "legend_title": "Capacity Density (MW/sq km)"
             }
         })
     elif tech == "wind":
-        supply_curve_gdf["capacity_density"] = (
-            supply_curve_gdf["capacity"] / supply_curve_gdf["area_sq_km"]
-        )
         map_vars.update({
             "capacity": {
                 "breaks": [60, 120, 180, 240, 275],
