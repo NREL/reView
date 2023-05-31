@@ -23,9 +23,10 @@
 2. Create and activate conda environment:
     1) Create a conda env: ``conda create -n review python=3.9``
     2) Run the command: ``conda activate review``
-    3) cd into the repository: ``cd reView``.
-    4) prior to running ``pip`` below, make sure the branch is correct (install from main!)
-    5) Install ``reView`` and its dependencies by running:
+    3) Install cartopy via conda (required due to GEOS dependency): ``conda install cartopy``
+    4) cd into the repository: ``cd reView``.
+    5) prior to running ``pip`` below, make sure the branch is correct (install from main!)
+    6) Install ``reView`` and its dependencies by running:
        ``pip install -e .`` (or ``pip install -e '.[dev]'`` if running a dev branch or working on the source code)
 
 3. Create a project config pointing to directory containing reV supply curve tables. Save as json dictionary in configs/ (e.g. configs/sample.json). If the user doesn't have reV data, they can get started with supply-curves for NREL's [standard scenarios](https://www.nrel.gov/analysis/standard-scenarios.html) based on the [Electricity Annual Technology Baseline](https://atb.nrel.gov/electricity/2021/data) through NREL's Geospatial Data Science group. Supply curves for wind power are available [here](https://www.nrel.gov/gis/wind-supply-curves.html) and those for solar photovoltaic power are available [here](https://www.nrel.gov/gis/solar-supply-curves.html).

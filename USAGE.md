@@ -14,8 +14,249 @@ Options:
   --help         Show this message and exit.
 
 Commands:
+  make-maps                 Generates standardized, presentation-quality maps for the input supply curve, including maps for each of the following attributes: Capacity (capacity), All-in LCOE (total_lcoe), Project LCOE (mean_lcoe), LCOT (lcot), Capacity Density (derived column) [wind only]
+
+  map-column                Generates a single map from an input supply curve for the specified column, with basic options for formatting.
+
   unpack-characterizations  Unpacks characterization data from the input supply curve dataframe, converting values from embedded JSON strings to new standalone columns, and saves out a new version of the supply curve with these columns included.
+
   unpack-turbines           Unpack individual turbines from each reV project site in a reV supply curve CSV, produced using "bespoke" (i.e., SROM) turbine placement.
+```
+
+## Making Standardized Maps
+The `make-maps` command can be used to generate a small set of standardized, report/presentation-qualiity maps from an input supply curve. For a solar supply curve, 4 maps are created, including one for each of the following supply curve columns: Capacity (capacity), All-in LCOE (total_lcoe), Project LCOE (mean_lcoe), LCOT (lcot). For a wind supply curve, the same 4 maps are created and, in addition, a map is also created for Capacity Density (a derived column).
+
+This command can be run according to the following usage:
+```commandline
+Usage: make-maps [OPTIONS]
+
+  Generates standardized, presentation-quality maps for the input supply
+  curve, including maps for each of the following attributes: Capacity
+  (capacity), All-in LCOE (total_lcoe), Project LCOE (mean_lcoe), LCOT (lcot),
+  Capacity Density (derived column) [wind only]
+
+Options:
+  -i, --supply_curve_csv FILE  Path to supply curve CSV file.  [required]
+  -t, --tech [wind|solar]      Technology choice for ordinances to export.
+                               Valid options are: ['wind', 'solar'].
+                               [required]
+  -o, --out_folder DIRECTORY   Path to output folder for maps.  [required]
+  -b, --boundaries FILE        Path to vector dataset with the boundaries to
+                               map. Default is to use state boundaries for
+                               CONUS from Natural Earth (1:50m scale), which
+                               is suitable for CONUS supply curves. For other
+                               region, it is recommended to provide a more
+                               appropriate boundaries dataset.
+  -d, --dpi INTEGER RANGE      Dots-per-inch (DPI) for output images. Default
+                               is 600.  [x>=0]
+  --help                       Show this message and exit.
+```
+
+This command intentionally limits the options available to the user because it is meant to produce standard maps that are commonly desired for any supply curve. The main changes that the user can make are to change the DPI of the output image (e.g., for less detaild/smaller image file sizes, set to 300) and to provide a custom `--boundaries` vector dataset. The latter option merits some additional explanation.
+
+By default, the maps will be generated using a boundaries file consisting of state boundaries for CONUS at 1:50m scale. This is intended to be suitable for the majority use case for reV: supply curves for all of CONUS. For other regions, or a subset of regions, users should provide a different boundaries file, suitable to their region. This should be a polygon vector dataset in one of the GIS formats that can be read by `fiona`/`geopandas`.  It will be used to add boundary lines to the maps (on top of the supply curve points) and also to create a drop-shadow for the region shown in the map.
+
+For more customizable maps, refer to the next section.
+
+## Mapping a Column from a Supply Curve
+The `map-column` command can be used to generate a single map for any one column from the input supply curve. The output map follows a style similar to `make-maps`, but the user has greater flexibility not only over which column to map, but also some of the map formatting options, including colors, legend breaks, and legend title.
+
+This command can be run according to the following usage:
+```commandline
+Usage: map-column [OPTIONS]
+
+  Generates a single map from an input supply curve for the specified column,
+  with basic options for formatting.
+
+Options:
+  -i, --supply_curve_csv FILE  Path to supply curve CSV file.  [required]
+  -o, --out_folder DIRECTORY   Path to output folder for maps.  [required]
+  -c, --column TEXT            Column to map  [required]
+  -C, --colormap TEXT          Color map to use for the column. Refer to https
+                               ://matplotlib.org/stable/tutorials/colors/color
+                               maps.html for valid options. If not specified,
+                               the viridis colormap will be applied.
+  -T, --legend_title TEXT      Title to use for the map legend. If not
+                               provided, legend title will be the column name
+  -B, --legend_breaks TEXT     Breaks to use for the map legend. Should be
+                               formatted like a list, e.g. : "[10, 50, 100,
+                               150]". If not provided, a 5-class quantile
+                               classification will be used to derive the
+                               breaks.
+  -b, --boundaries FILE        Path to vector dataset with the boundaries to
+                               map. Default is to use state boundaries for
+                               CONUS from Natural Earth (1:50m scale), which
+                               is suitable for CONUS supply curves. For other
+                               region, it is recommended to provide a more
+                               appropriate boundaries dataset.
+  -d, --dpi INTEGER RANGE      Dots-per-inch (DPI) for output images. Default
+                               is 600.  [x>=0]
+  --help                       Show this message and exit.
+```
+
+This command is intended to give the user options not available in the more standardized `make-maps` command, including:
+1. Ability to map additional/other columns
+2. More control over the output map appearance for any column, including the columns included in `make-maps`
+
+For even more flexibility in generating maps, it is recommended to use the `reView.utils.plots.map_geodataframe_column` function in their own script(s). In combination with some basic data preparation with `geopandas`, this function can be used to map any column from either a point or polygon GeoDataFrame, with lots of flexibility around formatting both the map and the other elements like the title and legend. Below are two examples of using `reView.utils.plots.map_geodataframe_column()` for point and polygon data, respectively.
+
+Example 1: Mapping Supply Curve Points
+```python
+from pathlib import Path
+import matplotlib.pyplot as plt
+import pandas as pd
+import geopandas as gpd
+from reView.utils.plots import map_geodataframe_column
+
+# inputs
+supply_curve_path = Path("/path/to/supply-curve.csv")
+state_boundaries_path = Path("/path/to/states.gpkg")
+
+# load supply curve and convert to geodataframe
+supply_curve_df = pd.read_csv(supply_curve_path)
+supply_curve_gdf = gpd.GeoDataFrame(
+    supply_curve_df,
+    geometry=gpd.points_from_xy(
+        x=supply_curve_df['longitude'], y=supply_curve_df['latitude']
+    ),
+    crs="EPSG:4326"
+)
+
+# load states (to be used as the boundary layer)
+states_gdf = gpd.read_file(state_boundaries_path)
+
+# specify mapping parameters
+col_name = "capacity"
+color_map = "GnBu"
+breaks = [500, 1000, 1500, 2000]
+map_extent = states_gdf.buffer(0.05).total_bounds
+
+# create the map
+g = map_geodataframe_column(
+    supply_curve_gdf,
+    col_name,
+    color_map=color_map,
+    breaks=breaks,
+    map_title="Styling Map",
+    legend_title=col_name.title(),
+    background_df=background_gdf,
+    boundaries_df=states_gdf,
+    extent=map_extent,
+    # change the way the points will be displayed:
+    #   set their size bigger, remove the outline,
+    #   and set the marker to a circle
+    layer_kwargs={
+      "s": 4,
+      "linewidth": 0,
+      "marker": "o"
+    },
+    # change the legend display:
+    #   change markers/patches to circles, turn the frame on,
+    #   frame and position on the right side of the map,
+    #   at the bottom
+    legend_kwargs={
+        "marker": "o",
+        "frameon": True,
+        "bbox_to_anchor": (1, 0),
+        "loc": "upper left"
+    }
+)
+# remove extra padding in the figure
+plt.tight_layout()
+
+# save map as a png file
+out_png_name = "points_map.png"
+out_png = Path("/path/to/output/maps").joinpath(out_png_name)
+g.figure.savefig(out_png, dpi=600)
+plt.close(g.figure)
+```
+
+Example 2: Aggregating and Mapping Supply Curve to Polygons
+```python
+from pathlib import Path
+import matplotlib.pyplot as plt
+import pandas as pd
+import geopandas as gpd
+from reView.utils.plots import map_geodataframe_column
+
+# inputs
+supply_curve_path = Path("/path/to/supply-curve.csv")
+county_boundaries_path = Path("/path/to/counties.gpkg")
+state_boundaries_path = Path("/path/to/states.gpkg")
+
+# load supply curve and convert to geodataframe
+supply_curve_df = pd.read_csv(supply_curve_path)
+supply_curve_gdf = gpd.GeoDataFrame(
+    supply_curve_df,
+    geometry=gpd.points_from_xy(
+        x=supply_curve_df['longitude'], y=supply_curve_df['latitude']
+    ),
+    crs="EPSG:4326"
+)
+
+# load counties (to be used as the mapping layer)
+counties_gdf = gpd.read_file(county_boundaries_path)
+
+# load states (to be used as the boundary layer)
+states_gdf = gpd.read_file(state_boundaries_path)
+
+# get aggregate capacity for each county from the supply curve
+county_capacity_df = supply_curve_gdf.groupby(
+    "cnty_fips"
+)["capacity"].sum().reset_index()
+
+# join county capacity to county geodataframe
+county_capacity_gdf = counties_gdf.merge(
+    county_capacity_df, how="inner", on="cnty_fips"
+)
+
+# specify mapping parameters
+col_name = "capacity"
+color_map = "YlOrRd"
+breaks = [5000, 10000, 15000, 20000]
+map_extent = county_background_gdf.buffer(0.05).total_bounds
+
+# create the map
+g = map_geodataframe_column(
+    county_capacity_gdf,
+    col_name,
+    color_map=color_map,
+    breaks=breaks,
+    map_title="Polygons Map",
+    legend_title=col_name.title(),
+    background_df=county_background_gdf,
+    boundaries_df=states_gdf,
+    extent=map_extent,
+    # change the way the polygons will be displayed:
+    #   use narrow, gray edges
+    layer_kwargs={"edgecolor": "gray", "linewidth": 0.5},
+    # change the way the boundaries will be displayed:
+    #   layer them on top of the counties with
+    #   thicker, black edges
+    boundaries_kwargs={
+        "linewidth": 1,
+        "zorder": 2,
+        "edgecolor": "black",
+    },
+    # change the legend display:
+    #   change markers/patches to squares, turn off the
+    #   frame and position on the right side of the map,
+    #   in the center
+    legend_kwargs={
+        "marker": "s",
+        "frameon": False,
+        "bbox_to_anchor": (1, 0.5),
+        "loc": "center left"
+    }
+)
+# remove extra padding in the figure
+plt.tight_layout()
+
+# save map as a png file
+out_png_name = "polygons_map.png"
+out_png = Path("/path/to/output/maps").joinpath(out_png_name)
+g.figure.savefig(out_png, dpi=600)
+plt.close(g.figure)
 ```
 
 ## Unpacking Characterizations

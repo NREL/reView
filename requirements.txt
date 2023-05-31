@@ -8,10 +8,10 @@ geopandas==0.12.2
 gunicorn==20.1.0
 h5py==3.8.0
 numpy==1.22.3
-pandas==1.4.2
+pandas>=1.5.3,<1.6
 pandarallel==1.6.1
 pint==0.19.2
-plotly==5.6.0
+plotly>=5.13.0,<5.14
 pyarrow==11.0.0
 pygeopkg==0.1.2
 pyproj==3.3.0
@@ -21,7 +21,8 @@ requests==2.27.1
 scikit_learn==1.1.1
 scipy==1.10.0
 setuptools==65.5.1
-tqdm==4.62.3
+tqdm>=4.64.1,<4.65
 us==2.0.2
 werkzeug==2.0.3
 shapely==2.0.0
+geoplot==0.5.1

@@ -6,7 +6,7 @@
 """
 import os
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 
 REPO_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -15,7 +15,7 @@ DESCRIPTION = (
     "A data portal for reviewing Renewable Energy Potential Model "
     "(reV) outputs"
 )
-DEV_REQUIREMENTS = ["pylint", "dash[testing]", "selenium"]
+DEV_REQUIREMENTS = ["pylint", "dash[testing]", "selenium", "imagehash"]
 TEST_REQUIREMENTS = ["pytest", "pytest-cov"]
 GUNICORN_REQUIREMENTS = ["gunicorn"]
 
@@ -36,13 +36,16 @@ setup(
     long_description=README,
     author="Travis Williams",
     author_email="Travis.Williams@nrel.gov",
-    packages=["reView"],
+    packages=find_packages(),
+    package_dir={"blmlu": "blmlu"},
     entry_points={
         "console_scripts": [
             "reView=reView.index:main",
             "reView-tools=reView.cli:main",
             "unpack-turbines=reView.cli:unpack_turbines",
-            "unpack-characterizations=reView.cli:unpack_characterizations"
+            "unpack-characterizations=reView.cli:unpack_characterizations",
+            "make-maps=reView.cli:make_maps",
+            "map-column=reView.cli:map_column"
         ],
     },
     zip_safe=False,
@@ -57,7 +60,7 @@ setup(
     ],
     test_suite="tests",
     include_package_data=True,
-    package_data={"data": ["*"]},
+    package_data={"": ["data/*", "data/**/*"]},
     install_requires=INSTALL_REQUIREMENTS,
     extras_require={
         "gunicorn": GUNICORN_REQUIREMENTS,
