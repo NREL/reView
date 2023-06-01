@@ -238,6 +238,11 @@ def make_maps(
             "breaks": [5, 10, 15, 20, 25, 30, 35, 40, 50],
             "cmap": 'YlGn',
             "legend_title": "LCOT ($/MWh)",
+        },
+        "area_sq_km": {
+            "breaks": [5, 10, 25, 50, 100, 120],
+            "cmap": "BuPu",
+            "legend_title": "Developable Area (sq km)"
         }
     }
     if tech == "solar":
@@ -245,7 +250,12 @@ def make_maps(
             "capacity": {
                 "breaks": [100, 500, 1000, 2000, 3000, 4000],
                 "cmap": 'YlOrRd',
-                "legend_title": "Capacity (MW)"
+                "legend_title": "Capacity DC (MW)"
+            },
+            "capacity_ac": {
+                "breaks": [100, 500, 1000, 2000, 3000, 4000],
+                "cmap": 'YlOrRd',
+                "legend_title": "Capacity AC (MW)"
             },
             "capacity_density": {
                 "breaks": [30, 40, 50, 60, 70],
