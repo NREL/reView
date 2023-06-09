@@ -44,11 +44,11 @@ MAP_LAYOUT.update(
                 "aWlwcHZvdzdoIn0.9pxpgXxyyhM6qEF_dcyjIQ"
             ),
             "style": "satellite-streets",
-            # "center": {
-            #     "lon": -97.5,
-            #     "lat": 39.5
-            # },
-            # "zoom": 2.75,
+            "center": {
+                "lon": -97.5,
+                "lat": 39.5
+            },
+            "zoom": 2.75,
         },
         "uirevision": True,
     }
@@ -260,6 +260,7 @@ class Map:
         colorscale="Viridis",
         color_range=None,
         demand_data=None,
+        update_view=False,
         last_project=None
     ):
         """Initialize ScatterPlot object."""
@@ -273,6 +274,7 @@ class Map:
             df, color_var, project, color_range[0], color_range[1]
         )
         self.demand_data = demand_data
+        self.update_view = update_view
         self.last_project = last_project
 
         if project:
@@ -479,18 +481,19 @@ class Map:
         layout["uirevision"] = self.last_project
 
         # Set initial view for a project
-        lats = self.df["latitude"]
-        lons = self.df["longitude"]
-        center = {
-            "lon": lons.mean(),
-            "lat": lats.mean()
-        }
-        bounds = max(
-            abs(lons.max() - lons.min()), abs(lats.max() - lats.min())
-        )
-        zoom = 11.5 - np.log(bounds * 111)
-        layout["mapbox"]["center"] = center
-        layout["mapbox"]["zoom"] = zoom
+        if self.update_view:
+            lats = self.df["latitude"]
+            lons = self.df["longitude"]
+            center = {
+                "lon": lons.mean(),
+                "lat": lats.mean()
+            }
+            bounds = max(
+                abs(lons.max() - lons.min()), abs(lats.max() - lats.min())
+            )
+            zoom = 11.5 - np.log(bounds * 111)
+            layout["mapbox"]["center"] = center
+            layout["mapbox"]["zoom"] = zoom
 
         return layout
 

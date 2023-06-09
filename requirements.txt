@@ -8,6 +8,7 @@ geopandas==0.12.2
 gunicorn==20.1.0
 h5py==3.8.0
 numpy==1.22.3
+openpyxl==3.1.2
 pandas==1.4.2
 pandarallel==1.6.1
 pint==0.19.2
@@ -25,3 +26,4 @@ tqdm==4.62.3
 us==2.0.2
 werkzeug==2.0.3
 shapely==2.0.0
+xlrd=2.0.1

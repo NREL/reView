@@ -1040,9 +1040,18 @@ def figure_map(
     signal_dict = json.loads(signal)
     df = cache_map_data(signal_dict)
 
+    # Reset view if needed
+    update_view = False
+    if project != last_project:
+        update_view = True
+
     # Initial page load project
     if not project:
         project = signal_dict["project"]
+        update_view = True
+
+
+    print(f"\nUpdate view: {update_view}\n")
 
     # This might be a difference
     if signal_dict["path2"] and os.path.isfile(signal_dict["path2"]):
@@ -1099,6 +1108,7 @@ def figure_map(
         colorscale=color,
         color_range=[color_ymin, color_ymax],
         demand_data=None,
+        update_view=update_view,
         last_project=last_project
     )
     figure = map_builder.figure(
