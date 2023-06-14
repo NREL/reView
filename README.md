@@ -21,7 +21,7 @@
     ```
 
 2. Create and activate conda environment:
-    1) Create a conda env: ``conda env create -f environment.yaml``
+    1) Create a conda env: ``conda env create -f environment.yml``
     2) Run the command: ``conda activate review``
     3) cd into the repository: ``cd reView``.
     4) prior to running ``pip`` below, make sure the branch is correct (install from main!)
