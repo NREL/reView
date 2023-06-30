@@ -106,7 +106,8 @@ def above_chart_options_div(id_prefix, class_name="row"):
                 children=[
                     # Submit Button to avoid repeated callbacks
                     html.Div(
-                        className="ten columns",
+                        className="eight columns",
+                        style={"margin-right": "-50px"},
                         children=dcc.Dropdown(
                             id=f"{id_prefix}_additional_scenarios",
                             clearable=False,
@@ -120,21 +121,54 @@ def above_chart_options_div(id_prefix, class_name="row"):
                         ),
                     ),
                     html.Div(
-                        className="two columns",
-                        children=dbc.Button(
-                            id=f"{id_prefix}_submit_additional_scenarios",
-                            children="Submit",
-                            color="white",
-                            n_clicks=0,
-                            size="lg",
-                            title="Click to submit options",
-                            className="mb-1",
-                            style={
-                                "height": "91%",
-                                "width": "135%",
-                                "margin-left": "-50px"
-                            }
-                        )
+                        className="four columns",
+                        children=[
+                            dbc.Button(
+                                id=f"{id_prefix}_select_all_scenarios",
+                                children="ALL",
+                                color="white",
+                                n_clicks=0,
+                                size="lg",
+                                title="Click to select all available options",
+                                className="mb-1",
+                                style={
+                                    "height": "91%",
+                                    # "width": "100%",
+                                    "padding": "5px",
+                                    "margin-right": "50px",
+                                }
+                            ),
+                            dbc.Button(
+                                id=f"{id_prefix}_clear_all_scenarios",
+                                children="CLEAR",
+                                color="white",
+                                n_clicks=0,
+                                size="lg",
+                                title="Click to clear all selected options",
+                                className="mb-1",
+                                style={
+                                    "height": "91%",
+                                    # "width": "100%",
+                                    "padding": "5px",
+                                    "margin-right": "50px"
+                                }
+                            ),
+                            dbc.Button(
+                                id=f"{id_prefix}_submit_additional_scenarios",
+                                children="Submit",
+                                color="white",
+                                n_clicks=0,
+                                size="lg",
+                                title="Click to submit options",
+                                className="mb-1",
+                                style={
+                                    "height": "91%",
+                                    # "width": "100%",
+                                    "padding": "5px",
+                                    # "margin-left": "-50px"
+                                }
+                            )
+                        ]
                     )
                 ]
             )

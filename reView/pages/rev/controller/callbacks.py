@@ -125,7 +125,8 @@ def build_scenario_dropdowns(groups, dropid=None, multi=False, dynamic=False,
                         dcc.Dropdown(
                             id=dropid,
                             options=options,
-                            value=values[0],
+                            # value=values[0],
+                            value="all",
                             optionHeight=50,
                             multi=multi,
                             style={
@@ -306,7 +307,14 @@ def filter_files(project, filters, options):
         if value != "all":
             options = options[options[col] == value]
 
-    return list(options["file"].values)
+    # Expand relative paths
+    files = []
+    for file in options["file"].values:
+        if file.startswith("./"):
+            file = str(config.directory.joinpath(file))
+        files.append(file)
+
+    return files
 
 
 def files_to_dropdown(files):
@@ -722,6 +730,23 @@ def dropdown_scenarios(
                       placeholder, placeholder)
 
     return return_package
+
+
+@app.callback(
+    Output("rev_additional_scenarios", "value"),
+    Input("rev_clear_all_scenarios", "n_clicks"),
+    Input("rev_select_all_scenarios", "n_clicks"),
+    State("rev_additional_scenarios", "options")
+)
+@calls.log
+def dropdown_scenarios_adjust_additional(clear_all, select_all, options):
+    """Add all or clear the additional dropdown scenarios."""
+    # Catcht the triggering element
+    trigger = callback_trigger()
+    values = []
+    if "select" in trigger:
+        values = [op["value"] for op in options]
+    return values
 
 
 @app.callback(
