@@ -478,7 +478,8 @@ class Map:
         layout["showlegend"] = self.show_legend
         layout["title"]["text"] = self.plot_title
         layout["yaxis"] = {"range": [self.cmin, self.cmax]}
-        layout["uirevision"] = self.last_project
+        if not self.update_view:
+            layout["uirevision"] = self.last_project
 
         # Set initial view for a project
         if self.update_view:

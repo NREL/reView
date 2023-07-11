@@ -17,6 +17,7 @@ from reView.components import (
     time_div,
     REV_PCA_DIV,
     REV_TOPTIONS_DIV,
+    SIDE_OPTIONS
 )
 from reView.utils.config import Config
 
@@ -75,6 +76,9 @@ layout = html.Div(
         ),
         REV_TOPTIONS_DIV,
         REV_PCA_DIV,
+
+        # More options that are shared between any two components
+        SIDE_OPTIONS,
 
         # Map and chart
         html.Div(

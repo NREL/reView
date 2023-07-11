@@ -12,5 +12,6 @@ from reView.layout import navbar
 layout = html.Div([
     navbar.NAVBAR,
     dcc.Location(id="url", refresh=False),
-    html.Div(id="page_content")
+    html.Div(id="page_content"),
+    navbar.SIDE_BUTTON,
 ])

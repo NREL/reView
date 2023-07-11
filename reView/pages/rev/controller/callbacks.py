@@ -205,16 +205,6 @@ def chart_tab_div_children(chart_choice):
             )
         ]
 
-    if chart_choice not in {"char_histogram"}:
-        children += [
-            dcc.Tab(
-                value="scenarios",
-                label="Additional Scenarios",
-                style=TABLET_STYLE,
-                selected_style=TABLET_STYLE,
-            )
-        ]
-
     return children
 
 
@@ -656,7 +646,6 @@ def dropdown_projects(__, ___):
     Output("scenario_dropdown_a", "options"),
     Output("scenario_dropdown_b", "options"),
     Output("rev_additional_scenarios", "options"),
-    Output("rev_additional_scenarios_time", "options"),
     Output("scenario_dropdown_a", "value"),
     Output("scenario_dropdown_b", "value"),
     Output("scenario_dropdown_a", "placeholder"),
@@ -726,7 +715,7 @@ def dropdown_scenarios(
     placeholder = "All files filtered out"
 
     # Create a single return tuple
-    return_package = (group_a, group_b, group_a, group_a, value_a, value_b,
+    return_package = (group_a, group_b, group_a, value_a, value_b,
                       placeholder, placeholder)
 
     return return_package
@@ -1066,9 +1055,9 @@ def figure_map(
     df = cache_map_data(signal_dict)
 
     # Reset view if needed
-    update_view = False
-    if project != last_project:
-        update_view = True
+    update_view = True
+    if project == last_project:
+        update_view = False 
 
     # Initial page load project
     if not project:
@@ -1157,7 +1146,7 @@ def figure_map(
     Input("rev_time_trace_options_tab", "value"),
     Input("rev_time_period_options_tab", "value"),
     Input("rev_variable_time", "value"),
-    Input("rev_additional_scenarios_time", "value"),
+    Input("rev_additional_scenarios", "value"),
     Input("rev_chart", "selectedData"),
     Input("rev_map", "selectedData"),
     Input("rev_map", "clickData"),
@@ -1509,7 +1498,6 @@ def retrieve_filters(__, ___, var1, var2, var3, var4, q1, q2, q3, q4):
 # pylint: disable=too-many-statements
 @app.callback(
     Output("map_signal", "children"),
-    Output("last_project", "children"),
     Output("pca_plot_1", "clickData"),
     Output("pca_plot_2", "clickData"),
     Input("submit", "n_clicks"),
@@ -1687,7 +1675,7 @@ def retrieve_signal(
             "y": y
         }
 
-    return json.dumps(signal), project, None, None
+    return json.dumps(signal), None, None
 
 
 @app.callback(
@@ -1742,63 +1730,9 @@ def retrieve_recalc_parameters(
 
 
 @app.callback(
-    Output("scenario_a_specs", "children"),
-    Output("scenario_b_specs", "children"),
-    Output("scenario_a_specs", "style"),
-    Output("scenario_b_specs", "style"),
-    Input("scenario_dropdown_a", "value"),
-    Input("scenario_dropdown_b", "value"),
-    State("project", "value"),
-)
-@calls.log
-def scenario_specs(scenario_a, scenario_b, project):
-    """Output the specs association with a chosen scenario."""
-    # Project might be None on initial load
-    if not project:
-        raise PreventUpdate
-
-    # Scenario A might be None on startup
-    if scenario_a is None:
-        raise PreventUpdate
-
-    # Return a blank space if no parameters entry found
-    config = Config(project)
-    params = config.parameters
-
-    # If there are options, prevent update for now (large file list problem)
-    if config.options is not None:
-        raise PreventUpdate
-
-    # Infer the names
-    path_lookup = {str(value): key for key, value in config.files.items()}
-    name_a = path_lookup[scenario_a]
-    name_b = path_lookup[scenario_b]
-
-    specs_a = ""
-    specs_b = ""
-    style_a = {}
-    style_b = {}
-    if name_a in params:
-        style_a = {"overflow-y": "auto", "height": "300px", "width": "94%"}
-        specs_a = build_specs(name_a, project)
-    if "least_cost" in scenario_a:
-        style_a = {"overflow-y": "auto", "height": "300px", "width": "94%"}
-        specs_a = build_spec_split(scenario_a, project)
-    if name_b in params:
-        style_b = {"overflow-y": "auto", "height": "300px", "width": "94%"}
-        specs_b = build_specs(name_b, project)
-    if "least_cost" in scenario_b:
-        style_b = {"overflow-y": "auto", "height": "300px", "width": "94%"}
-        specs_b = build_spec_split(scenario_b, project)
-
-    return specs_a, specs_b, style_a, style_b
-
-
-@app.callback(
     Output("rev_chart_options_tab", "children"),
     Output("rev_chart_options_div", "style"),
     Output("rev_chart_x_variable_options_div", "style"),
-    Output("rev_additional_scenarios_div", "style"),
     Input("rev_chart_options_tab", "value"),
     Input("rev_chart_options", "value"),
 )
@@ -1806,7 +1740,7 @@ def tabs_chart(tab_choice, chart_choice):
     """Choose which chart tabs to display."""
     tabs = chart_tab_div_children(chart_choice)
     styles = tab_styles(
-        tab_choice, options=["chart", "x_variable", "scenarios"]
+        tab_choice, options=["chart", "x_variable"]
     )
     return tabs, *styles
 
@@ -1821,6 +1755,17 @@ def toggle_bins(chart_type):
     if chart_type in {"binned", "histogram", "char_histogram"}:
         return {}
     return {"display": "none"}
+
+
+@app.callback(
+    Output("side_options", "is_open"),
+    Input("open_side_options", "n_clicks"),
+    State("side_options", "is_open"),
+)
+def toggle_offcanvas(n1, is_open):
+    if n1:
+        return not is_open
+    return is_open
 
 
 @app.callback(
@@ -2011,20 +1956,6 @@ def toggle_timeseries(_, ___, scenario):
 
 
 @app.callback(
-    Output("rev_additional_scenarios_time", "style"),
-    Input("rev_time_trace_options_tab", "value")
-)
-@calls.log
-def toggle_timeseries_above_options(trace):
-    """Open or close map below options."""
-    if trace == "bar":
-        style_a = {"display": "none"}
-    else:
-        style_a = {}
-    return style_a
-
-
-@app.callback(
     Output("rev_time_below_options", "is_open"),
     Input("rev_time_below_options_button", "n_clicks"),
     State("rev_time_below_options", "is_open"),
@@ -2035,3 +1966,66 @@ def toggle_timeseries_below_options(n_clicks, is_open):
     if n_clicks:
         return not is_open
     return is_open
+
+
+@app.callback(
+    Output("scenario_a_specs", "children"),
+    Output("scenario_b_specs", "children"),
+    Output("scenario_a_specs", "style"),
+    Output("scenario_b_specs", "style"),
+    Input("scenario_dropdown_a", "value"),
+    Input("scenario_dropdown_b", "value"),
+    State("project", "value"),
+)
+@calls.log
+def scenario_specs(scenario_a, scenario_b, project):
+    """Output the specs association with a chosen scenario."""
+    # Project might be None on initial load
+    if not project:
+        raise PreventUpdate
+
+    # Scenario A might be None on startup
+    if scenario_a is None:
+        raise PreventUpdate
+
+    # Return a blank space if no parameters entry found
+    config = Config(project)
+    params = config.parameters
+
+    # If there are options, prevent update for now (large file list problem)
+    if config.options is not None:
+        raise PreventUpdate
+
+    # Infer the names
+    path_lookup = {str(value): key for key, value in config.files.items()}
+    name_a = path_lookup[scenario_a]
+    name_b = path_lookup[scenario_b]
+
+    specs_a = ""
+    specs_b = ""
+    style_a = {}
+    style_b = {}
+    if name_a in params:
+        style_a = {"overflow-y": "auto", "height": "300px", "width": "94%"}
+        specs_a = build_specs(name_a, project)
+    if "least_cost" in scenario_a:
+        style_a = {"overflow-y": "auto", "height": "300px", "width": "94%"}
+        specs_a = build_spec_split(scenario_a, project)
+    if name_b in params:
+        style_b = {"overflow-y": "auto", "height": "300px", "width": "94%"}
+        specs_b = build_specs(name_b, project)
+    if "least_cost" in scenario_b:
+        style_b = {"overflow-y": "auto", "height": "300px", "width": "94%"}
+        specs_b = build_spec_split(scenario_b, project)
+
+    return specs_a, specs_b, style_a, style_b
+
+
+@app.callback(
+    Output("last_project", "children"),
+    Input("submit", "n_clicks"),
+    State("project", "value"),
+)
+def store_last_project(project):
+    """Store last project to reView knows when we switch."""
+    return project
