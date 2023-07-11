@@ -1015,6 +1015,7 @@ def figure_chart(
     Output("rev_map", "figure"),
     Output("rev_mapcap", "children"),
     Output("rev_map_loading", "style"),
+    Output("last_project", "children"),
     Input("rev_map_basemap_options", "value"),
     Input("rev_map_color_options", "value"),
     Input("rev_chart", "selectedData"),
@@ -1025,11 +1026,10 @@ def figure_chart(
     Input("rev_map", "selectedData"),
     Input("rev_map", "clickData"),
     Input("map_signal", "children"),
-    State("project", "value"),
     State("last_project", "children"),
     State("map_function", "value"),
     State("rev_chart_x_var_options", "value"),
-    State("rev_chart_options", "value"),
+    State("rev_chart_options", "value")
 )
 @calls.log
 def figure_map(
@@ -1043,7 +1043,6 @@ def figure_map(
     map_selection,
     map_click,
     signal,
-    project,
     last_project,
     map_function,
     x_var,
@@ -1054,18 +1053,8 @@ def figure_map(
     signal_dict = json.loads(signal)
     df = cache_map_data(signal_dict)
 
-    # Reset view if needed
-    update_view = True
-    if project == last_project:
-        update_view = False 
-
     # Initial page load project
-    if not project:
-        project = signal_dict["project"]
-        update_view = True
-
-
-    print(f"\nUpdate view: {update_view}\n")
+    project = signal_dict["project"]
 
     # This might be a difference
     if signal_dict["path2"] and os.path.isfile(signal_dict["path2"]):
@@ -1122,7 +1111,6 @@ def figure_map(
         colorscale=color,
         color_range=[color_ymin, color_ymax],
         demand_data=None,
-        update_view=update_view,
         last_project=last_project
     )
     figure = map_builder.figure(
@@ -1135,7 +1123,7 @@ def figure_map(
     mapcap = json.dumps(mapcap)
     loading_style = {"margin-right": "500px"}
 
-    return figure, mapcap, loading_style
+    return figure, mapcap, loading_style, project
 
 
 # pylint: disable=too-many-arguments,unused-argument
@@ -1968,64 +1956,10 @@ def toggle_timeseries_below_options(n_clicks, is_open):
     return is_open
 
 
-@app.callback(
-    Output("scenario_a_specs", "children"),
-    Output("scenario_b_specs", "children"),
-    Output("scenario_a_specs", "style"),
-    Output("scenario_b_specs", "style"),
-    Input("scenario_dropdown_a", "value"),
-    Input("scenario_dropdown_b", "value"),
-    State("project", "value"),
-)
-@calls.log
-def scenario_specs(scenario_a, scenario_b, project):
-    """Output the specs association with a chosen scenario."""
-    # Project might be None on initial load
-    if not project:
-        raise PreventUpdate
-
-    # Scenario A might be None on startup
-    if scenario_a is None:
-        raise PreventUpdate
-
-    # Return a blank space if no parameters entry found
-    config = Config(project)
-    params = config.parameters
-
-    # If there are options, prevent update for now (large file list problem)
-    if config.options is not None:
-        raise PreventUpdate
-
-    # Infer the names
-    path_lookup = {str(value): key for key, value in config.files.items()}
-    name_a = path_lookup[scenario_a]
-    name_b = path_lookup[scenario_b]
-
-    specs_a = ""
-    specs_b = ""
-    style_a = {}
-    style_b = {}
-    if name_a in params:
-        style_a = {"overflow-y": "auto", "height": "300px", "width": "94%"}
-        specs_a = build_specs(name_a, project)
-    if "least_cost" in scenario_a:
-        style_a = {"overflow-y": "auto", "height": "300px", "width": "94%"}
-        specs_a = build_spec_split(scenario_a, project)
-    if name_b in params:
-        style_b = {"overflow-y": "auto", "height": "300px", "width": "94%"}
-        specs_b = build_specs(name_b, project)
-    if "least_cost" in scenario_b:
-        style_b = {"overflow-y": "auto", "height": "300px", "width": "94%"}
-        specs_b = build_spec_split(scenario_b, project)
-
-    return specs_a, specs_b, style_a, style_b
-
-
-@app.callback(
-    Output("last_project", "children"),
-    Input("submit", "n_clicks"),
-    State("project", "value"),
-)
-def store_last_project(project):
-    """Store last project to reView knows when we switch."""
-    return project
+# @app.callback(
+#     Output("last_project", "children"),
+#     Input("project", "value"),
+# )
+# def store_last_project(project):
+#     """Store last project to reView knows when we switch."""
+#     return project

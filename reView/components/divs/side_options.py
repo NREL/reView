@@ -103,7 +103,7 @@ SIDE_OPTIONS = html.Div(
                                     ],
                                     multi=True,
                                 ),
-                            maxHeight=1000
+                            maxHeight=750
                             )
                         ),
                     ]

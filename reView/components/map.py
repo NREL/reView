@@ -260,7 +260,6 @@ class Map:
         colorscale="Viridis",
         color_range=None,
         demand_data=None,
-        update_view=False,
         last_project=None
     ):
         """Initialize ScatterPlot object."""
@@ -274,7 +273,6 @@ class Map:
             df, color_var, project, color_range[0], color_range[1]
         )
         self.demand_data = demand_data
-        self.update_view = update_view
         self.last_project = last_project
 
         if project:
@@ -478,23 +476,22 @@ class Map:
         layout["showlegend"] = self.show_legend
         layout["title"]["text"] = self.plot_title
         layout["yaxis"] = {"range": [self.cmin, self.cmax]}
-        if not self.update_view:
-            layout["uirevision"] = self.last_project
+        layout["uirevision"] = self.project
 
         # Set initial view for a project
-        if self.update_view:
-            lats = self.df["latitude"]
-            lons = self.df["longitude"]
-            center = {
-                "lon": lons.mean(),
-                "lat": lats.mean()
-            }
-            bounds = max(
-                abs(lons.max() - lons.min()), abs(lats.max() - lats.min())
-            )
-            zoom = 11.5 - np.log(bounds * 111)
-            layout["mapbox"]["center"] = center
-            layout["mapbox"]["zoom"] = zoom
+        # if self.project != self.last_project:
+        #     lats = self.df["latitude"]
+        #     lons = self.df["longitude"]
+        #     center = {
+        #         "lon": lons.mean(),
+        #         "lat": lats.mean()
+        #     }
+        #     bounds = max(
+        #         abs(lons.max() - lons.min()), abs(lats.max() - lats.min())
+        #     )
+        #     zoom = 11.5 - np.log(bounds * 111)
+        #     layout["mapbox"]["center"] = center
+        #     layout["mapbox"]["zoom"] = zoom
 
         return layout
 
