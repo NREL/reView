@@ -112,10 +112,9 @@ layout = html.Div(
         # To store option names for the chart title
         html.Div(id="chosen_chart_options", style={"display": "none"}),
 
-        # To tell if the project has changed
+        # To tell if the project has changed and update the map view
         html.Div(id="last_project", style={"display": "none"}),
-
-        html.Div(id="update_view", style={"display": "none"}),
+        html.Div(id="map_view", style={"display": "none"}),
 
         # For storing the data frame path and triggering updates
         html.Div(id="map_data_path", style={"display": "none"}),

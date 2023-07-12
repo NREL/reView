@@ -681,12 +681,7 @@ def to_geo(df, dst, layer):
     if "index" in df:
         del df["index"]
 
-    # Remove terrible cropland data layer field (Starts with integers twice)
-    if "2016_30m_cdls_rev90m" in df:
-        del df["2016_30m_cdls_rev90m"]
-
     # Remove or rename columns
-    df2 = df.copy()
     replacements = {
         "-": "_",
         " ": "_",
@@ -697,9 +692,16 @@ def to_geo(df, dst, layer):
         ")": "",
         "-": "_",
         "-": "_",
-        "-": "_"
+        "-": "_",
+        "%": "pct",
+        "&": "and"
     }
     for col in df.columns:
+        # Remove columns that start with numbers
+        if is_int(col[0]):
+            del df[col]
+            print(col)
+
         # This happens when you save the index
         if "Unnamed:" in col:
             del df[col]
@@ -713,18 +715,16 @@ def to_geo(df, dst, layer):
             ncol = ncol.lower()
 
             # Columns also can't start with an integer
-            parts = ncol.split("_")
-            for part in parts:
-                if is_int(part):
-                    npart1 = "_".join(ncol.split("_")[1:])
-                    npart2 = ncol.split("_")[0]
-                    ncol = "_".join([npart1, npart2])
+            # parts = ncol.split("_")
+            # for part in parts:
+            #     if is_int(part):
+            #         npart1 = "_".join(ncol.split("_")[1:])
+            #         npart2 = ncol.split("_")[0]
+            #         ncol = "_".join([npart1, npart2])
 
             # Rename column
             if col != ncol:
                 df = df.rename({col: ncol}, axis=1)
-
-
 
     # Create fields and set types
     fields = []

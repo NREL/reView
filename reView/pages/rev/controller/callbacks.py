@@ -9,6 +9,7 @@ Things to do:
     - Automate startup elements
     - Build categorical variable charts
 """
+import copy
 import hashlib
 import json
 import logging
@@ -30,7 +31,7 @@ from reView.components.callbacks import (
     display_selected_tab_above_map,
 )
 from reView.components.logic import tab_styles
-from reView.components.map import Map, Title
+from reView.components.map import Map, Title, MAP_LAYOUT
 from reView.layout.options import (
     CHART_OPTIONS,
     COLOR_OPTIONS,
@@ -1015,7 +1016,6 @@ def figure_chart(
     Output("rev_map", "figure"),
     Output("rev_mapcap", "children"),
     Output("rev_map_loading", "style"),
-    Output("last_project", "children"),
     Input("rev_map_basemap_options", "value"),
     Input("rev_map_color_options", "value"),
     Input("rev_chart", "selectedData"),
@@ -1026,7 +1026,6 @@ def figure_chart(
     Input("rev_map", "selectedData"),
     Input("rev_map", "clickData"),
     Input("map_signal", "children"),
-    State("last_project", "children"),
     State("map_function", "value"),
     State("rev_chart_x_var_options", "value"),
     State("rev_chart_options", "value")
@@ -1043,7 +1042,6 @@ def figure_map(
     map_selection,
     map_click,
     signal,
-    last_project,
     map_function,
     x_var,
     chart_type
@@ -1053,7 +1051,7 @@ def figure_map(
     signal_dict = json.loads(signal)
     df = cache_map_data(signal_dict)
 
-    # Initial page load project
+    # Get the project from the signal
     project = signal_dict["project"]
 
     # This might be a difference
@@ -1098,9 +1096,6 @@ def figure_map(
                           map_selection=map_selection)
     title = title_builder.map_title
 
-    # Should we reset the map layout (override uirevision)?
-    print(f"\n last_projects: {project}, {last_project}\n")
-
     # Build figure
     map_builder = Map(
         df=df,
@@ -1111,7 +1106,6 @@ def figure_map(
         colorscale=color,
         color_range=[color_ymin, color_ymax],
         demand_data=None,
-        last_project=last_project
     )
     figure = map_builder.figure(
         point_size=point_size,
@@ -1123,7 +1117,7 @@ def figure_map(
     mapcap = json.dumps(mapcap)
     loading_style = {"margin-right": "500px"}
 
-    return figure, mapcap, loading_style, project
+    return figure, mapcap, loading_style
 
 
 # pylint: disable=too-many-arguments,unused-argument
