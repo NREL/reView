@@ -1,5 +1,5 @@
 """reView functions."""
-# pylint: disable=broad-exception-caught
+# pylint: disable=unknown-option-value,broad-exception-caught
 import ast
 import datetime as dt
 import json
@@ -274,7 +274,7 @@ def deep_replace(dictionary, replacement):
         return
 
 
-def get_sheet(file_name, sheet_name=None, starty=0, startx=0, header=0):
+def get_sheet(file_name, sheet_name=None, header=0):
     """Read in/check available sheets from an excel spreadsheet file."""
     # Open file
     file = pd.ExcelFile(file_name)
@@ -661,8 +661,9 @@ def strip_rev_filename_endings(filename):
 
 
 def to_geo(df, dst, layer):
+    # pylint: disable=too-many-branches
     """Convert pandas data frame to geodataframe.
-    
+
     Parameters
     ----------
     df : pd.core.frame.DataFrame
@@ -692,9 +693,6 @@ def to_geo(df, dst, layer):
         "?": "",
         "(": "",
         ")": "",
-        "-": "_",
-        "-": "_",
-        "-": "_",
         "%": "pct",
         "&": "and"
     }
