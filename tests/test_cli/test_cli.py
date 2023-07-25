@@ -274,8 +274,8 @@ def test_make_maps(
                     expected_png, out_png
                 )
                 assert images_match, (
-                    f"Output image does not match expected image {expected_png}"
-                    f"Difference is {pct_diff * 100}%"
+                    f"Output image does not match expected image "
+                    f"{expected_png}. Difference is {pct_diff * 100}%"
                 )
 
 
