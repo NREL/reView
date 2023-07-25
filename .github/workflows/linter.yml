@@ -30,4 +30,5 @@ jobs:
           DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           LINTER_RULES_PATH: /
+          FILTER_REGEX_EXCLUDE: .*tests/data/.*.png
           PYTHON_PYLINT_CONFIG_FILE: .pylintrc

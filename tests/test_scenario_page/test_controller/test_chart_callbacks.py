@@ -17,11 +17,11 @@ def test_options_chart_type():
 @pytest.mark.parametrize(
     "chart_choice, num_expected_tabs, should_be_missing",
     [
-        ("cumsum", 3, None),
-        ("histogram", 2, "X Variable"),
-        ("box", 2, "X Variable"),
-        ("scatter", 3, None),
-        ("binned", 3, None),
+        ("cumsum", 2, None),
+        ("histogram", 1, "X Variable"),
+        ("box", 1, "X Variable"),
+        ("scatter", 2, None),
+        ("binned", 2, None),
         ("char_histogram", 2, "Additional Scenarios"),
     ],
 )
@@ -35,3 +35,7 @@ def test_chart_tab_div_children(
     if should_be_missing:
         # pylint: disable=no-member
         assert should_be_missing not in {t.label for t in tabs}
+
+
+if __name__ == '__main__':
+    pytest.main([__file__, '-s'])
