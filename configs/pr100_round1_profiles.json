@@ -1,6 +1,6 @@
 {
-    "project_name": "PR100 - Forecasts",
-    "directory": "~/review_datasets/pr100_forecasts",
+    "project_name": "PR100 - Round 1 - Profiles",
+    "directory": "~/review_datasets/pr100_round1_profiles",
     "variables": {
         "00_solar_upv_one_day_limited_22_rep-profiles_2018": {
             "run_number": "00",

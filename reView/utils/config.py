@@ -201,7 +201,10 @@ class Config:
         """:obj:`generator`: Generator of raw project files."""
         if self.options is not None and "file" in self.options:
             for file in self.options.file:
-                yield Path(file).expanduser().resolve()
+                if file.startswith("./"):
+                    yield self.directory.joinpath(file).expanduser()
+                else:
+                    yield Path(file).expanduser()
         else:
             cfiles = self.directory.rglob("*.csv")
             pfiles = self.directory.rglob("*.parquet")

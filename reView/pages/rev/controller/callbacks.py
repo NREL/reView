@@ -9,6 +9,7 @@ Things to do:
     - Automate startup elements
     - Build categorical variable charts
 """
+import copy
 import hashlib
 import json
 import logging
@@ -30,7 +31,7 @@ from reView.components.callbacks import (
     display_selected_tab_above_map,
 )
 from reView.components.logic import tab_styles
-from reView.components.map import Map, Title
+from reView.components.map import Map, Title, MAP_LAYOUT
 from reView.layout.options import (
     CHART_OPTIONS,
     COLOR_OPTIONS,
@@ -125,7 +126,8 @@ def build_scenario_dropdowns(groups, dropid=None, multi=False, dynamic=False,
                         dcc.Dropdown(
                             id=dropid,
                             options=options,
-                            value=values[0],
+                            # value=values[0],
+                            value="all",
                             optionHeight=50,
                             multi=multi,
                             style={
@@ -199,16 +201,6 @@ def chart_tab_div_children(chart_choice):
             dcc.Tab(
                 value="x_variable",
                 label="X Variable",
-                style=TABLET_STYLE,
-                selected_style=TABLET_STYLE,
-            )
-        ]
-
-    if chart_choice not in {"char_histogram"}:
-        children += [
-            dcc.Tab(
-                value="scenarios",
-                label="Additional Scenarios",
                 style=TABLET_STYLE,
                 selected_style=TABLET_STYLE,
             )
@@ -306,7 +298,14 @@ def filter_files(project, filters, options):
         if value != "all":
             options = options[options[col] == value]
 
-    return list(options["file"].values)
+    # Expand relative paths
+    files = []
+    for file in options["file"].values:
+        if file.startswith("./"):
+            file = str(config.directory.joinpath(file))
+        files.append(file)
+
+    return files
 
 
 def files_to_dropdown(files):
@@ -648,7 +647,6 @@ def dropdown_projects(__, ___):
     Output("scenario_dropdown_a", "options"),
     Output("scenario_dropdown_b", "options"),
     Output("rev_additional_scenarios", "options"),
-    Output("rev_additional_scenarios_time", "options"),
     Output("scenario_dropdown_a", "value"),
     Output("scenario_dropdown_b", "value"),
     Output("scenario_dropdown_a", "placeholder"),
@@ -718,10 +716,27 @@ def dropdown_scenarios(
     placeholder = "All files filtered out"
 
     # Create a single return tuple
-    return_package = (group_a, group_b, group_a, group_a, value_a, value_b,
+    return_package = (group_a, group_b, group_a, value_a, value_b,
                       placeholder, placeholder)
 
     return return_package
+
+
+@app.callback(
+    Output("rev_additional_scenarios", "value"),
+    Input("rev_clear_all_scenarios", "n_clicks"),
+    Input("rev_select_all_scenarios", "n_clicks"),
+    State("rev_additional_scenarios", "options")
+)
+@calls.log
+def dropdown_scenarios_adjust_additional(clear_all, select_all, options):
+    """Add all or clear the additional dropdown scenarios."""
+    # Catcht the triggering element
+    trigger = callback_trigger()
+    values = []
+    if "select" in trigger:
+        values = [op["value"] for op in options]
+    return values
 
 
 @app.callback(
@@ -1011,11 +1026,9 @@ def figure_chart(
     Input("rev_map", "selectedData"),
     Input("rev_map", "clickData"),
     Input("map_signal", "children"),
-    State("project", "value"),
-    State("last_project", "children"),
     State("map_function", "value"),
     State("rev_chart_x_var_options", "value"),
-    State("rev_chart_options", "value"),
+    State("rev_chart_options", "value")
 )
 @calls.log
 def figure_map(
@@ -1029,8 +1042,6 @@ def figure_map(
     map_selection,
     map_click,
     signal,
-    project,
-    last_project,
     map_function,
     x_var,
     chart_type
@@ -1040,9 +1051,8 @@ def figure_map(
     signal_dict = json.loads(signal)
     df = cache_map_data(signal_dict)
 
-    # Initial page load project
-    if not project:
-        project = signal_dict["project"]
+    # Get the project from the signal
+    project = signal_dict["project"]
 
     # This might be a difference
     if signal_dict["path2"] and os.path.isfile(signal_dict["path2"]):
@@ -1086,9 +1096,6 @@ def figure_map(
                           map_selection=map_selection)
     title = title_builder.map_title
 
-    # Should we reset the map layout (override uirevision)?
-    print(f"\n last_projects: {project}, {last_project}\n")
-
     # Build figure
     map_builder = Map(
         df=df,
@@ -1099,7 +1106,6 @@ def figure_map(
         colorscale=color,
         color_range=[color_ymin, color_ymax],
         demand_data=None,
-        last_project=last_project
     )
     figure = map_builder.figure(
         point_size=point_size,
@@ -1122,7 +1128,7 @@ def figure_map(
     Input("rev_time_trace_options_tab", "value"),
     Input("rev_time_period_options_tab", "value"),
     Input("rev_variable_time", "value"),
-    Input("rev_additional_scenarios_time", "value"),
+    Input("rev_additional_scenarios", "value"),
     Input("rev_chart", "selectedData"),
     Input("rev_map", "selectedData"),
     Input("rev_map", "clickData"),
@@ -1474,7 +1480,6 @@ def retrieve_filters(__, ___, var1, var2, var3, var4, q1, q2, q3, q4):
 # pylint: disable=too-many-statements
 @app.callback(
     Output("map_signal", "children"),
-    Output("last_project", "children"),
     Output("pca_plot_1", "clickData"),
     Output("pca_plot_2", "clickData"),
     Input("submit", "n_clicks"),
@@ -1652,7 +1657,7 @@ def retrieve_signal(
             "y": y
         }
 
-    return json.dumps(signal), project, None, None
+    return json.dumps(signal), None, None
 
 
 @app.callback(
@@ -1707,63 +1712,9 @@ def retrieve_recalc_parameters(
 
 
 @app.callback(
-    Output("scenario_a_specs", "children"),
-    Output("scenario_b_specs", "children"),
-    Output("scenario_a_specs", "style"),
-    Output("scenario_b_specs", "style"),
-    Input("scenario_dropdown_a", "value"),
-    Input("scenario_dropdown_b", "value"),
-    State("project", "value"),
-)
-@calls.log
-def scenario_specs(scenario_a, scenario_b, project):
-    """Output the specs association with a chosen scenario."""
-    # Project might be None on initial load
-    if not project:
-        raise PreventUpdate
-
-    # Scenario A might be None on startup
-    if scenario_a is None:
-        raise PreventUpdate
-
-    # Return a blank space if no parameters entry found
-    config = Config(project)
-    params = config.parameters
-
-    # If there are options, prevent update for now (large file list problem)
-    if config.options is not None:
-        raise PreventUpdate
-
-    # Infer the names
-    path_lookup = {str(value): key for key, value in config.files.items()}
-    name_a = path_lookup[scenario_a]
-    name_b = path_lookup[scenario_b]
-
-    specs_a = ""
-    specs_b = ""
-    style_a = {}
-    style_b = {}
-    if name_a in params:
-        style_a = {"overflow-y": "auto", "height": "300px", "width": "94%"}
-        specs_a = build_specs(name_a, project)
-    if "least_cost" in scenario_a:
-        style_a = {"overflow-y": "auto", "height": "300px", "width": "94%"}
-        specs_a = build_spec_split(scenario_a, project)
-    if name_b in params:
-        style_b = {"overflow-y": "auto", "height": "300px", "width": "94%"}
-        specs_b = build_specs(name_b, project)
-    if "least_cost" in scenario_b:
-        style_b = {"overflow-y": "auto", "height": "300px", "width": "94%"}
-        specs_b = build_spec_split(scenario_b, project)
-
-    return specs_a, specs_b, style_a, style_b
-
-
-@app.callback(
     Output("rev_chart_options_tab", "children"),
     Output("rev_chart_options_div", "style"),
     Output("rev_chart_x_variable_options_div", "style"),
-    Output("rev_additional_scenarios_div", "style"),
     Input("rev_chart_options_tab", "value"),
     Input("rev_chart_options", "value"),
 )
@@ -1771,7 +1722,7 @@ def tabs_chart(tab_choice, chart_choice):
     """Choose which chart tabs to display."""
     tabs = chart_tab_div_children(chart_choice)
     styles = tab_styles(
-        tab_choice, options=["chart", "x_variable", "scenarios"]
+        tab_choice, options=["chart", "x_variable"]
     )
     return tabs, *styles
 
@@ -1786,6 +1737,17 @@ def toggle_bins(chart_type):
     if chart_type in {"binned", "histogram", "char_histogram"}:
         return {}
     return {"display": "none"}
+
+
+@app.callback(
+    Output("side_options", "is_open"),
+    Input("open_side_options", "n_clicks"),
+    State("side_options", "is_open"),
+)
+def toggle_offcanvas(n1, is_open):
+    if n1:
+        return not is_open
+    return is_open
 
 
 @app.callback(
@@ -1976,20 +1938,6 @@ def toggle_timeseries(_, ___, scenario):
 
 
 @app.callback(
-    Output("rev_additional_scenarios_time", "style"),
-    Input("rev_time_trace_options_tab", "value")
-)
-@calls.log
-def toggle_timeseries_above_options(trace):
-    """Open or close map below options."""
-    if trace == "bar":
-        style_a = {"display": "none"}
-    else:
-        style_a = {}
-    return style_a
-
-
-@app.callback(
     Output("rev_time_below_options", "is_open"),
     Input("rev_time_below_options_button", "n_clicks"),
     State("rev_time_below_options", "is_open"),
@@ -2000,3 +1948,12 @@ def toggle_timeseries_below_options(n_clicks, is_open):
     if n_clicks:
         return not is_open
     return is_open
+
+
+# @app.callback(
+#     Output("last_project", "children"),
+#     Input("project", "value"),
+# )
+# def store_last_project(project):
+#     """Store last project to reView knows when we switch."""
+#     return project
