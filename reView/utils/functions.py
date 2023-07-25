@@ -1,5 +1,5 @@
 """reView functions."""
-# pylint: disable=unknown-option-value,broad-exception-caught
+# pylint: disable=broad-exception-caught
 import ast
 import datetime as dt
 import json
