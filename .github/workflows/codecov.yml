@@ -26,7 +26,7 @@ jobs:
         python -m pip install .[dev]
     - name: Generate Coverage Report
       run: |
-        python -m  pytest --disable-warnings --cov=./ --cov-report=xml:coverage.xml -m "not maptest"
+        python -m  pytest --disable-warnings --cov=./ --cov-report=xml:coverage.xml
     - name: Upload Coverage to Codecov
       uses: codecov/codecov-action@v1
       with:

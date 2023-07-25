@@ -270,9 +270,13 @@ def test_make_maps(
             for out_png_name in out_png_names:
                 expected_png = data_dir_test.joinpath("plots", out_png_name)
                 out_png = output_path.joinpath(out_png_name)
-                assert compare_images_approx(expected_png, out_png), \
-                    "Output image does not match expected image " \
-                    f"{expected_png}"
+                images_match, pct_diff = compare_images_approx(
+                    expected_png, out_png
+                )
+                assert images_match, (
+                    f"Output image does not match expected image {expected_png}"
+                    f"Difference is {pct_diff * 100}%"
+                )
 
 
 @pytest.mark.maptest
@@ -310,9 +314,13 @@ def test_make_maps_wind_keep_zero(
                 "plots", out_png_name.replace(".png", "_kz.png")
             )
             out_png = output_path.joinpath(out_png_name)
-            assert compare_images_approx(expected_png, out_png), \
-                "Output image does not match expected image " \
-                f"{expected_png}"
+            images_match, pct_diff = compare_images_approx(
+                expected_png, out_png
+            )
+            assert images_match, (
+                f"Output image does not match expected image {expected_png}"
+                f"Difference is {pct_diff * 100}%"
+            )
 
 
 @pytest.mark.maptest
@@ -349,9 +357,13 @@ def test_make_maps_wind_drop_zero(
                 "plots", out_png_name.replace(".png", "_dz.png")
             )
             out_png = output_path.joinpath(out_png_name)
-            assert compare_images_approx(expected_png, out_png), \
-                "Output image does not match expected image " \
-                f"{expected_png}"
+            images_match, pct_diff = compare_images_approx(
+                expected_png, out_png
+            )
+            assert images_match, (
+                f"Output image does not match expected image {expected_png}"
+                f"Difference is {pct_diff * 100}%"
+            )
 
 
 @pytest.mark.maptest
@@ -388,9 +400,13 @@ def test_make_maps_wind_drop_legend(
                 "plots", out_png_name.replace(".png", "_drop_legend.png")
             )
             out_png = output_path.joinpath(out_png_name)
-            assert compare_images_approx(expected_png, out_png), \
-                "Output image does not match expected image " \
-                f"{expected_png}"
+            images_match, pct_diff = compare_images_approx(
+                expected_png, out_png
+            )
+            assert images_match, (
+                f"Output image does not match expected image {expected_png}"
+                f"Difference is {pct_diff * 100}%"
+            )
 
 
 @pytest.mark.maptest
@@ -427,9 +443,13 @@ def test_make_maps_boundaries(
                 "plots", out_png_name.replace(".png", "_boundaries.png")
             )
             out_png = output_path.joinpath(out_png_name)
-            assert compare_images_approx(expected_png, out_png), \
-                "Output image does not match expected image " \
-                f"{expected_png}"
+            images_match, pct_diff = compare_images_approx(
+                expected_png, out_png
+            )
+            assert images_match, (
+                f"Output image does not match expected image {expected_png}"
+                f"Difference is {pct_diff * 100}%"
+            )
 
 
 @pytest.mark.maptest
@@ -499,9 +519,13 @@ def test_map_column_happy(
             "plots", out_png_name.replace(".png", "_happy.png")
         )
         out_png = output_path.joinpath(out_png_name)
-        assert compare_images_approx(expected_png, out_png), \
-            "Output image does not match expected image " \
-            f"{expected_png}"
+        images_match, pct_diff = compare_images_approx(
+            expected_png, out_png
+        )
+        assert images_match, (
+            f"Output image does not match expected image {expected_png}"
+            f"Difference is {pct_diff * 100}%"
+        )
 
 
 @pytest.mark.maptest
@@ -537,9 +561,13 @@ def test_map_column_formatting(
             "plots", out_png_name.replace(".png", "_formatting.png")
         )
         out_png = output_path.joinpath(out_png_name)
-        assert compare_images_approx(expected_png, out_png), \
-            "Output image does not match expected image " \
-            f"{expected_png}"
+        images_match, pct_diff = compare_images_approx(
+            expected_png, out_png
+        )
+        assert images_match, (
+            f"Output image does not match expected image {expected_png}"
+            f"Difference is {pct_diff * 100}%"
+        )
 
 
 @pytest.mark.maptest
@@ -631,9 +659,13 @@ def test_map_column_boundaries(
             "plots", out_png_name.replace(".png", "_boundaries.png")
         )
         out_png = output_path.joinpath(out_png_name)
-        assert compare_images_approx(expected_png, out_png), \
-            "Output image does not match expected image " \
-            f"{expected_png}"
+        images_match, pct_diff = compare_images_approx(
+            expected_png, out_png
+        )
+        assert images_match, (
+            f"Output image does not match expected image {expected_png}"
+            f"Difference is {pct_diff * 100}%"
+        )
 
 
 @pytest.mark.maptest
@@ -666,9 +698,13 @@ def test_map_column_boundaries_kwargs(
             "plots", out_png_name.replace(".png", "_boundaries_kwargs.png")
         )
         out_png = output_path.joinpath(out_png_name)
-        assert compare_images_approx(expected_png, out_png), \
-            "Output image does not match expected image " \
-            f"{expected_png}"
+        images_match, pct_diff = compare_images_approx(
+            expected_png, out_png
+        )
+        assert images_match, (
+            f"Output image does not match expected image {expected_png}"
+            f"Difference is {pct_diff * 100}%"
+        )
 
 
 @pytest.mark.maptest
@@ -701,9 +737,13 @@ def test_map_column_drop_legend(
             "plots", out_png_name.replace(".png", "_drop_legend.png")
         )
         out_png = output_path.joinpath(out_png_name)
-        assert compare_images_approx(expected_png, out_png), \
-            "Output image does not match expected image " \
-            f"{expected_png}"
+        images_match, pct_diff = compare_images_approx(
+            expected_png, out_png
+        )
+        assert images_match, (
+            f"Output image does not match expected image {expected_png}"
+            f"Difference is {pct_diff * 100}%"
+        )
 
 
 @pytest.mark.maptest

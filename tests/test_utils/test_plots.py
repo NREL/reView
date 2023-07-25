@@ -50,7 +50,11 @@ def compare_images_approx(
 
     max_diff_bits = int(np.ceil(hash_size * max_diff_pct))
 
-    return (expected_hash - out_hash) <= max_diff_bits
+    diff = expected_hash - out_hash
+    matches = diff <= max_diff_bits
+    pct_diff = float(diff) / hash_size
+
+    return matches, pct_diff
 
 
 def test_YBFixedBounds_happy():
@@ -123,8 +127,13 @@ def test_map_geodataframe_column_happy(
 
         expected_png = data_dir_test.joinpath("plots", out_png_name)
 
-        assert compare_images_approx(expected_png, out_png), \
+        images_match, pct_diff = compare_images_approx(
+            expected_png, out_png
+        )
+        assert images_match, (
             f"Output image does not match expected image {expected_png}"
+            f"Difference is {pct_diff * 100}%"
+        )
 
 
 @pytest.mark.maptest
@@ -172,8 +181,13 @@ def test_map_geodataframe_column_styling(
 
         expected_png = data_dir_test.joinpath("plots", out_png_name)
 
-        assert compare_images_approx(expected_png, out_png), \
+        images_match, pct_diff = compare_images_approx(
+            expected_png, out_png
+        )
+        assert images_match, (
             f"Output image does not match expected image {expected_png}"
+            f"Difference is {pct_diff * 100}%"
+        )
 
 
 @pytest.mark.maptest
@@ -215,8 +229,13 @@ def test_map_geodataframe_column_repeat(
 
         expected_png = data_dir_test.joinpath("plots", out_png_name)
 
-        assert compare_images_approx(expected_png, out_png), \
+        images_match, pct_diff = compare_images_approx(
+            expected_png, out_png
+        )
+        assert images_match, (
             f"Output image does not match expected image {expected_png}"
+            f"Difference is {pct_diff * 100}%"
+        )
 
 
 @pytest.mark.maptest
@@ -248,8 +267,13 @@ def test_map_geodataframe_column_no_legend(
 
         expected_png = data_dir_test.joinpath("plots", out_png_name)
 
-        assert compare_images_approx(expected_png, out_png), \
+        images_match, pct_diff = compare_images_approx(
+            expected_png, out_png
+        )
+        assert images_match, (
             f"Output image does not match expected image {expected_png}"
+            f"Difference is {pct_diff * 100}%"
+        )
 
 
 @pytest.mark.maptest
@@ -283,8 +307,13 @@ def test_map_geodataframe_column_boundaries_kwargs(
 
         expected_png = data_dir_test.joinpath("plots", out_png_name)
 
-        assert compare_images_approx(expected_png, out_png), \
+        images_match, pct_diff = compare_images_approx(
+            expected_png, out_png
+        )
+        assert images_match, (
             f"Output image does not match expected image {expected_png}"
+            f"Difference is {pct_diff * 100}%"
+        )
 
 
 @pytest.mark.maptest
@@ -345,8 +374,13 @@ def test_map_geodataframe_polygons(
 
         expected_png = data_dir_test.joinpath("plots", out_png_name)
 
-        assert compare_images_approx(expected_png, out_png), \
+        images_match, pct_diff = compare_images_approx(
+            expected_png, out_png
+        )
+        assert images_match, (
             f"Output image does not match expected image {expected_png}"
+            f"Difference is {pct_diff * 100}%"
+        )
 
 
 if __name__ == '__main__':
