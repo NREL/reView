@@ -218,6 +218,72 @@ def test_map_geodataframe_column_repeat(
 
 
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
+def test_map_geodataframe_column_no_legend(
+    data_dir_test, supply_curve_gdf, background_gdf, states_gdf
+):
+    """
+    Test that map_geodataframe_column function produces a map without a legend
+    when the legend argument is specified as False.
+    """
+    col_name = "area_sq_km"
+
+    with tempfile.TemporaryDirectory() as tempdir:
+
+        g = map_geodataframe_column(
+            supply_curve_gdf,
+            col_name,
+            background_df=background_gdf,
+            boundaries_df=states_gdf,
+            legend=False
+        )
+        plt.tight_layout()
+
+        out_png_name = "no_legend.png"
+        out_png = Path(tempdir).joinpath("no_legend.png")
+        g.figure.savefig(out_png, dpi=75)
+        plt.close(g.figure)
+
+        expected_png = data_dir_test.joinpath("plots", out_png_name)
+
+        assert compare_images_approx(expected_png, out_png), \
+            f"Output image does not match expected image {expected_png}"
+
+
+@pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
+def test_map_geodataframe_column_boundaries_kwargs(
+    data_dir_test, supply_curve_gdf, background_gdf, states_gdf
+):
+    """
+    Test that map_geodataframe_column function produces a map with correctly
+    styled boundaries when boundaries_kwargs are passed.
+    """
+    col_name = "area_sq_km"
+
+    with tempfile.TemporaryDirectory() as tempdir:
+
+        g = map_geodataframe_column(
+            supply_curve_gdf,
+            col_name,
+            background_df=background_gdf,
+            boundaries_df=states_gdf,
+            boundaries_kwargs={
+                "linewidth": 2, "zorder": 1, "edgecolor": "black"
+            }
+        )
+        plt.tight_layout()
+
+        out_png_name = "boundaries_kwargs.png"
+        out_png = Path(tempdir).joinpath("boundaries_kwargs.png")
+        g.figure.savefig(out_png, dpi=75)
+        plt.close(g.figure)
+
+        expected_png = data_dir_test.joinpath("plots", out_png_name)
+
+        assert compare_images_approx(expected_png, out_png), \
+            f"Output image does not match expected image {expected_png}"
+
+
+@pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_map_geodataframe_polygons(
     data_dir_test, supply_curve_gdf, county_background_gdf, states_gdf,
     counties_gdf
