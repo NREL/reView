@@ -233,9 +233,9 @@ def test_unpack_characterizations_no_overwrite(
 
 @pytest.mark.filterwarnings("ignore:Skipping")
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
-@pytest.mark.filterwarnings("ignore:invalid value encountered in ")
 def test_make_maps(
-    map_supply_curve_wind, map_supply_curve_solar, cli_runner, data_dir_test
+    map_supply_curve_wind, map_supply_curve_solar, cli_runner, data_dir_test,
+    output_map_names
 ):
     """
     Happy path test for make_maps() CLI. Tests that it produces the expected
@@ -259,16 +259,13 @@ def test_make_maps(
                 ]
             )
             assert result.exit_code == 0, (
-            f"Command failed with error {result.exception}"
-        )
+                f"Command failed with error {result.exception}"
+            )
 
             out_png_names = [
-                f"capacity_{tech}.png",
-                f"lcot_{tech}.png",
-                f"mean_lcoe_{tech}.png",
-                f"total_lcoe_{tech}.png",
-                f"capacity_density_{tech}.png",
+                f"{mapname}.png" for mapname in output_map_names[tech]
             ]
+
             for out_png_name in out_png_names:
                 expected_png = data_dir_test.joinpath("plots", out_png_name)
                 out_png = output_path.joinpath(out_png_name)
@@ -279,21 +276,20 @@ def test_make_maps(
 
 @pytest.mark.filterwarnings("ignore:Skipping")
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
-@pytest.mark.filterwarnings("ignore:invalid value encountered in ")
 def test_make_maps_wind_keep_zero(
-    map_supply_curve_wind, cli_runner, data_dir_test
+    map_supply_curve_wind_zeros, cli_runner, data_dir_test, output_map_names
 ):
     """
     Test that make_maps() CLI produces the expected images for a wind supply
-    curve when the --keep-zero flag is enabled. Only tests wind because
-    solar supply curve does not have sites with zero capacity.
+    curve when the --keep-zero flag is enabled. Tests a mocked wind csv because
+    normal post-processed CSVs do not have sites with zero capacity.
     """
 
     with tempfile.TemporaryDirectory() as tempdir:
         output_path = pathlib.Path(tempdir)
         result = cli_runner.invoke(
             make_maps, [
-                '-i', map_supply_curve_wind.as_posix(),
+                '-i', map_supply_curve_wind_zeros.as_posix(),
                 '-t', "wind",
                 '-o', output_path.as_posix(),
                 '--dpi', 75,
@@ -305,11 +301,7 @@ def test_make_maps_wind_keep_zero(
         )
 
         out_png_names = [
-            "capacity_wind.png",
-            "lcot_wind.png",
-            "mean_lcoe_wind.png",
-            "total_lcoe_wind.png",
-            "capacity_density_wind.png",
+            f"{mapname}.png" for mapname in output_map_names["wind"]
         ]
         for out_png_name in out_png_names:
             expected_png = data_dir_test.joinpath(
@@ -323,9 +315,47 @@ def test_make_maps_wind_keep_zero(
 
 @pytest.mark.filterwarnings("ignore:Skipping")
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
+def test_make_maps_wind_drop_zero(
+    map_supply_curve_wind_zeros, cli_runner, data_dir_test, output_map_names
+):
+    """
+    Test that make_maps() CLI produces the expected images for a wind supply
+    curve when the --keep-zero flag is NOT enabled. Tests a mocked wind csv
+    because normal post-processed CSVs do not have sites with zero capacity.
+    """
+
+    with tempfile.TemporaryDirectory() as tempdir:
+        output_path = pathlib.Path(tempdir)
+        result = cli_runner.invoke(
+            make_maps, [
+                '-i', map_supply_curve_wind_zeros.as_posix(),
+                '-t', "wind",
+                '-o', output_path.as_posix(),
+                '--dpi', 75
+            ]
+        )
+        assert result.exit_code == 0, (
+            f"Command failed with error {result.exception}"
+        )
+
+        out_png_names = [
+            f"{mapname}.png" for mapname in output_map_names["wind"]
+        ]
+        for out_png_name in out_png_names:
+            expected_png = data_dir_test.joinpath(
+                "plots", out_png_name.replace(".png", "_dz.png")
+            )
+            out_png = output_path.joinpath(out_png_name)
+            assert compare_images_approx(expected_png, out_png), \
+                "Output image does not match expected image " \
+                f"{expected_png}"
+
+
+@pytest.mark.filterwarnings("ignore:Skipping")
+@pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_make_maps_boundaries(
     map_supply_curve_solar, cli_runner, data_dir_test,
-    states_subset_path
+    states_subset_path, output_map_names
 ):
     """
     Test that make_maps() CLI works with an input boundaries file.
@@ -347,10 +377,7 @@ def test_make_maps_boundaries(
         )
 
         out_png_names = [
-            "capacity_solar.png",
-            "lcot_solar.png",
-            "mean_lcoe_solar.png",
-            "total_lcoe_solar.png"
+            f"{mapname}.png" for mapname in output_map_names["solar"]
         ]
         for out_png_name in out_png_names:
             expected_png = data_dir_test.joinpath(
@@ -364,7 +391,7 @@ def test_make_maps_boundaries(
 
 @pytest.mark.filterwarnings("ignore:Skipping")
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
-def test_make_maps_pdf(map_supply_curve_solar, cli_runner):
+def test_make_maps_pdf(map_supply_curve_solar, cli_runner, output_map_names):
     """
     Test that make_maps() CLI correctly outputs pdfs when specified as the
     out_format.
@@ -386,11 +413,7 @@ def test_make_maps_pdf(map_supply_curve_solar, cli_runner):
         )
 
         out_pdf_names = [
-            "capacity_solar.pdf",
-            "capacity_density_solar.pdf",
-            "lcot_solar.pdf",
-            "mean_lcoe_solar.pdf",
-            "total_lcoe_solar.pdf"
+            f"{mapname}.pdf" for mapname in output_map_names["solar"]
         ]
         # it's not easy to open and check pdf contents, so just check
         # the file was created successfully and is not empty

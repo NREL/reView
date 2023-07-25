@@ -10,6 +10,7 @@ import warnings
 import click
 import pandas as pd
 import geopandas as gpd
+import numpy as np
 import matplotlib.pyplot as plt
 import tqdm
 
@@ -215,8 +216,9 @@ def make_maps(
         crs="EPSG:4326"
     )
     supply_curve_gdf["capacity_density"] = (
-        supply_curve_gdf[cap_col] / supply_curve_gdf["area_sq_km"]
-    )
+        supply_curve_gdf[cap_col] /
+        supply_curve_gdf["area_sq_km"].replace(0, np.nan)
+    ).replace(np.nan, 0)
 
     boundaries_gdf = gpd.read_file(boundaries)
     boundaries_gdf.to_crs("EPSG:4326", inplace=True)
