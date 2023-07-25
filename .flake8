@@ -5,4 +5,4 @@ ignore =
     F,
     W503,
     W605
-exclude = .git,__pycache__,build,dist
+exclude = .git,__pycache__,build,dist,.png

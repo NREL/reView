@@ -235,7 +235,7 @@ def decode(df):
                     try:
                         df[c] = df[c].apply(
                             lambda x: ast.literal_eval(x).decode()
-                            )
+                        )
                     except Exception:
                         df[c] = None
                         print(f"Column {c} could not be decoded.")
@@ -712,9 +712,9 @@ def to_sarray(df):
                 else:
                     coltype = 'f2'
             return column.name, coltype
-        except:
+        except Exception as e:
             print(column.name, coltype, coltype.type, type(column))
-            raise
+            raise e
 
     # All values and types
     v = df.values
