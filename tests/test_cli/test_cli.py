@@ -353,6 +353,44 @@ def test_make_maps_wind_drop_zero(
 
 @pytest.mark.filterwarnings("ignore:Skipping")
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
+def test_make_maps_wind_drop_legend(
+    map_supply_curve_wind, cli_runner, data_dir_test, output_map_names
+):
+    """
+    Test that make_maps() CLI produces the expected images without legends
+    when --drop-legend is specified.
+    """
+
+    with tempfile.TemporaryDirectory() as tempdir:
+        output_path = pathlib.Path(tempdir)
+        result = cli_runner.invoke(
+            make_maps, [
+                '-i', map_supply_curve_wind.as_posix(),
+                '-t', "wind",
+                '-o', output_path.as_posix(),
+                '--dpi', 75,
+                '--drop-legend'
+            ]
+        )
+        assert result.exit_code == 0, (
+            f"Command failed with error {result.exception}"
+        )
+
+        out_png_names = [
+            f"{mapname}.png" for mapname in output_map_names["wind"]
+        ]
+        for out_png_name in out_png_names:
+            expected_png = data_dir_test.joinpath(
+                "plots", out_png_name.replace(".png", "_drop_legend.png")
+            )
+            out_png = output_path.joinpath(out_png_name)
+            assert compare_images_approx(expected_png, out_png), \
+                "Output image does not match expected image " \
+                f"{expected_png}"
+
+
+@pytest.mark.filterwarnings("ignore:Skipping")
+@pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_make_maps_boundaries(
     map_supply_curve_solar, cli_runner, data_dir_test,
     states_subset_path, output_map_names
@@ -580,6 +618,74 @@ def test_map_column_boundaries(
         out_png_name = "area_sq_km.png"
         expected_png = data_dir_test.joinpath(
             "plots", out_png_name.replace(".png", "_boundaries.png")
+        )
+        out_png = output_path.joinpath(out_png_name)
+        assert compare_images_approx(expected_png, out_png), \
+            "Output image does not match expected image " \
+            f"{expected_png}"
+
+
+@pytest.mark.filterwarnings("ignore:Skipping")
+@pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
+def test_map_column_boundaries_kwargs(
+    map_supply_curve_solar, cli_runner, data_dir_test
+):
+    """
+    Test that map_column() CLI works when boundaries_kwargs are specified
+    """
+
+    with tempfile.TemporaryDirectory() as tempdir:
+        output_path = pathlib.Path(tempdir)
+        result = cli_runner.invoke(
+            map_column, [
+                '-i', map_supply_curve_solar.as_posix(),
+                '-c', 'area_sq_km',
+                '-o', output_path.as_posix(),
+                '-bk', '{"linewidth": 1, "zorder": 2, "edgecolor": "black"}',
+                '--dpi', 75
+            ]
+        )
+        assert result.exit_code == 0, (
+            f"Command failed with error {result.exception}"
+        )
+
+        out_png_name = "area_sq_km.png"
+        expected_png = data_dir_test.joinpath(
+            "plots", out_png_name.replace(".png", "_boundaries_kwargs.png")
+        )
+        out_png = output_path.joinpath(out_png_name)
+        assert compare_images_approx(expected_png, out_png), \
+            "Output image does not match expected image " \
+            f"{expected_png}"
+
+
+@pytest.mark.filterwarnings("ignore:Skipping")
+@pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
+def test_map_column_drop_legend(
+    map_supply_curve_solar, cli_runner, data_dir_test
+):
+    """
+    Test that map_column() CLI works when --drop-legend is specified
+    """
+
+    with tempfile.TemporaryDirectory() as tempdir:
+        output_path = pathlib.Path(tempdir)
+        result = cli_runner.invoke(
+            map_column, [
+                '-i', map_supply_curve_solar.as_posix(),
+                '-c', 'area_sq_km',
+                '-o', output_path.as_posix(),
+                '--drop-legend',
+                '--dpi', 75
+            ]
+        )
+        assert result.exit_code == 0, (
+            f"Command failed with error {result.exception}"
+        )
+
+        out_png_name = "area_sq_km.png"
+        expected_png = data_dir_test.joinpath(
+            "plots", out_png_name.replace(".png", "_drop_legend.png")
         )
         out_png = output_path.joinpath(out_png_name)
         assert compare_images_approx(expected_png, out_png), \
