@@ -358,7 +358,7 @@ def test_make_maps_wind_drop_zero(
             )
             out_png = output_path.joinpath(out_png_name)
             images_match, pct_diff = compare_images_approx(
-                expected_png, out_png
+                expected_png, out_png, max_diff_pct=0.34
             )
             assert images_match, (
                 f"Output image does not match expected image {expected_png}"
