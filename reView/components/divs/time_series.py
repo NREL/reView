@@ -153,16 +153,6 @@ def above_time_options_div(id_prefix, class_name=None):
                             ],
                             multi=False
                         )
-                    ),
-                    html.Div(
-                        className="six columns",
-                        children=dcc.Dropdown(
-                            id=f"{id_prefix}_additional_scenarios_time",
-                            style={"width": "105%"},
-                            clearable=False,
-                            placeholder="Additional Scenarios",
-                            multi=True
-                        )                    
                     )
                 ]
             ),

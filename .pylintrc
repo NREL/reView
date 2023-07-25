@@ -102,11 +102,11 @@ max-nested-blocks=5
 [BASIC]
 
 # Naming style matching correct argument names
-argument-naming-style=snake_case
+#argument-naming-style=snake_case
 
 # Regular expression matching correct argument names. Overrides argument-
 # naming-style
-#argument-rgx=
+argument-rgx=(^[A-z]{1})$|^([^\W\dA-Z][^\WA-Z]{2,}|_[^\WA-Z]*|__[^\WA-Z\d_][^\WA-Z]+__)$
 
 # Naming style matching correct attribute names
 attr-naming-style=snake_case
@@ -159,13 +159,11 @@ good-names=_,
            __,
            df,
            reView,
-           f,
-           k,
-           v,
            ax,
            yb,
-           g,
-           e
+           pf,
+           ds,
+           cf
 
 # Include a hint for the correct naming format with invalid-name
 include-naming-hint=yes
@@ -204,11 +202,11 @@ no-docstring-rgx=^_
 property-classes=abc.abstractproperty
 
 # Naming style matching correct variable names
-variable-naming-style=snake_case
+#variable-naming-style=snake_case
 
 # Regular expression matching correct variable names. Overrides variable-
 # naming-style
-#variable-rgx=
+variable-rgx=(^[A-z]{1})$|^([^\W\dA-Z][^\WA-Z]{2,}|_[^\WA-Z]*|__[^\WA-Z\d_][^\WA-Z]+__)$
 
 
 [FORMAT]
