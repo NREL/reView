@@ -761,7 +761,8 @@ def find_capacity_column(supply_curve_df, cap_col_candidates=None):
         Supply curve data frame
     cap_col_candidates : [list, None], optional
         Candidate capacity column names, by default None, which will result in
-        using the candidate column names ["capacity", "capacity_mw"].
+        using the candidate column names ["capacity", "capacity_mw",
+        "capacity_mw_dc"].
 
     Returns
     -------
@@ -775,7 +776,9 @@ def find_capacity_column(supply_curve_df, cap_col_candidates=None):
         found in the input dataframe.
     """
     if cap_col_candidates is None:
-        cap_col_candidates = ["capacity", "capacity_mw"]
+        cap_col_candidates = [
+            "capacity", "capacity_mw", "capacity_mw_dc"
+        ]
 
     cap_col = None
     for candidate in cap_col_candidates:

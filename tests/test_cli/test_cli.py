@@ -20,7 +20,9 @@ from tests.test_utils.test_plots import compare_images_approx
 def test_main(cli_runner):
     """Test main() CLI command."""
     result = cli_runner.invoke(main)
-    assert result.exit_code == 0
+    assert result.exit_code == 0, (
+            f"Command failed with error {result.exception}"
+        )
 
 
 def test_unpack_turbines_happy(
@@ -37,7 +39,9 @@ def test_unpack_turbines_happy(
                 '-n', 1
             ]
         )
-        assert result.exit_code == 0
+        assert result.exit_code == 0, (
+            f"Command failed with error {result.exception}"
+        )
 
 
 def test_unpack_turbines_parallel(
@@ -54,7 +58,9 @@ def test_unpack_turbines_parallel(
                 '-n', 2
             ]
         )
-        assert result.exit_code == 0
+        assert result.exit_code == 0, (
+            f"Command failed with error {result.exception}"
+        )
 
 
 def test_unpack_turbines_no_overwrite(
@@ -98,7 +104,9 @@ def test_unpack_turbines_overwrite(
                 '--overwrite'
             ]
         )
-        assert result.exit_code == 0
+        assert result.exit_code == 0, (
+            f"Command failed with error {result.exception}"
+        )
 
 
 def test_unpack_turbines_results(
@@ -120,7 +128,9 @@ def test_unpack_turbines_results(
                 '-n', 1
             ]
         )
-        assert result.exit_code == 0
+        assert result.exit_code == 0, (
+            f"Command failed with error {result.exception}"
+        )
 
         output_df = gpd.read_file(output_gpkg)
 
@@ -160,7 +170,9 @@ def test_unpack_characterizations(
                 '-o', output_csv
             ]
         )
-        assert result.exit_code == 0
+        assert result.exit_code == 0, (
+            f"Command failed with error {result.exception}"
+        )
 
         output_df = pd.read_csv(output_csv)
 
@@ -188,7 +200,9 @@ def test_unpack_characterizations_overwrite(
                 '--overwrite'
             ]
         )
-        assert result.exit_code == 0
+        assert result.exit_code == 0, (
+            f"Command failed with error {result.exception}"
+        )
 
 
 @pytest.mark.filterwarnings("ignore:Skipping")
@@ -244,7 +258,9 @@ def test_make_maps(
                     '--dpi', 75
                 ]
             )
-            assert result.exit_code == 0
+            assert result.exit_code == 0, (
+            f"Command failed with error {result.exception}"
+        )
 
             out_png_names = [
                 f"capacity_{tech}.png",
@@ -284,7 +300,9 @@ def test_make_maps_wind_keep_zero(
                 '--keep-zero'
             ]
         )
-        assert result.exit_code == 0
+        assert result.exit_code == 0, (
+            f"Command failed with error {result.exception}"
+        )
 
         out_png_names = [
             "capacity_wind.png",
@@ -324,7 +342,9 @@ def test_make_maps_boundaries(
                 '--dpi', 75
             ]
         )
-        assert result.exit_code == 0
+        assert result.exit_code == 0, (
+            f"Command failed with error {result.exception}"
+        )
 
         out_png_names = [
             "capacity_solar.png",
@@ -361,7 +381,9 @@ def test_make_maps_pdf(map_supply_curve_solar, cli_runner):
                 '-F', 'pdf'
             ]
         )
-        assert result.exit_code == 0
+        assert result.exit_code == 0, (
+            f"Command failed with error {result.exception}"
+        )
 
         out_pdf_names = [
             "capacity_solar.pdf",
@@ -400,7 +422,9 @@ def test_map_column_happy(
                 '--dpi', 75
             ]
         )
-        assert result.exit_code == 0
+        assert result.exit_code == 0, (
+            f"Command failed with error {result.exception}"
+        )
 
         out_png_name = "area_sq_km.png"
         expected_png = data_dir_test.joinpath(
@@ -435,7 +459,9 @@ def test_map_column_formatting(
                 '--dpi', 75
             ]
         )
-        assert result.exit_code == 0
+        assert result.exit_code == 0, (
+            f"Command failed with error {result.exception}"
+        )
 
         out_png_name = "area_sq_km.png"
         expected_png = data_dir_test.joinpath(
@@ -524,7 +550,9 @@ def test_map_column_boundaries(
                 '--dpi', 75
             ]
         )
-        assert result.exit_code == 0
+        assert result.exit_code == 0, (
+            f"Command failed with error {result.exception}"
+        )
 
         out_png_name = "area_sq_km.png"
         expected_png = data_dir_test.joinpath(
@@ -555,7 +583,9 @@ def test_map_column_pdf(map_supply_curve_solar, cli_runner):
                 '-F', 'pdf'
             ]
         )
-        assert result.exit_code == 0
+        assert result.exit_code == 0, (
+            f"Command failed with error {result.exception}"
+        )
 
         out_pdf_name = "area_sq_km.pdf"
         out_pdf = output_path.joinpath(out_pdf_name)

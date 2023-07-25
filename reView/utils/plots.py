@@ -64,8 +64,7 @@ class YBFixedBounds(np.ndarray):
         return self._preset_min
 
 
-
-def map_geodataframe_column( # noqa: C901
+def map_geodataframe_column(  # noqa: C901
     data_df,
     column,
     color_map="viridis",
@@ -186,6 +185,8 @@ def map_geodataframe_column( # noqa: C901
     if breaks is None:
         scheme = mc.Quantiles(data_df[column], k=5)
     else:
+        # ensure ascending order
+        breaks.sort()
         # add inf as the last break to ensure consistent breaks between maps
         if breaks[-1] != np.inf:
             breaks.append(np.inf)

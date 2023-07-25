@@ -255,13 +255,17 @@ def make_maps(
         }
     }
     if tech == "solar":
+        ac_cap_col = find_capacity_column(
+            supply_curve_df,
+            cap_col_candidates=["capacity_ac", "capacity_mw_ac"]
+        )
         map_vars.update({
             cap_col: {
                 "breaks": [100, 500, 1000, 2000, 3000, 4000],
                 "cmap": 'YlOrRd',
                 "legend_title": "Capacity DC (MW)"
             },
-            "capacity_ac": {
+            ac_cap_col: {
                 "breaks": [100, 500, 1000, 2000, 3000, 4000],
                 "cmap": 'YlOrRd',
                 "legend_title": "Capacity AC (MW)"
@@ -454,6 +458,11 @@ def map_column(
     if legend_title is None:
         legend_title = column
 
+    if boundaries_kwargs is not None:
+        boundaries_kwargs_dict = json.loads(boundaries_kwargs)
+    else:
+        boundaries_kwargs_dict = None
+
     g = plots.map_geodataframe_column(
         supply_curve_gdf,
         column,
@@ -471,7 +480,7 @@ def map_column(
             "bbox_to_anchor": (1, 0.5),
             "loc": "center left"
         },
-        boundaries_kwargs=json.loads(boundaries_kwargs),
+        boundaries_kwargs=boundaries_kwargs_dict,
         legend=(not drop_legend)
     )
     bbox = g.get_tightbbox(g.figure.canvas.get_renderer())

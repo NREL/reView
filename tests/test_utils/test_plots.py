@@ -104,7 +104,7 @@ def test_map_geodataframe_column_happy(
     with basic inputs and default settings, the output image matches
     the expected image.
     """
-    col_name = "capacity"
+    col_name = "area_sq_km"
 
     with tempfile.TemporaryDirectory() as tempdir:
 
@@ -136,10 +136,10 @@ def test_map_geodataframe_column_styling(
     various styling parameters are passed.
     """
 
-    col_name = "capacity"
+    col_name = "area_sq_km"
     color_map = "GnBu"
 
-    breaks = [500, 1000, 1500, 2000]
+    breaks = [15, 20, 25, 30, 40]
     map_extent = states_gdf.buffer(0.05).total_bounds
 
     with tempfile.TemporaryDirectory() as tempdir:
@@ -185,7 +185,7 @@ def test_map_geodataframe_column_repeat(
     symbols would change from squares to circles for the second map in a
     sequence.
     """
-    col_name = "capacity"
+    col_name = "area_sq_km"
 
     with tempfile.TemporaryDirectory() as tempdir:
 
@@ -227,17 +227,17 @@ def test_map_geodataframe_polygons(
     for a polygon input layer.
     """
 
-    county_capacity_df = supply_curve_gdf.groupby(
+    county_area_sq_km_df = supply_curve_gdf.groupby(
         "cnty_fips"
-    )["capacity"].sum().reset_index()
+    )["area_sq_km"].sum().reset_index()
     county_capacity_gdf = counties_gdf.merge(
-        county_capacity_df, how="inner", on="cnty_fips"
+        county_area_sq_km_df, how="inner", on="cnty_fips"
     )
 
-    col_name = "capacity"
+    col_name = "area_sq_km"
     color_map = "YlOrRd"
 
-    breaks = [5000, 10000, 15000, 20000]
+    breaks = [250, 350, 450, 550]
     map_extent = county_background_gdf.buffer(0.05).total_bounds
 
     with tempfile.TemporaryDirectory() as tempdir:
