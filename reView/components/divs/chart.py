@@ -97,46 +97,6 @@ def above_chart_options_div(id_prefix, class_name="row"):
                         value="capacity",
                     )
                 ],
-            ),
-
-            # Scenario grouping
-            html.Div(
-                id=f"{id_prefix}_additional_scenarios_div",
-                className="row",
-                children=[
-                    # Submit Button to avoid repeated callbacks
-                    html.Div(
-                        className="ten columns",
-                        children=dcc.Dropdown(
-                            id=f"{id_prefix}_additional_scenarios",
-                            clearable=False,
-                            options=[
-                                {
-                                    "label": "None",
-                                    "value": "None",
-                                }
-                            ],
-                            multi=True,
-                        ),
-                    ),
-                    html.Div(
-                        className="two columns",
-                        children=dbc.Button(
-                            id=f"{id_prefix}_submit_additional_scenarios",
-                            children="Submit",
-                            color="white",
-                            n_clicks=0,
-                            size="lg",
-                            title="Click to submit options",
-                            className="mb-1",
-                            style={
-                                "height": "91%",
-                                "width": "135%",
-                                "margin-left": "-50px"
-                            }
-                        )
-                    )
-                ]
             )
         ]
     )
@@ -292,6 +252,7 @@ def chart_div(id_prefix, class_name=None):
                     }
                 ),
             ),
+
             # Button to reveal below options
             dbc.Button(
                 "Options",

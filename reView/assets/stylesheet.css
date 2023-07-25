@@ -429,3 +429,9 @@ there.
 
 /* Larger than Desktop HD */
 @media (min-width: 1200px) {}
+
+
+/* DASH component styles */
+.Select-menu, .Select-menu-outer {
+    max-height: 1000px;
+}

@@ -1,0 +1,5 @@
+{
+    "project_name": "PR100 - Round 2 - Profiles",
+    "directory": "~/review_datasets/pr100_round2_profiles/",
+    "var_options": "~/review_datasets/pr100_round2_profiles/variable_options.csv"
+}

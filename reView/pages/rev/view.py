@@ -17,11 +17,12 @@ from reView.components import (
     time_div,
     REV_PCA_DIV,
     REV_TOPTIONS_DIV,
+    SIDE_OPTIONS
 )
 from reView.utils.config import Config
 
 
-DEFAULT_PROJECT = "PR100 - Forecasts"
+DEFAULT_PROJECT = "PR100 - Round 2"
 if DEFAULT_PROJECT not in list(Config.projects):
     DEFAULT_PROJECT = sorted(Config.projects)[0]
 DEFAULT_CONFIG = Config(DEFAULT_PROJECT)
@@ -76,6 +77,9 @@ layout = html.Div(
         REV_TOPTIONS_DIV,
         REV_PCA_DIV,
 
+        # More options that are shared between any two components
+        SIDE_OPTIONS,
+
         # Map and chart
         html.Div(
             children=[
@@ -108,8 +112,9 @@ layout = html.Div(
         # To store option names for the chart title
         html.Div(id="chosen_chart_options", style={"display": "none"}),
 
-        # To tell if the project has changed for initial map layout update
+        # To tell if the project has changed and update the map view
         html.Div(id="last_project", style={"display": "none"}),
+        html.Div(id="map_view", style={"display": "none"}),
 
         # For storing the data frame path and triggering updates
         html.Div(id="map_data_path", style={"display": "none"}),
