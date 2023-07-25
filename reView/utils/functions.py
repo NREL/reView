@@ -608,19 +608,19 @@ def strip_rev_filename_endings(filename):
     >>> strip_rev_filename_endings('name_supply-curve-aggregation.csv')
     'name'
     """
-    # pylint: disable=anomalous-backslash-in-string
+
     patterns = [
-        "_sc\.csv",
-        "_agg\.csv",
-        "_nrwal.*\.csv",
-        "_supply-curve\.csv",
-        "_supply-curve-aggregation\.csv",
-        "_sc\.parquet",
-        "_agg\.parquet",
-        "_nrwal.*\.parquet",
-        "_supply-curve\.parquet",
-        "_supply-curve-aggregation\.parquet",
-        "\.h5"
+        r"_sc\.csv",
+        r"_agg\.csv",
+        r"_nrwal.*\.csv",
+        r"_supply-curve\.csv",
+        r"_supply-curve-aggregation\.csv",
+        r"_sc\.parquet",
+        r"_agg\.parquet",
+        r"_nrwal.*\.parquet",
+        r"_supply-curve\.parquet",
+        r"_supply-curve-aggregation\.parquet",
+        r"\.h5"
     ]
     full_pattern = "|".join(patterns)
     return re.sub(full_pattern, "", filename)
