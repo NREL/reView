@@ -94,6 +94,7 @@ def test_YBFixedBounds_mapclassify():
     assert scheme.yb.min() == present_min
 
 
+@pytest.mark.maptest
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_map_geodataframe_column_happy(
     data_dir_test, supply_curve_gdf, background_gdf, states_gdf
@@ -126,6 +127,7 @@ def test_map_geodataframe_column_happy(
             f"Output image does not match expected image {expected_png}"
 
 
+@pytest.mark.maptest
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_map_geodataframe_column_styling(
     data_dir_test, supply_curve_gdf, background_gdf, states_gdf
@@ -174,6 +176,7 @@ def test_map_geodataframe_column_styling(
             f"Output image does not match expected image {expected_png}"
 
 
+@pytest.mark.maptest
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_map_geodataframe_column_repeat(
     data_dir_test, supply_curve_gdf, background_gdf, states_gdf
@@ -216,6 +219,7 @@ def test_map_geodataframe_column_repeat(
             f"Output image does not match expected image {expected_png}"
 
 
+@pytest.mark.maptest
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_map_geodataframe_column_no_legend(
     data_dir_test, supply_curve_gdf, background_gdf, states_gdf
@@ -248,6 +252,7 @@ def test_map_geodataframe_column_no_legend(
             f"Output image does not match expected image {expected_png}"
 
 
+@pytest.mark.maptest
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_map_geodataframe_column_boundaries_kwargs(
     data_dir_test, supply_curve_gdf, background_gdf, states_gdf
@@ -282,6 +287,7 @@ def test_map_geodataframe_column_boundaries_kwargs(
             f"Output image does not match expected image {expected_png}"
 
 
+@pytest.mark.maptest
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_map_geodataframe_polygons(
     data_dir_test, supply_curve_gdf, county_background_gdf, states_gdf,

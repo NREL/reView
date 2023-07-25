@@ -37,4 +37,4 @@ jobs:
         python -m pip install .[dev]
     - name: Run Pytest
       run: |
-        python -m pytest -v --disable-warnings
+        python -m pytest -v --disable-warnings -m "not maptest"

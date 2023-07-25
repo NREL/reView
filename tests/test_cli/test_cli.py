@@ -231,6 +231,7 @@ def test_unpack_characterizations_no_overwrite(
         assert isinstance(result.exception, FileExistsError)
 
 
+@pytest.mark.maptest
 @pytest.mark.filterwarnings("ignore:Skipping")
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_make_maps(
@@ -274,6 +275,7 @@ def test_make_maps(
                     f"{expected_png}"
 
 
+@pytest.mark.maptest
 @pytest.mark.filterwarnings("ignore:Skipping")
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_make_maps_wind_keep_zero(
@@ -313,6 +315,7 @@ def test_make_maps_wind_keep_zero(
                 f"{expected_png}"
 
 
+@pytest.mark.maptest
 @pytest.mark.filterwarnings("ignore:Skipping")
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_make_maps_wind_drop_zero(
@@ -351,6 +354,7 @@ def test_make_maps_wind_drop_zero(
                 f"{expected_png}"
 
 
+@pytest.mark.maptest
 @pytest.mark.filterwarnings("ignore:Skipping")
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_make_maps_wind_drop_legend(
@@ -389,6 +393,7 @@ def test_make_maps_wind_drop_legend(
                 f"{expected_png}"
 
 
+@pytest.mark.maptest
 @pytest.mark.filterwarnings("ignore:Skipping")
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_make_maps_boundaries(
@@ -427,6 +432,7 @@ def test_make_maps_boundaries(
                 f"{expected_png}"
 
 
+@pytest.mark.maptest
 @pytest.mark.filterwarnings("ignore:Skipping")
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_make_maps_pdf(map_supply_curve_solar, cli_runner, output_map_names):
@@ -463,6 +469,7 @@ def test_make_maps_pdf(map_supply_curve_solar, cli_runner, output_map_names):
                 f"Output pdf appears to be an empty file: {out_pdf_name}"
 
 
+@pytest.mark.maptest
 @pytest.mark.filterwarnings("ignore:Skipping")
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_map_column_happy(
@@ -497,6 +504,7 @@ def test_map_column_happy(
             f"{expected_png}"
 
 
+@pytest.mark.maptest
 @pytest.mark.filterwarnings("ignore:Skipping")
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_map_column_formatting(
@@ -534,6 +542,7 @@ def test_map_column_formatting(
             f"{expected_png}"
 
 
+@pytest.mark.maptest
 @pytest.mark.filterwarnings("ignore:Skipping")
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_map_column_bad_breaks(
@@ -566,6 +575,7 @@ def test_map_column_bad_breaks(
             assert isinstance(result.exception, ValueError)
 
 
+@pytest.mark.maptest
 @pytest.mark.filterwarnings("ignore:Skipping")
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_map_column_bad_column(
@@ -590,6 +600,7 @@ def test_map_column_bad_column(
         assert isinstance(result.exception, KeyError)
 
 
+@pytest.mark.maptest
 @pytest.mark.filterwarnings("ignore:Skipping")
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_map_column_boundaries(
@@ -625,6 +636,7 @@ def test_map_column_boundaries(
             f"{expected_png}"
 
 
+@pytest.mark.maptest
 @pytest.mark.filterwarnings("ignore:Skipping")
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_map_column_boundaries_kwargs(
@@ -659,6 +671,7 @@ def test_map_column_boundaries_kwargs(
             f"{expected_png}"
 
 
+@pytest.mark.maptest
 @pytest.mark.filterwarnings("ignore:Skipping")
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_map_column_drop_legend(
@@ -693,6 +706,7 @@ def test_map_column_drop_legend(
             f"{expected_png}"
 
 
+@pytest.mark.maptest
 @pytest.mark.filterwarnings("ignore:Skipping")
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_map_column_pdf(map_supply_curve_solar, cli_runner):
