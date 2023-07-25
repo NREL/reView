@@ -15,7 +15,7 @@ DESCRIPTION = (
     "A data portal for reviewing Renewable Energy Potential Model "
     "(reV) outputs"
 )
-DEV_REQUIREMENTS = ["pylint", "dash[testing]", "selenium", "imagehash"]
+DEV_REQUIREMENTS = ["pylint", "dash[testing]==2.3.0", "selenium", "imagehash"]
 TEST_REQUIREMENTS = ["pytest", "pytest-cov"]
 GUNICORN_REQUIREMENTS = ["gunicorn"]
 
