@@ -44,15 +44,35 @@ MAP_LAYOUT.update(
                 "aWlwcHZvdzdoIn0.9pxpgXxyyhM6qEF_dcyjIQ"
             ),
             "style": "satellite-streets",
-            # "center": {
-            #     "lon": -97.5,
-            #     "lat": 39.5
-            # },
-            # "zoom": 2.75,
-        },
-        "uirevision": True,
+            "center": {
+                "lon": -97.5,
+                "lat": 39.5
+            },
+            "zoom": 2.75,
+        }
     }
 )
+
+
+
+def make_view(df):
+    """Return an updated center view object for mapbox."""
+    layout = copy.deepcopy(MAP_LAYOUT)
+    lats = df["latitude"]
+    lons = df["longitude"]
+    bounds = max(
+        abs(lons.max() - lons.min()), abs(lats.max() - lats.min())
+    )
+    view = {
+        "accesstoken": layout["mapbox"]["accesstoken"],
+        "center": {
+            "lon": lons.mean(),
+            "lat": lats.mean()
+        },
+        "zoom": 13.50 - np.log(bounds * 111)
+    }
+
+    return view
 
 
 class Title:
@@ -260,7 +280,8 @@ class Map:
         colorscale="Viridis",
         color_range=None,
         demand_data=None,
-        last_project=None
+        view=None,
+        update_view=False
     ):
         """Initialize ScatterPlot object."""
         self.df = df
@@ -273,7 +294,6 @@ class Map:
             df, color_var, project, color_range[0], color_range[1]
         )
         self.demand_data = demand_data
-        self.last_project = last_project
 
         if project:
             self.config = Config(project)
@@ -397,10 +417,26 @@ class Map:
         """Return hover text column."""
         # Convert NaNs to strings for international projects
         if "state" in self.df:
-            self.df["state"][self.df["state"].isnull()] = "nan"
-        if "county" in self.df:
-            self.df["county"][self.df["county"].isnull()] = "nan"
+            if self.df["state"].isnull().all():
+                self.df["state"] = ""
+            else:
+                self.df["state"][self.df["state"].isnull()] = "N/A"
+                self.df["state"][self.df["state"] != "nan"] = \
+                    self.df["state"] + ":"
+        else:
+            self.df["state"] = ""
 
+        if "county" in self.df:
+            if self.df["county"].isnull().all():
+                self.df["county"] = ""
+            else:
+                self.df["county"][self.df["county"].isnull()] = "N/A"
+                self.df["county"][self.df["county"] != "nan"] = \
+                    self.df["county"] + " County, "
+        else:
+            self.df["county"] = ""
+
+        # Include demand data fro hydrogen runs
         if self.demand_data is not None:
             text = (
                 self.demand_data["sera_node"]
@@ -414,9 +450,8 @@ class Map:
             try:
                 text = (
                     self.df["county"]
-                    + " County, "
                     + self.df["state"]
-                    + ": <br>   "
+                    + "<br>   "
                     + self.df[self.color_var].astype(str)
                     + " "
                     + self.units
@@ -447,9 +482,7 @@ class Map:
             try:
                 text = (
                     self.df["county"]
-                    + " County, "
                     + self.df["state"]
-                    + ":"
                     + extra_str
                     + f"<br>    {convert_to_title(self.color_var)}:   "
                     + self.df[self.color_var].round(2).astype(str)
@@ -472,25 +505,10 @@ class Map:
         """Build the map data layout dictionary."""
         # Setup initial elements
         layout = copy.deepcopy(MAP_LAYOUT)
-        layout["mapbox"]["style"] = self.basemap
         layout["showlegend"] = self.show_legend
         layout["title"]["text"] = self.plot_title
         layout["yaxis"] = {"range": [self.cmin, self.cmax]}
-        layout["uirevision"] = self.last_project
-
-        # Set initial view for a project
-        lats = self.df["latitude"]
-        lons = self.df["longitude"]
-        center = {
-            "lon": lons.mean(),
-            "lat": lats.mean()
-        }
-        bounds = max(
-            abs(lons.max() - lons.min()), abs(lats.max() - lats.min())
-        )
-        zoom = 11.5 - np.log(bounds * 111)
-        layout["mapbox"]["center"] = center
-        layout["mapbox"]["zoom"] = zoom
+        layout["mapbox"]["style"] = self.basemap
 
         return layout
 

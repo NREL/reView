@@ -128,12 +128,13 @@ def choose_scenario(scenario_options, config):
     return file_for_selections(selected_options, config)
 
 
+# pylint: disable=dangerous-default-value
 def get_variable_options(
     project,
     scenario_a,
     scenario_b,
     b_div={"display": "none"}
-):  # pylint: disable=dangerous-default-value
+):
     """Retrieve appropriate variable list."""
     # Initialize lists
     config = Config(project)

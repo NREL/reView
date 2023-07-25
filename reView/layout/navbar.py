@@ -117,3 +117,24 @@ NAVBAR = html.Nav(
         ),
     ],
 )
+
+SIDE_BUTTON=html.Div(
+    children=html.Button(
+        "Additional Scenarios",
+        id="open_side_options",
+        style={
+            "position": "fixed",
+            "left": "-87px",
+            "width": "21rem",
+            "height": "4rem",
+            "margin-top": "1000px",
+            "background-color": "white",
+            "border-radius": "6px 6px 0px 0px",
+            "box-shadow": (
+                " 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 "
+                "rgba(0, 0, 0, 0.19)"
+            ),
+            "transform": "rotate(-270deg)"
+        }
+    )
+)

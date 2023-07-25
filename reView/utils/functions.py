@@ -23,6 +23,7 @@ from pygeopkg.core.geopkg import GeoPackage
 from pygeopkg.core.srs import SRS
 from pygeopkg.shared.constants import SHAPE
 from pygeopkg.shared.enumeration import GeometryType, SQLFieldTypes
+from xlrd import XLRDError
 
 import dash
 import numpy as np
@@ -271,6 +272,39 @@ def deep_replace(dictionary, replacement):
             __replace_value(dictionary, replacement, key, value)
     except AttributeError:  # `dictionary`` does not have `.items()` method
         return
+
+
+def get_sheet(file_name, sheet_name=None, starty=0, startx=0, header=0):
+    """Read in/check available sheets from an excel spreadsheet file."""
+    # Open file
+    file = pd.ExcelFile(file_name)
+    sheets = file.sheet_names
+
+    # Run with no sheet_name for a list of available sheets
+    if not sheet_name:
+        print("No sheet specified, returning a list of available sheets.")
+        return sheets
+    if sheet_name not in sheets:
+        raise ValueError(sheet_name + " not in file.")
+
+    # Try to open sheet, print options if it fails
+    try:
+        table = file.parse(sheet_name=sheet_name, header=header)
+    except XLRDError:
+        print(sheet_name + " is not available. Available sheets:\n")
+        for s in sheets:
+            print("   " + s)
+
+    return table
+
+
+def is_int(val):
+    """Check if an input value is an integer."""
+    try:
+        int(val)
+        return True
+    except ValueError:
+        return False
 
 
 def lcoe(capacity, mean_cf, re_calcs):
@@ -627,7 +661,17 @@ def strip_rev_filename_endings(filename):
 
 
 def to_geo(df, dst, layer):
-    """Convert pandas data frame to geodataframe."""
+    """Convert pandas data frame to geodataframe.
+    
+    Parameters
+    ----------
+    df : pd.core.frame.DataFrame
+        A pandas datasframe with "latitude" and "longitude" coordinate fields.
+    dst : str | pathlib.PosixPath
+        Destination path for output.
+    layer : str
+        Layer name.
+    """
     # Initialize file
     gpkg = GeoPackage.create(dst, flavor="EPSG")
 
@@ -639,20 +683,54 @@ def to_geo(df, dst, layer):
     if "index" in df:
         del df["index"]
 
-    # Remove terrible cropland data layer field
-    if "2016_30m_cdls_rev90m" in df:
-        del df["2016_30m_cdls_rev90m"]
-
-    # Remove stupid Unnamed columns
+    # Remove or rename columns
+    replacements = {
+        "-": "_",
+        " ": "_",
+        "/": "_",
+        "$": "usd",
+        "?": "",
+        "(": "",
+        ")": "",
+        "-": "_",
+        "-": "_",
+        "-": "_",
+        "%": "pct",
+        "&": "and"
+    }
     for col in df.columns:
+        # Remove columns that start with numbers
+        if is_int(col[0]):
+            del df[col]
+            print(col)
+
+        # This happens when you save the index
         if "Unnamed:" in col:
             del df[col]
-        if "-" in col:
-            df = df.rename({col: col.replace("-", "_")}, axis=1)
+        else:
+            # Remove unnacceptable characters
+            ncol = col
+            for char, repl in replacements.items():
+                ncol = ncol.replace(char, repl)
+
+            # Lower case just because
+            ncol = ncol.lower()
+
+            # Columns also can't start with an integer
+            # parts = ncol.split("_")
+            # for part in parts:
+            #     if is_int(part):
+            #         npart1 = "_".join(ncol.split("_")[1:])
+            #         npart2 = ncol.split("_")[0]
+            #         ncol = "_".join([npart1, npart2])
+
+            # Rename column
+            if col != ncol:
+                df = df.rename({col: ncol}, axis=1)
 
     # Create fields and set types
     fields = []
-    for col, values in df.iteritems():
+    for col, values in df.items():
         dtype = str(values.dtype)
         if "int" in dtype:
             ftype = SQLFieldTypes.integer
