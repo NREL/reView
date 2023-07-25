@@ -387,6 +387,7 @@ def map_column(
     legend_breaks, boundaries, keep_zero, dpi, out_format, drop_legend,
     boundaries_kwargs
 ):
+    # pylint: disable=too-many-arguments
     """
     Generates a single map from an input supply curve for the specified column,
     with basic options for formatting.

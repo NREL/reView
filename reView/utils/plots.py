@@ -64,8 +64,8 @@ class YBFixedBounds(np.ndarray):
         return self._preset_min
 
 
-# pylint: disable=too-many-arguments,too-many-branches
-def map_geodataframe_column(
+
+def map_geodataframe_column( # noqa: C901
     data_df,
     column,
     color_map="viridis",
@@ -81,6 +81,7 @@ def map_geodataframe_column(
     projection=gplt.crs.AlbersEqualArea(),
     legend=True
 ):
+    # pylint: disable=too-many-arguments,too-many-branches
     """
     Create a cartographic quality map symbolizing the values from an input
     geodataframe, optionally including a background layer (e.g., CONUS

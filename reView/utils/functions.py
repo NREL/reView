@@ -1,4 +1,5 @@
 """reView functions."""
+# pylint: disable=broad-exception-caught
 import ast
 import datetime as dt
 import json
@@ -28,7 +29,7 @@ import numpy as np
 import pyproj
 
 from reView import REVIEW_CONFIG_DIR, REVIEW_DATA_DIR
-from reView.app import cache3
+
 
 logger = logging.getLogger(__name__)
 
@@ -238,7 +239,7 @@ def decode(df):
                     except Exception:
                         df[c] = None
                         print(f"Column {c} could not be decoded.")
-            except:
+            except Exception:
                 pass
 
 
@@ -371,7 +372,7 @@ def read_file(file, nrows=None):
     name = os.path.basename(file)
 
     # Check extension and read file
-    if ext == ".parquet" or ext == ".pqt":
+    if ext in (".parquet", ".pqt"):
         if nrows:
             pf = ParquetFile(file)
             rows = next(pf.iter_batches(batch_size=nrows))
@@ -398,6 +399,7 @@ def read_file(file, nrows=None):
 
 
 def read_timeseries(file, gids=None, nsteps=None):
+    # pylint: disable=no-member
     """Read in a time-series from an HDF5 file.
 
     Parameters
@@ -706,7 +708,7 @@ def to_sarray(df):
                 maxlens = column.dropna().str.len()
                 if maxlens.any():
                     maxlen = maxlens.max().astype(int)
-                    coltype = ('S%s' % maxlen)
+                    coltype = f'S{maxlen}'
                 else:
                     coltype = 'f2'
             return column.name, coltype
@@ -730,11 +732,10 @@ def to_sarray(df):
                 array[k] = df[k].str.encode('utf-8').astype('S')
             else:
                 array[k] = v[:, i]
-        except:
-            raise
+        except Exception as e:
+            raise e
 
     return array, dtypes
-
 
 
 def __replace_value(dictionary, replacement, key, value):
@@ -748,9 +749,7 @@ def __replace_value(dictionary, replacement, key, value):
     deep_replace(value, replacement)
 
 
-def find_capacity_column(
-    supply_curve_df, cap_col_candidates=["capacity", "capacity_mw"]
-):
+def find_capacity_column(supply_curve_df, cap_col_candidates=None):
     """
     Identifies the capacity column in a supply curve dataframe from a list of
     candidate columns. If more than one of the candidate columns is found in
@@ -760,9 +759,9 @@ def find_capacity_column(
     ----------
     supply_curve_df : pandas.DataFrame
         Supply curve data frame
-    cap_col_candidates : list, optional
-        Candidate capacity column names, by default
-        ["capacity", "capacity_mw"].
+    cap_col_candidates : [list, None], optional
+        Candidate capacity column names, by default None, which will result in
+        using the candidate column names ["capacity", "capacity_mw"].
 
     Returns
     -------
@@ -775,14 +774,19 @@ def find_capacity_column(
         Raises a ValueError if none of the candidate capacity columns are
         found in the input dataframe.
     """
+    if cap_col_candidates is None:
+        cap_col_candidates = ["capacity", "capacity_mw"]
+
     cap_col = None
     for candidate in cap_col_candidates:
         if candidate in supply_curve_df.columns:
             cap_col = candidate
-            return cap_col
+            break
 
     if cap_col is None:
         raise ValueError(
             "Could not find capacity column using candidate column names: "
             f"{cap_col_candidates} "
         )
+
+    return cap_col
