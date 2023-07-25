@@ -78,7 +78,8 @@ def map_geodataframe_column(
     boundaries_kwargs=None,
     layer_kwargs=None,
     legend_kwargs=None,
-    projection=gplt.crs.AlbersEqualArea()
+    projection=gplt.crs.AlbersEqualArea(),
+    legend=True
 ):
     """
     Create a cartographic quality map symbolizing the values from an input
@@ -232,14 +233,17 @@ def map_geodataframe_column(
             "edgecolor": "white"
         }
 
-    if legend_kwargs is None:
-        legend_kwargs = {
-            "marker": "s",
-            "frameon": False,
-            "bbox_to_anchor": (1, 0.5),
-            "loc": "center left"
-        }
-    legend_kwargs["title"] = legend_title
+    if legend:
+        if legend_kwargs is None:
+            legend_kwargs = {
+                "marker": "s",
+                "frameon": False,
+                "bbox_to_anchor": (1, 0.5),
+                "loc": "center left"
+            }
+        legend_kwargs["title"] = legend_title
+    else:
+        legend_kwargs = None
 
     if input_geom_types == ["Point"]:
         if layer_kwargs is None:
@@ -251,26 +255,26 @@ def map_geodataframe_column(
         ax = gplt.pointplot(
             data_df,
             hue=column,
-            legend=True,
+            legend=legend,
             scheme=scheme,
             projection=projection,
             extent=extent,
             ax=ax,
             cmap=color_map,
-            legend_kwargs=legend_kwargs.copy(),
+            legend_kwargs=legend_kwargs,
             **layer_kwargs,
         )
     elif input_geom_types in (["Polygon"], ["MultiPolygon"]):
         ax = gplt.choropleth(
             data_df,
             hue=column,
-            legend=True,
+            legend=legend,
             scheme=scheme,
             projection=gplt.crs.AlbersEqualArea(),
             extent=extent,
             ax=ax,
             cmap=color_map,
-            legend_kwargs=legend_kwargs.copy(),
+            legend_kwargs=legend_kwargs,
             **layer_kwargs,
         )
     else:
@@ -290,12 +294,13 @@ def map_geodataframe_column(
         )
 
     # fix last legend entry
-    last_legend_label = ax.legend_.texts[-1]
-    new_label = f"> {last_legend_label.get_text().split(' - ')[0]}"
-    last_legend_label.set_text(new_label)
+    if legend is True:
+        last_legend_label = ax.legend_.texts[-1]
+        new_label = f"> {last_legend_label.get_text().split(' - ')[0]}"
+        last_legend_label.set_text(new_label)
 
-    if legend_title is not None:
-        ax.legend_.set_title(legend_title)
+        if legend_title is not None:
+            ax.legend_.set_title(legend_title)
 
     if map_title is not None:
         ax.set_title(map_title)

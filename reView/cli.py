@@ -15,6 +15,7 @@ import tqdm
 
 from reView.utils.bespoke import batch_unpack_from_supply_curve
 from reView.utils import characterizations, plots
+from reView.utils.functions import find_capacity_column
 from reView import __version__, REVIEW_DATA_DIR
 
 logger = logging.getLogger(__name__)
@@ -176,8 +177,13 @@ def unpack_characterizations(
               type=click.Choice(IMAGE_FORMAT_CHOICES, case_sensitive=True),
               help="Output format for images. Default is ``png`` "
               f"Valid options are: {IMAGE_FORMAT_CHOICES}.")
+@click.option('--drop-legend', '-D', default=False,
+              required=False,
+              is_flag=True,
+              help='Drop legend from map. Legend is shown by default.')
 def make_maps(
-    supply_curve_csv, tech, out_folder, boundaries, keep_zero, dpi, out_format
+    supply_curve_csv, tech, out_folder, boundaries, keep_zero, dpi, out_format,
+    drop_legend
 ):
     """
     Generates standardized, presentation-quality maps for the input supply
@@ -190,11 +196,14 @@ def make_maps(
     out_path.mkdir(exist_ok=True, parents=False)
 
     supply_curve_df = pd.read_csv(supply_curve_csv)
+
+    cap_col = find_capacity_column(supply_curve_df)
+
     if keep_zero:
         supply_curve_subset_df = supply_curve_df
     else:
         supply_curve_subset_df = supply_curve_df[
-            supply_curve_df["capacity"] > 0
+            supply_curve_df[cap_col] > 0
         ].copy()
 
     supply_curve_gdf = gpd.GeoDataFrame(
@@ -206,7 +215,7 @@ def make_maps(
         crs="EPSG:4326"
     )
     supply_curve_gdf["capacity_density"] = (
-        supply_curve_gdf["capacity"] / supply_curve_gdf["area_sq_km"]
+        supply_curve_gdf[cap_col] / supply_curve_gdf["area_sq_km"]
     )
 
     boundaries_gdf = gpd.read_file(boundaries)
@@ -247,7 +256,7 @@ def make_maps(
     }
     if tech == "solar":
         map_vars.update({
-            "capacity": {
+            cap_col: {
                 "breaks": [100, 500, 1000, 2000, 3000, 4000],
                 "cmap": 'YlOrRd',
                 "legend_title": "Capacity DC (MW)"
@@ -265,7 +274,7 @@ def make_maps(
         })
     elif tech == "wind":
         map_vars.update({
-            "capacity": {
+            cap_col: {
                 "breaks": [60, 120, 180, 240, 275],
                 "cmap": 'Blues',
                 "legend_title": "Capacity (MW)"
@@ -287,19 +296,23 @@ def make_maps(
             background_df=background_gdf,
             boundaries_df=boundaries_singlepart_gdf,
             extent=map_extent,
-            layer_kwargs={"s": 1.25, "linewidth": 0, "marker": "o"},
+            layer_kwargs={"s": 2.0, "linewidth": 0, "marker": "o"},
             legend_kwargs={
                 "marker": "s",
                 "frameon": False,
                 "bbox_to_anchor": (1, 0.5),
                 "loc": "center left"
-            }
+            },
+            legend=(not drop_legend)
         )
-        plt.tight_layout()
+        bbox = g.get_tightbbox(g.figure.canvas.get_renderer())
+        fig_height = g.figure.get_figheight()
+        g.figure.set_figwidth(fig_height * bbox.width / bbox.height)
+        plt.tight_layout(pad=0.1)
 
         out_image_name = f"{map_var}_{tech}.{out_format}"
         out_image_path = out_path.joinpath(out_image_name)
-        g.figure.savefig(out_image_path, dpi=dpi)
+        g.figure.savefig(out_image_path, dpi=dpi, transparent=True)
         plt.close(g.figure)
 
 
@@ -357,11 +370,23 @@ def make_maps(
               type=click.Choice(IMAGE_FORMAT_CHOICES, case_sensitive=True),
               help="Output format for images. Default is ``png`` "
                    f"Valid options are: {IMAGE_FORMAT_CHOICES}.")
+@click.option('--drop-legend', '-D', default=False,
+              required=False,
+              is_flag=True,
+              help='Drop legend from map. Legend is shown by default.')
+@click.option('--boundaries_kwargs', '-bk', required=False,
+              type=str,
+              default=None,
+              help=('Boundaries keyword arguments to change styling of '
+                    'boundary lines. For example, to make boundaries 2x '
+                    'thicker and black instead of white, specify: '
+                    '\'{"linewidth": 1.0, "zorder": 1, "edgecolor": "black"}\''
+                    ))
 def map_column(
     supply_curve_csv, out_folder, column, colormap, legend_title,
-    legend_breaks, boundaries, keep_zero, dpi, out_format
+    legend_breaks, boundaries, keep_zero, dpi, out_format, drop_legend,
+    boundaries_kwargs
 ):
-    # pylint: disable=raise-missing-from
     """
     Generates a single map from an input supply curve for the specified column,
     with basic options for formatting.
@@ -376,11 +401,13 @@ def map_column(
             f"Column {column} could not be found in input supply curve."
         )
 
+    cap_col = find_capacity_column(supply_curve_df)
+
     if keep_zero:
         supply_curve_subset_df = supply_curve_df
     else:
         supply_curve_subset_df = supply_curve_df[
-            supply_curve_df["capacity"] > 0
+            supply_curve_df[cap_col] > 0
         ].copy()
 
     supply_curve_gdf = gpd.GeoDataFrame(
@@ -421,7 +448,7 @@ def map_column(
             raise ValueError(
                 "Input legend_breaks could not be parsed as a list of floats. "
                 f"The following error was encountered: {e}"
-            )
+            ) from e
 
     if legend_title is None:
         legend_title = column
@@ -436,17 +463,22 @@ def map_column(
         background_df=background_gdf,
         boundaries_df=boundaries_singlepart_gdf,
         extent=map_extent,
-        layer_kwargs={"s": 1.25, "linewidth": 0, "marker": "o"},
+        layer_kwargs={"s": 2.0, "linewidth": 0, "marker": "o"},
         legend_kwargs={
             "marker": "s",
             "frameon": False,
             "bbox_to_anchor": (1, 0.5),
             "loc": "center left"
-        }
+        },
+        boundaries_kwargs=json.loads(boundaries_kwargs),
+        legend=(not drop_legend)
     )
-    plt.tight_layout()
+    bbox = g.get_tightbbox(g.figure.canvas.get_renderer())
+    fig_height = g.figure.get_figheight()
+    g.figure.set_figwidth(fig_height * bbox.width / bbox.height)
+    plt.tight_layout(pad=0.1)
 
     out_image_name = f"{column}.{out_format}"
     out_image_path = out_path.joinpath(out_image_name)
-    g.figure.savefig(out_image_path, dpi=dpi)
+    g.figure.savefig(out_image_path, dpi=dpi, transparent=True)
     plt.close(g.figure)
