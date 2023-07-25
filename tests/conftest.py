@@ -67,6 +67,7 @@ def map_supply_curve_wind_zeros():
 
     return csv_path
 
+
 @pytest.fixture
 def char_map():
     """Return characterization map"""

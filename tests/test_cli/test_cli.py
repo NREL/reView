@@ -21,8 +21,8 @@ def test_main(cli_runner):
     """Test main() CLI command."""
     result = cli_runner.invoke(main)
     assert result.exit_code == 0, (
-            f"Command failed with error {result.exception}"
-        )
+        f"Command failed with error {result.exception}"
+    )
 
 
 def test_unpack_turbines_happy(
