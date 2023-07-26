@@ -26,6 +26,7 @@ jobs:
       with:
         environment-file: environment.yml
         cache-environment: true
+        init-shell: powershell
 
     - name: Install Package
       shell: powershell

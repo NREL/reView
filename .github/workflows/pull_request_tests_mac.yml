@@ -28,6 +28,7 @@ jobs:
       with:
         environment-file: environment.yml
         cache-environment: true
+        init-shell: bash
 
     - name: Install Package
       shell: bash -l {0}
