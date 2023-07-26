@@ -20,20 +20,55 @@
     git clone https://github.com/NREL/reView.git
     ```
 
-2. Create and activate conda environment:
-    1) cd into the repository: ``cd reView``.
-    2) Create a conda env: ``conda env create -f environment.yml``
-    3) Run the command: ``conda activate review``
-    4) Install ``reView`` and its dependencies by running:
-       ``pip install -e .`` (or ``pip install -e '.[dev]'`` if running a dev branch or working on the source code)
+2. cd into the repository: ``cd reView``.
 
-3. Create a project config pointing to directory containing reV supply curve tables. Save as json dictionary in configs/ (e.g. configs/sample.json). If the user doesn't have reV data, they can get started with supply-curves for NREL's [standard scenarios](https://www.nrel.gov/analysis/standard-scenarios.html) based on the [Electricity Annual Technology Baseline](https://atb.nrel.gov/electricity/2021/data) through NREL's Geospatial Data Science group. Supply curves for wind power are available [here](https://www.nrel.gov/gis/wind-supply-curves.html) and those for solar photovoltaic power are available [here](https://www.nrel.gov/gis/solar-supply-curves.html).
-```
-{
-    "project_name": <"Your Project Name>",
-    "directory": <"Local path to folder containing reV supply curve tables">
-}
-```
+3. Install Package and Dependencies
+
+    1. **RECOMMENDED OPTION**\
+    Using `conda`/`mamba` ():
+        1. Create a conda environment:
+            ```commandline
+            conda env create -f environment.yml
+            ```
+        2. Activate the environment:
+            ```commandline
+            conda activate review
+            ```
+        3. Install ``reView``:\
+            For users:
+            ```commandline
+            pip install -e .
+            ```
+            For developers:
+            ```commandline
+            pip install -e '.[dev]'
+            ```
+
+    2. **CHOOSE YOUR OWN ADVENTURE**\
+    Using `pip`:
+        1. Create and activate an environment with your tool of choice
+        2. Install GEOS dependency (https://libgeos.org/usage/install/).
+        3. Install ``reView``:\
+            For users:
+            ```commandline
+            pip install -e .
+            ```
+            For developers:
+            ```commandline
+            pip install -e '.[dev]'
+            ```
+
+
+    Note:\
+    The `pip` approach has not been tested by the `reView` package maintainers.
+
+4. Create a project config pointing to directory containing reV supply curve tables. Save as json dictionary in configs/ (e.g. configs/sample.json). If the user doesn't have reV data, they can get started with supply-curves for NREL's [standard scenarios](https://www.nrel.gov/analysis/standard-scenarios.html) based on the [Electricity Annual Technology Baseline](https://atb.nrel.gov/electricity/2021/data) through NREL's Geospatial Data Science group. Supply curves for wind power are available [here](https://www.nrel.gov/gis/wind-supply-curves.html) and those for solar photovoltaic power are available [here](https://www.nrel.gov/gis/solar-supply-curves.html).
+    ```json
+    {
+        "project_name": <"Your Project Name>",
+        "directory": <"Local path to folder containing reV supply curve tables">
+    }
+    ```
 <br>
 
 ## Running reView
