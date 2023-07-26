@@ -16,11 +16,6 @@ DESCRIPTION = (
     "A data portal for reviewing Renewable Energy Potential Model "
     "(reV) outputs"
 )
-DEV_REQUIREMENTS = [
-    "pylint", "dash[testing]==2.3.0", "selenium==4.8.0", "imagehash"
-]
-TEST_REQUIREMENTS = ["pytest", "pytest-cov"]
-GUNICORN_REQUIREMENTS = ["gunicorn"]
 
 with open(VERSION_FILE, encoding="utf-8") as f:
     VERSION = f.read().split("=")[-1].strip().strip('"').strip("'")
@@ -51,6 +46,11 @@ for skip_dep in SKIP_DEPS:
     )
     for skip_match in skip_matches:
         INSTALL_REQUIREMENTS.pop(INSTALL_REQUIREMENTS.index(skip_match))
+
+with open("requirements_dev.txt") as f:
+    DEV_REQUIREMENTS = f.readlines()
+
+GUNICORN_REQUIREMENTS = ["gunicorn"]
 
 setup(
     name="reView",
@@ -87,7 +87,6 @@ setup(
     install_requires=INSTALL_REQUIREMENTS,
     extras_require={
         "gunicorn": GUNICORN_REQUIREMENTS,
-        "test": TEST_REQUIREMENTS,
-        "dev": TEST_REQUIREMENTS + DEV_REQUIREMENTS,
+        "dev": DEV_REQUIREMENTS,
     },
 )
