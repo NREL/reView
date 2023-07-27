@@ -9,8 +9,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import PIL
 import imagehash
+import pandas as pd
 
-from reView.utils.plots import YBFixedBounds, map_geodataframe_column
+from reView.utils.plots import (
+    YBFixedBounds, map_geodataframe_column, ascii_histogram
+)
 
 
 def compare_images_approx(
@@ -382,6 +385,13 @@ def test_map_geodataframe_polygons(
             f"Difference is {pct_diff * 100}%"
         )
 
+
+def test_ascii_histogram(map_supply_curve_wind):
+    """Happy path unit test for the ascii_histogram function"""
+
+    df = pd.read_csv(map_supply_curve_wind)
+    ascii_histogram(df, "area_sq_km")
+    pass
 
 if __name__ == '__main__':
     pytest.main([__file__, '-s'])
