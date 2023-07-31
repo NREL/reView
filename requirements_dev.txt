@@ -1,0 +1,6 @@
+pylint
+dash[testing]>=2.3.0,>2.4
+selenium>=4.8.0,<4.9
+imagehash
+pytest
+pytest-cov
