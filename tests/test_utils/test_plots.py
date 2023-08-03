@@ -390,7 +390,9 @@ def test_map_geodataframe_polygons(
         )
 
 
-def test_ascii_histogram_happy(map_supply_curve_wind, ascii_histogram_contents):
+def test_ascii_histogram_happy(
+    map_supply_curve_wind, ascii_histogram_contents
+):
     # pylint: disable=abstract-class-instantiated
     """Happy path unit test for the ascii_histogram function"""
 
@@ -406,7 +408,6 @@ def test_ascii_histogram_happy(map_supply_curve_wind, ascii_histogram_contents):
         "ASCII Histogram does not match expected result: "
         f"similarity is only: {similarity}"
     )
-
 
 
 def test_ascii_histogram_nonnumeric(map_supply_curve_wind):
