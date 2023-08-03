@@ -312,7 +312,7 @@ def map_geodataframe_column(  # noqa: C901
     return ax
 
 
-def ascii_histogram(df, column, nbins=20):
+def ascii_histogram(df, column, nbins=20, width=None, height=None):
     """
     Prints a histogram for the selected column of the input dataframe to the
     terminal.
@@ -335,8 +335,10 @@ def ascii_histogram(df, column, nbins=20):
     plotext.clear_data()
     plotext.clear_figure()
 
-    width = plotext.terminal_width() * 0.8
-    height = min(plotext.terminal_width()/5, plotext.terminal_height())
+    if width is None:
+        width = plotext.terminal_width() * 0.8
+    if height is None:
+        height = min(plotext.terminal_width()/5, plotext.terminal_height())
 
     plotext.hist(x_values, bins=nbins, width=1)
     plotext.plotsize(width, height)

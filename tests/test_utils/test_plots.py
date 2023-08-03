@@ -2,6 +2,8 @@
 """Plots unit tests."""
 import tempfile
 from pathlib import Path
+from contextlib import redirect_stdout
+import io
 
 import pytest
 import mapclassify as mc
@@ -10,6 +12,7 @@ import matplotlib.pyplot as plt
 import PIL
 import imagehash
 import pandas as pd
+
 
 from reView.utils.plots import (
     YBFixedBounds, map_geodataframe_column, ascii_histogram
@@ -386,12 +389,19 @@ def test_map_geodataframe_polygons(
         )
 
 
-def test_ascii_histogram(map_supply_curve_wind):
+def test_ascii_histogram(map_supply_curve_wind, ascii_histogram_contents):
     """Happy path unit test for the ascii_histogram function"""
 
     df = pd.read_csv(map_supply_curve_wind)
-    ascii_histogram(df, "area_sq_km")
-    pass
+
+    f = io.StringIO()
+    with redirect_stdout(f):
+        ascii_histogram(df, "area_sq_km", width=75, height=50)
+    plot = f.getvalue()
+
+    assert plot == ascii_histogram_contents, \
+        "ASCII Histogram does not match expected result"
+
 
 if __name__ == '__main__':
     pytest.main([__file__, '-s'])

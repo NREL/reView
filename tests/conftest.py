@@ -246,6 +246,18 @@ def output_map_names():
     return map_names
 
 
+@pytest.fixture
+def ascii_histogram_contents():
+
+    ascii_histogram_contents_src = Path(TEST_DATA_DIR).joinpath(
+        "plots", "ascii_histogram.txt"
+    )
+    with open(ascii_histogram_contents_src, "r") as f:
+        contents = f.read()
+
+    return contents
+
+
 def pytest_setup_options():
     """Recommended setup based on https://dash.plotly.com/testing."""
     options = Options()
