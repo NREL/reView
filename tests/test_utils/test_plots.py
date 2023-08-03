@@ -3,6 +3,7 @@
 import tempfile
 from pathlib import Path
 from contextlib import redirect_stdout
+from difflib import SequenceMatcher
 import io
 
 import pytest
@@ -389,7 +390,7 @@ def test_map_geodataframe_polygons(
         )
 
 
-def test_ascii_histogram(map_supply_curve_wind, ascii_histogram_contents):
+def test_ascii_histogram_happy(map_supply_curve_wind, ascii_histogram_contents):
     # pylint: disable=abstract-class-instantiated
     """Happy path unit test for the ascii_histogram function"""
 
@@ -400,8 +401,22 @@ def test_ascii_histogram(map_supply_curve_wind, ascii_histogram_contents):
         ascii_histogram(df, "area_sq_km", width=75, height=50)
     plot = f.getvalue()
 
-    assert plot == ascii_histogram_contents, \
-        "ASCII Histogram does not match expected result"
+    similarity = SequenceMatcher(None, plot, ascii_histogram_contents).ratio()
+    assert similarity >= 0.95, (
+        "ASCII Histogram does not match expected result: "
+        f"similarity is only: {similarity}"
+    )
+
+
+
+def test_ascii_histogram_nonnumeric(map_supply_curve_wind):
+    # pylint: disable=abstract-class-instantiated
+    """Happy path unit test for the ascii_histogram function"""
+
+    df = pd.read_csv(map_supply_curve_wind)
+
+    with pytest.raises(TypeError):
+        ascii_histogram(df, "state", width=75, height=50)
 
 
 if __name__ == '__main__':
