@@ -390,6 +390,7 @@ def test_map_geodataframe_polygons(
 
 
 def test_ascii_histogram(map_supply_curve_wind, ascii_histogram_contents):
+    # pylint: disable=abstract-class-instantiated
     """Happy path unit test for the ascii_histogram function"""
 
     df = pd.read_csv(map_supply_curve_wind)
