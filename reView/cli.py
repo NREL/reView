@@ -516,12 +516,12 @@ def map_column(
               default=None,
               type=click.IntRange(min=0, max=500),
               help=("Width of output histogram. If not specified, default "
-                    "width is 80% of the termimal width."))
+                    "width is 80% of the terminal width."))
 @click.option('--height', '-H', required=False,
               default=None,
               type=click.IntRange(min=0, max=500),
               help=("Height of output histogram. If not specified, default "
-                    "height is the smaller of 50% of the terminal width or "
+                    "height is the smaller of 20% of the terminal width or "
                     "100% of the terminal height."))
 def histogram(supply_curve_csv, column, nbins, width, height):
     """

@@ -325,6 +325,18 @@ def ascii_histogram(df, column, nbins=20, width=None, height=None):
         Name of column to plot. Must have a numeric dtype.
     nbins : int, optional
         Number of bins to plot in the histogram, by default 20.
+    width : int, optional
+        Width of the histogram plot (in characters). By default None, which
+        will set the width to 80% of the terminal width.
+    height : int, optional
+        Height of the histogram plot (in characters). By default None, which
+        will set the width to the smaller of either 20% of the terminal width
+        or 100% of the terminal height.
+
+    Raises
+    ------
+    TypeError
+        _description_
     """
 
     if not is_numeric_dtype(df[column]):
