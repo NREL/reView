@@ -1,4 +1,5 @@
 """reView functions."""
+# pylint: disable=broad-exception-caught
 import ast
 import datetime as dt
 import json
@@ -238,7 +239,7 @@ def decode(df):
                     except Exception:
                         df[c] = None
                         print(f"Column {c} could not be decoded.")
-            except:
+            except Exception:
                 pass
 
 
@@ -272,7 +273,7 @@ def deep_replace(dictionary, replacement):
         return
 
 
-def get_sheet(file_name, sheet_name=None, starty=0, startx=0, header=0):
+def get_sheet(file_name, sheet_name=None, header=0):
     """Read in/check available sheets from an excel spreadsheet file."""
     # Open file
     file = pd.ExcelFile(file_name)
@@ -404,7 +405,7 @@ def read_file(file, nrows=None):
     name = os.path.basename(file)
 
     # Check extension and read file
-    if ext == ".parquet" or ext == ".pqt":
+    if ext in (".parquet", ".pqt"):
         if nrows:
             pf = ParquetFile(file)
             rows = next(pf.iter_batches(batch_size=nrows))
@@ -431,6 +432,7 @@ def read_file(file, nrows=None):
 
 
 def read_timeseries(file, gids=None, nsteps=None):
+    # pylint: disable=no-member
     """Read in a time-series from an HDF5 file.
 
     Parameters
@@ -468,7 +470,7 @@ def read_timeseries(file, gids=None, nsteps=None):
         meta = meta[meta["sc_point_gid"].isin(gids)]
     idx = list(meta.index)
 
-    # Get capacity, time index, format 
+    # Get capacity, time index, format
     capacity = meta["capacity"].values
 
     # If it has any "rep_profiles_" datasets it rep-profiles
@@ -491,7 +493,7 @@ def read_timeseries(file, gids=None, nsteps=None):
     else:
         # Get all capacity factor keys
         cf_keys = [key for key in ds.keys() if "cf_profile-" in key]
-        time_keys = [key for key in ds.keys() if "time_index-" in key] 
+        time_keys = [key for key in ds.keys() if "time_index-" in key]
         scale = ds[cf_keys[0]].attrs["scale_factor"]
 
         # Build complete time-series at each site
@@ -639,27 +641,28 @@ def strip_rev_filename_endings(filename):
     >>> strip_rev_filename_endings('name_supply-curve-aggregation.csv')
     'name'
     """
-    # pylint: disable=anomalous-backslash-in-string
+
     patterns = [
-        "_sc\.csv",
-        "_agg\.csv",
-        "_nrwal.*\.csv",
-        "_supply-curve\.csv",
-        "_supply-curve-aggregation\.csv",
-        "_sc\.parquet",
-        "_agg\.parquet",
-        "_nrwal.*\.parquet",
-        "_supply-curve\.parquet",
-        "_supply-curve-aggregation\.parquet",
-        "\.h5"
+        r"_sc\.csv",
+        r"_agg\.csv",
+        r"_nrwal.*\.csv",
+        r"_supply-curve\.csv",
+        r"_supply-curve-aggregation\.csv",
+        r"_sc\.parquet",
+        r"_agg\.parquet",
+        r"_nrwal.*\.parquet",
+        r"_supply-curve\.parquet",
+        r"_supply-curve-aggregation\.parquet",
+        r"\.h5"
     ]
     full_pattern = "|".join(patterns)
     return re.sub(full_pattern, "", filename)
 
 
 def to_geo(df, dst, layer):
+    # pylint: disable=too-many-branches
     """Convert pandas data frame to geodataframe.
-    
+
     Parameters
     ----------
     df : pd.core.frame.DataFrame
@@ -689,9 +692,6 @@ def to_geo(df, dst, layer):
         "?": "",
         "(": "",
         ")": "",
-        "-": "_",
-        "-": "_",
-        "-": "_",
         "%": "pct",
         "&": "and"
     }
@@ -783,7 +783,7 @@ def to_sarray(df):
                 maxlens = column.dropna().str.len()
                 if maxlens.any():
                     maxlen = maxlens.max().astype(int)
-                    coltype = ('S%s' % maxlen)
+                    coltype = f'S{maxlen}'
                 else:
                     coltype = 'f2'
             return column.name, coltype
@@ -807,11 +807,10 @@ def to_sarray(df):
                 array[k] = df[k].str.encode('utf-8').astype('S')
             else:
                 array[k] = v[:, i]
-        except:
-            raise
+        except Exception as e:
+            raise e
 
     return array, dtypes
-
 
 
 def __replace_value(dictionary, replacement, key, value):
@@ -823,3 +822,49 @@ def __replace_value(dictionary, replacement, key, value):
         pass
 
     deep_replace(value, replacement)
+
+
+def find_capacity_column(supply_curve_df, cap_col_candidates=None):
+    """
+    Identifies the capacity column in a supply curve dataframe from a list of
+    candidate columns. If more than one of the candidate columns is found in
+    the dataframe, only the first one that occurs will be returned.
+
+    Parameters
+    ----------
+    supply_curve_df : pandas.DataFrame
+        Supply curve data frame
+    cap_col_candidates : [list, None], optional
+        Candidate capacity column names, by default None, which will result in
+        using the candidate column names ["capacity", "capacity_mw",
+        "capacity_mw_dc"].
+
+    Returns
+    -------
+    str
+        Name of capacity column
+
+    Raises
+    ------
+    ValueError
+        Raises a ValueError if none of the candidate capacity columns are
+        found in the input dataframe.
+    """
+    if cap_col_candidates is None:
+        cap_col_candidates = [
+            "capacity", "capacity_mw", "capacity_mw_dc"
+        ]
+
+    cap_col = None
+    for candidate in cap_col_candidates:
+        if candidate in supply_curve_df.columns:
+            cap_col = candidate
+            break
+
+    if cap_col is None:
+        raise ValueError(
+            "Could not find capacity column using candidate column names: "
+            f"{cap_col_candidates} "
+        )
+
+    return cap_col

@@ -59,6 +59,15 @@ def map_supply_curve_wind():
 
 
 @pytest.fixture
+def map_supply_curve_wind_zeros():
+    """Return plots/map-supply-curve-wind_zeros.csv as a `Path` object."""
+    csv_path = Path(TEST_DATA_DIR).joinpath(
+        "plots", "map-supply-curve-wind_zeros.csv"
+    )
+
+    return csv_path
+
+@pytest.fixture
 def char_map():
     """Return characterization map"""
 
@@ -205,6 +214,36 @@ def supply_curve_gdf():
     )
 
     return supply_curve_gdf
+
+
+@pytest.fixture
+def output_map_names():
+    """
+    Returns expected output map names (excluding file extensions) by technology
+    for make-maps CLI tests
+    """
+
+    map_names = {
+        "wind": [
+            "area_sq_km_wind",
+            "capacity_density_wind",
+            "capacity_mw_wind",
+            "lcot_wind",
+            "mean_lcoe_wind",
+            "total_lcoe_wind",
+        ],
+        "solar": [
+            "area_sq_km_solar",
+            "capacity_density_solar",
+            "capacity_mw_ac_solar",
+            "capacity_mw_dc_solar",
+            "lcot_solar",
+            "mean_lcoe_solar",
+            "total_lcoe_solar",
+        ]
+    }
+
+    return map_names
 
 
 def pytest_setup_options():

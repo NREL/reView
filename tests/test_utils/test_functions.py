@@ -13,7 +13,8 @@ from reView.utils.functions import (
     deep_replace,
     shorten,
     as_float,
-    safe_convert_percentage_to_decimal
+    safe_convert_percentage_to_decimal,
+    find_capacity_column
 )
 
 
@@ -194,3 +195,44 @@ def test_safe_convert_percentage_to_decimal():
     assert safe_convert_percentage_to_decimal(96.54) == 0.9654
     assert safe_convert_percentage_to_decimal(1) == 1
     assert safe_convert_percentage_to_decimal(0.5) == 0.5
+
+
+def test_find_capacity_column_defaults(
+    map_supply_curve_solar, map_supply_curve_wind
+):
+    """
+    Tests that find_capacity_column() returns the expected capacity column for
+    a real solar and a real wind supply curve, based on the default list of
+    candidate column names
+    """
+    solar_df = pd.read_csv(map_supply_curve_solar)
+    wind_df = pd.read_csv(map_supply_curve_wind)
+
+    assert find_capacity_column(solar_df) == "capacity_mw_dc"
+    assert find_capacity_column(wind_df) == "capacity_mw"
+
+
+def test_find_capacity_column_solar_ac_first(map_supply_curve_solar):
+    """
+    Tests that find_capacity_column() returns the ac capacity column for
+    a real solar supply curve when the candidate list starts with
+    capacity_mw_ac.
+    """
+    solar_df = pd.read_csv(map_supply_curve_solar)
+
+    candidates = ["capacity_mw_ac", "capacity_mw_dc"]
+    cap_col = find_capacity_column(solar_df, cap_col_candidates=candidates)
+    assert cap_col == "capacity_mw_ac"
+
+
+def test_find_capacity_column_none_found(map_supply_curve_solar):
+    """
+    Tests that find_capacity_column() raises a ValueError when none of the
+    candidate columns are found in the input dataframe.
+    """
+
+    solar_df = pd.read_csv(map_supply_curve_solar)
+
+    candidates = ["capacity", "capacity_mw"]
+    with pytest.raises(ValueError):
+        find_capacity_column(solar_df, cap_col_candidates=candidates)

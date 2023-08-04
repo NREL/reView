@@ -14,7 +14,7 @@ from reView.utils.plots import YBFixedBounds, map_geodataframe_column
 
 
 def compare_images_approx(
-    image_1_path, image_2_path, hash_size=16, max_diff_pct=0.25
+    image_1_path, image_2_path, hash_size=12, max_diff_pct=0.25
 ):
     """
     Check if two images match approximately.
@@ -27,7 +27,7 @@ def compare_images_approx(
         File path to first image.
     hash_size : int, optional
         Size of the image hashes that will be used for image comparison,
-        by default 16. Increase to make the check more precise, decrease to
+        by default 12. Increase to make the check more precise, decrease to
         make it more approximate.
     max_diff_pct : float, optional
         Tolerance for the amount of difference allowed, by default 0.05 (= 5%).
@@ -41,7 +41,6 @@ def compare_images_approx(
         Returns true if the images match approximately, false if not.
     """
 
-    hash_size = 16
     expected_hash = imagehash.phash(
         PIL.Image.open(image_1_path), hash_size=hash_size
     )
@@ -51,7 +50,11 @@ def compare_images_approx(
 
     max_diff_bits = int(np.ceil(hash_size * max_diff_pct))
 
-    return (expected_hash - out_hash) <= max_diff_bits
+    diff = expected_hash - out_hash
+    matches = diff <= max_diff_bits
+    pct_diff = float(diff) / hash_size
+
+    return matches, pct_diff
 
 
 def test_YBFixedBounds_happy():
@@ -95,6 +98,7 @@ def test_YBFixedBounds_mapclassify():
     assert scheme.yb.min() == present_min
 
 
+@pytest.mark.maptest
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_map_geodataframe_column_happy(
     data_dir_test, supply_curve_gdf, background_gdf, states_gdf
@@ -104,7 +108,7 @@ def test_map_geodataframe_column_happy(
     with basic inputs and default settings, the output image matches
     the expected image.
     """
-    col_name = "capacity"
+    col_name = "area_sq_km"
 
     with tempfile.TemporaryDirectory() as tempdir:
 
@@ -123,10 +127,16 @@ def test_map_geodataframe_column_happy(
 
         expected_png = data_dir_test.joinpath("plots", out_png_name)
 
-        assert compare_images_approx(expected_png, out_png), \
+        images_match, pct_diff = compare_images_approx(
+            expected_png, out_png
+        )
+        assert images_match, (
             f"Output image does not match expected image {expected_png}"
+            f"Difference is {pct_diff * 100}%"
+        )
 
 
+@pytest.mark.maptest
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_map_geodataframe_column_styling(
     data_dir_test, supply_curve_gdf, background_gdf, states_gdf
@@ -136,10 +146,10 @@ def test_map_geodataframe_column_styling(
     various styling parameters are passed.
     """
 
-    col_name = "capacity"
+    col_name = "area_sq_km"
     color_map = "GnBu"
 
-    breaks = [500, 1000, 1500, 2000]
+    breaks = [15, 20, 25, 30, 40]
     map_extent = states_gdf.buffer(0.05).total_bounds
 
     with tempfile.TemporaryDirectory() as tempdir:
@@ -171,10 +181,16 @@ def test_map_geodataframe_column_styling(
 
         expected_png = data_dir_test.joinpath("plots", out_png_name)
 
-        assert compare_images_approx(expected_png, out_png), \
+        images_match, pct_diff = compare_images_approx(
+            expected_png, out_png
+        )
+        assert images_match, (
             f"Output image does not match expected image {expected_png}"
+            f"Difference is {pct_diff * 100}%"
+        )
 
 
+@pytest.mark.maptest
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_map_geodataframe_column_repeat(
     data_dir_test, supply_curve_gdf, background_gdf, states_gdf
@@ -185,7 +201,7 @@ def test_map_geodataframe_column_repeat(
     symbols would change from squares to circles for the second map in a
     sequence.
     """
-    col_name = "capacity"
+    col_name = "area_sq_km"
 
     with tempfile.TemporaryDirectory() as tempdir:
 
@@ -213,10 +229,94 @@ def test_map_geodataframe_column_repeat(
 
         expected_png = data_dir_test.joinpath("plots", out_png_name)
 
-        assert compare_images_approx(expected_png, out_png), \
+        images_match, pct_diff = compare_images_approx(
+            expected_png, out_png
+        )
+        assert images_match, (
             f"Output image does not match expected image {expected_png}"
+            f"Difference is {pct_diff * 100}%"
+        )
 
 
+@pytest.mark.maptest
+@pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
+def test_map_geodataframe_column_no_legend(
+    data_dir_test, supply_curve_gdf, background_gdf, states_gdf
+):
+    """
+    Test that map_geodataframe_column function produces a map without a legend
+    when the legend argument is specified as False.
+    """
+    col_name = "area_sq_km"
+
+    with tempfile.TemporaryDirectory() as tempdir:
+
+        g = map_geodataframe_column(
+            supply_curve_gdf,
+            col_name,
+            background_df=background_gdf,
+            boundaries_df=states_gdf,
+            legend=False
+        )
+        plt.tight_layout()
+
+        out_png_name = "no_legend.png"
+        out_png = Path(tempdir).joinpath("no_legend.png")
+        g.figure.savefig(out_png, dpi=75)
+        plt.close(g.figure)
+
+        expected_png = data_dir_test.joinpath("plots", out_png_name)
+
+        images_match, pct_diff = compare_images_approx(
+            expected_png, out_png
+        )
+        assert images_match, (
+            f"Output image does not match expected image {expected_png}"
+            f"Difference is {pct_diff * 100}%"
+        )
+
+
+@pytest.mark.maptest
+@pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
+def test_map_geodataframe_column_boundaries_kwargs(
+    data_dir_test, supply_curve_gdf, background_gdf, states_gdf
+):
+    """
+    Test that map_geodataframe_column function produces a map with correctly
+    styled boundaries when boundaries_kwargs are passed.
+    """
+    col_name = "area_sq_km"
+
+    with tempfile.TemporaryDirectory() as tempdir:
+
+        g = map_geodataframe_column(
+            supply_curve_gdf,
+            col_name,
+            background_df=background_gdf,
+            boundaries_df=states_gdf,
+            boundaries_kwargs={
+                "linewidth": 2, "zorder": 1, "edgecolor": "black"
+            }
+        )
+        plt.tight_layout()
+
+        out_png_name = "boundaries_kwargs.png"
+        out_png = Path(tempdir).joinpath("boundaries_kwargs.png")
+        g.figure.savefig(out_png, dpi=75)
+        plt.close(g.figure)
+
+        expected_png = data_dir_test.joinpath("plots", out_png_name)
+
+        images_match, pct_diff = compare_images_approx(
+            expected_png, out_png
+        )
+        assert images_match, (
+            f"Output image does not match expected image {expected_png}"
+            f"Difference is {pct_diff * 100}%"
+        )
+
+
+@pytest.mark.maptest
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_map_geodataframe_polygons(
     data_dir_test, supply_curve_gdf, county_background_gdf, states_gdf,
@@ -227,17 +327,17 @@ def test_map_geodataframe_polygons(
     for a polygon input layer.
     """
 
-    county_capacity_df = supply_curve_gdf.groupby(
+    county_area_sq_km_df = supply_curve_gdf.groupby(
         "cnty_fips"
-    )["capacity"].sum().reset_index()
+    )["area_sq_km"].sum().reset_index()
     county_capacity_gdf = counties_gdf.merge(
-        county_capacity_df, how="inner", on="cnty_fips"
+        county_area_sq_km_df, how="inner", on="cnty_fips"
     )
 
-    col_name = "capacity"
+    col_name = "area_sq_km"
     color_map = "YlOrRd"
 
-    breaks = [5000, 10000, 15000, 20000]
+    breaks = [250, 350, 450, 550]
     map_extent = county_background_gdf.buffer(0.05).total_bounds
 
     with tempfile.TemporaryDirectory() as tempdir:
@@ -274,8 +374,13 @@ def test_map_geodataframe_polygons(
 
         expected_png = data_dir_test.joinpath("plots", out_png_name)
 
-        assert compare_images_approx(expected_png, out_png), \
+        images_match, pct_diff = compare_images_approx(
+            expected_png, out_png
+        )
+        assert images_match, (
             f"Output image does not match expected image {expected_png}"
+            f"Difference is {pct_diff * 100}%"
+        )
 
 
 if __name__ == '__main__':
