@@ -14,6 +14,7 @@ Options:
   --help         Show this message and exit.
 
 Commands:
+  histogram                 Plots a histogram in the terminal for the specified column(s) from the input SUPPLY_CURVE_CSV.
   make-maps                 Generates standardized, presentation-quality maps for the input supply curve, including maps for each of the following attributes: Capacity (capacity), All-in LCOE (total_lcoe), Project LCOE (mean_lcoe), LCOT (lcot), Capacity Density (derived column) [wind only]
 
   map-column                Generates a single map from an input supply curve for the specified column, with basic options for formatting.
@@ -22,6 +23,30 @@ Commands:
 
   unpack-turbines           Unpack individual turbines from each reV project site in a reV supply curve CSV, produced using "bespoke" (i.e., SROM) turbine placement.
 ```
+
+## Plotting Histograms (in the terminal)
+The `histogram` function is intended to make it easy to review the distribution of data contained in a supply curve CSV. It can be used to plot a histogram of the selected CSV column(s) directly in the terminal.
+
+This command can be run according to the following usage:
+```commandline
+Usage: reView-tools histogram [OPTIONS] SUPPLY_CURVE_CSV
+
+  Plots a histogram in the terminal for the specified column(s) from the input SUPPLY_CURVE_CSV.
+
+Options:
+  -c, --column TEXT           Value column from the input CSV to plot. Multiple value columnscan be specified: e.g., -c area_sq_km -c capacity_mw  [required]
+  -N, --nbins INTEGER RANGE   Number of bins to use in the histogram. If not specified, default is 20 bins.  [x>=1]
+  -W, --width INTEGER RANGE   Width of output histogram. If not specified, default width is 80% of the termimal width.  [0<=x<=500]
+  -H, --height INTEGER RANGE  Height of output histogram. If not specified, default height is the smaller of 50% of the terminal width or 100% of the terminal height.  [0<=x<=500]
+  --help                      Show this message and exit.
+```
+
+For most use cases, users need to only specify the `SUPPLY_CURVE_CSV` and the column or columns they want to plot. For example, to plot the `area_sq_km` and `capacity_mw` columns:
+```commandline
+reView-tools histogram some_supply_curve.csv -c area_sq_km -c capacity_mw
+```
+
+For more advanced cases, the user may want to adjust the number of bins in the histogram using the `--nbins` argument and/or the size of the output plot with the `--width` and/or `--height` arguments.
 
 ## Making Standardized Maps
 The `make-maps` command can be used to generate a small set of standardized, report/presentation-qualiity maps from an input supply curve. For a solar supply curve, 4 maps are created, including one for each of the following supply curve columns: Capacity (capacity), All-in LCOE (total_lcoe), Project LCOE (mean_lcoe), LCOT (lcot). For a wind supply curve, the same 4 maps are created and, in addition, a map is also created for Capacity Density (a derived column).

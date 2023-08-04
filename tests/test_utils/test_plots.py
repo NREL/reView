@@ -391,7 +391,7 @@ def test_map_geodataframe_polygons(
 
 
 def test_ascii_histogram_happy(
-    map_supply_curve_wind, ascii_histogram_contents
+    map_supply_curve_wind, histogram_plot_area_sq_km
 ):
     # pylint: disable=abstract-class-instantiated
     """Happy path unit test for the ascii_histogram function"""
@@ -400,10 +400,10 @@ def test_ascii_histogram_happy(
 
     f = io.StringIO()
     with redirect_stdout(f):
-        ascii_histogram(df, "area_sq_km", width=75, height=50)
+        ascii_histogram(df, "area_sq_km", width=75, height=15)
     plot = f.getvalue()
 
-    similarity = SequenceMatcher(None, plot, ascii_histogram_contents).ratio()
+    similarity = SequenceMatcher(None, plot, histogram_plot_area_sq_km).ratio()
     assert similarity >= 0.95, (
         "ASCII Histogram does not match expected result: "
         f"similarity is only: {similarity}"
@@ -411,13 +411,13 @@ def test_ascii_histogram_happy(
 
 
 def test_ascii_histogram_nonnumeric(map_supply_curve_wind):
-    # pylint: disable=abstract-class-instantiated
-    """Happy path unit test for the ascii_histogram function"""
+    """Test that the ascii_histogram function raises a TypeError when passed
+    the name of a column that is non-numeric."""
 
     df = pd.read_csv(map_supply_curve_wind)
 
     with pytest.raises(TypeError):
-        ascii_histogram(df, "state", width=75, height=50)
+        ascii_histogram(df, "state")
 
 
 if __name__ == '__main__':
