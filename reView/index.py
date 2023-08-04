@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint: skip-file
-"""Transition reView project index file."""
+"""reView project index file."""
 import reView.pages.reeds.controller.callbacks
 import reView.pages.rev.controller.callbacks
 

@@ -29,7 +29,6 @@ import numpy as np
 import pyproj
 
 from reView import REVIEW_CONFIG_DIR, REVIEW_DATA_DIR
-from reView.app import cache3
 
 logger = logging.getLogger(__name__)
 

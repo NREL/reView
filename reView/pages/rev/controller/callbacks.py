@@ -1,4 +1,4 @@
-# pylint: disable=too-many-lines
+ # pylint: disable=too-many-lines
 """View reV results using a configuration file.
 
 Things to do:
@@ -9,7 +9,6 @@ Things to do:
     - Automate startup elements
     - Build categorical variable charts
 """
-import copy
 import hashlib
 import json
 import logging
@@ -31,7 +30,7 @@ from reView.components.callbacks import (
     display_selected_tab_above_map,
 )
 from reView.components.logic import tab_styles
-from reView.components.map import Map, Title, MAP_LAYOUT
+from reView.components.map import Map, Title
 from reView.layout.options import (
     CHART_OPTIONS,
     COLOR_OPTIONS,

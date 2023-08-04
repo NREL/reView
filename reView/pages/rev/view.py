@@ -22,7 +22,7 @@ from reView.components import (
 from reView.utils.config import Config
 
 
-DEFAULT_PROJECT = "PR100 - Round 2"
+DEFAULT_PROJECT = "ATB Bespoke - FY23"
 if DEFAULT_PROJECT not in list(Config.projects):
     DEFAULT_PROJECT = sorted(Config.projects)[0]
 DEFAULT_CONFIG = Config(DEFAULT_PROJECT)
