@@ -2,9 +2,7 @@
 """CLI tests."""
 import pathlib
 import tempfile
-from contextlib import redirect_stdout
 from difflib import SequenceMatcher
-import io
 
 import pytest
 import pandas as pd
