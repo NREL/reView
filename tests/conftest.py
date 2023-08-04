@@ -254,7 +254,7 @@ def histogram_plot_area_sq_km():
     ascii_histogram_contents_src = Path(TEST_DATA_DIR).joinpath(
         "plots", "histogram_area_sq_km.txt"
     )
-    with open(ascii_histogram_contents_src, "r") as f:
+    with open(ascii_histogram_contents_src, "r", encoding="utf-8") as f:
         contents = f.read()
 
     return contents
@@ -268,7 +268,7 @@ def histogram_plot_capacity_mw():
     ascii_histogram_contents_src = Path(TEST_DATA_DIR).joinpath(
         "plots", "histogram_capacity_mw.txt"
     )
-    with open(ascii_histogram_contents_src, "r") as f:
+    with open(ascii_histogram_contents_src, "r", encoding="utf-8") as f:
         contents = f.read()
 
     return contents
@@ -282,7 +282,7 @@ def histogram_plot_area_sq_km_5bins():
     ascii_histogram_contents_src = Path(TEST_DATA_DIR).joinpath(
         "plots", "histogram_area_sq_km_5bins.txt"
     )
-    with open(ascii_histogram_contents_src, "r") as f:
+    with open(ascii_histogram_contents_src, "r", encoding="utf-8") as f:
         contents = f.read()
 
     return contents
@@ -296,7 +296,7 @@ def histogram_plot_capacity_mw_5bins():
     ascii_histogram_contents_src = Path(TEST_DATA_DIR).joinpath(
         "plots", "histogram_capacity_mw_5bins.txt"
     )
-    with open(ascii_histogram_contents_src, "r") as f:
+    with open(ascii_histogram_contents_src, "r", encoding="utf-8") as f:
         contents = f.read()
 
     return contents
