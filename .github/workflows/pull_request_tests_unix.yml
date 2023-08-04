@@ -17,8 +17,8 @@ jobs:
         ref: ${{ github.event.pull_request.head.ref }}
         fetch-depth: 1
 
-    - uses: nanasess/setup-chromedriver@v2
     - name: Install Chrome Driver
+      uses: nanasess/setup-chromedriver@v2
       with:
           chromedriver-version: '115.0.5790.170'
       run: |
