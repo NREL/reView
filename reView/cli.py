@@ -530,7 +530,12 @@ def histogram(supply_curve_csv, column, nbins, width, height):
 
     df = pd.read_csv(supply_curve_csv)
     for column_name in column:
-        plots.ascii_histogram(
-            df, column_name, nbins=nbins, width=width, height=height
-        )
-        print("\n")
+        try:
+            plots.ascii_histogram(
+                df, column_name, nbins=nbins, width=width, height=height
+            )
+            print("\n")
+        except TypeError as e:
+            print(f"Unable to plot column '{column_name}': {e}")
+
+

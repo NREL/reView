@@ -851,5 +851,40 @@ def test_histogram_5bins(
     )
 
 
+def test_histogram_nonnumeric_column(
+    cli_runner, map_supply_curve_wind, histogram_plot_area_sq_km
+):
+    """
+    Test that histogram command gracefully handles a non-numeric input column
+    by issuing a warning message and skipping over it.
+    """
+
+    result = cli_runner.invoke(
+        histogram,
+        [
+            map_supply_curve_wind.as_posix(),
+            '-c', 'state',
+            '-c', 'area_sq_km',
+            '-W', 75,
+            '-H', 15
+        ],
+        terminal_width=1000 # needed for height to be applied correctly
+    )
+    assert result.exit_code == 0, (
+        f"Command failed with error {result.exception}"
+    )
+    assert result.output.startswith(
+        "Unable to plot column 'state': "
+        "Input column must have a numeric dtype."
+    )
+
+    plot = result.output.split("\n", maxsplit=1)[1]
+    similarity = SequenceMatcher(None, plot, histogram_plot_area_sq_km).ratio()
+    assert similarity >= 0.95, (
+        "ASCII Histogram does not match expected result: "
+        f"similarity is only: {similarity}"
+    )
+
+
 if __name__ == '__main__':
     pytest.main([__file__, '-s'])
