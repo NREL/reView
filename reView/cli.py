@@ -408,11 +408,10 @@ def map_column(
             f"Column {column} could not be found in input supply curve."
         )
 
-    cap_col = find_capacity_column(supply_curve_df)
-
     if keep_zero:
         supply_curve_subset_df = supply_curve_df
     else:
+        cap_col = find_capacity_column(supply_curve_df)
         supply_curve_subset_df = supply_curve_df[
             supply_curve_df[cap_col] > 0
         ].copy()
