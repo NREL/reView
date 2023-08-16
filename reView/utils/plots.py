@@ -9,6 +9,8 @@ import numpy as np
 import mapclassify as mc
 from matplotlib.patheffects import SimpleLineShadow, Normal
 import geoplot as gplt
+import plotext
+from pandas.api.types import is_numeric_dtype
 
 
 # pylint: disable=no-member, arguments-differ
@@ -308,3 +310,57 @@ def map_geodataframe_column(  # noqa: C901
         ax.set_title(map_title)
 
     return ax
+
+
+def ascii_histogram(df, column, nbins=20, width=None, height=None):
+    """
+    Prints a histogram for the selected column of the input dataframe to the
+    terminal.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        Input DataFrame
+    column : str
+        Name of column to plot. Must have a numeric dtype.
+    nbins : int, optional
+        Number of bins to plot in the histogram, by default 20.
+    width : int, optional
+        Width of the histogram plot (in characters). By default None, which
+        will set the width to 80% of the terminal width.
+    height : int, optional
+        Height of the histogram plot (in characters). By default None, which
+        will set the width to the smaller of either 20% of the terminal width
+        or 100% of the terminal height.
+
+    Raises
+    ------
+    TypeError
+        A TypeError will be raised if the specified column does not have a
+        numeric data type.
+    """
+
+    if not is_numeric_dtype(df[column]):
+        raise TypeError("Input column must have a numeric dtype.")
+
+    x_values = df[column].tolist()
+
+    plotext.clear_data()
+    plotext.clear_figure()
+
+    if width is None:
+        width = plotext.terminal_width() * 0.8
+    if height is None:
+        height = min(plotext.terminal_width()/5, plotext.terminal_height())
+
+    plotext.hist(x_values, bins=nbins, width=1)
+    plotext.plotsize(width, height)
+    plotext.axes_color("black")
+    plotext.canvas_color("black")
+    plotext.ticks_color("gray")
+    plotext.xfrequency(nbins+1)
+    plotext.title(column)
+
+    plotext.show()
+    plotext.clear_data()
+    plotext.clear_figure()

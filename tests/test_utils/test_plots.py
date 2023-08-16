@@ -2,6 +2,9 @@
 """Plots unit tests."""
 import tempfile
 from pathlib import Path
+from contextlib import redirect_stdout
+from difflib import SequenceMatcher
+import io
 
 import pytest
 import mapclassify as mc
@@ -9,8 +12,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 import PIL
 import imagehash
+import pandas as pd
 
-from reView.utils.plots import YBFixedBounds, map_geodataframe_column
+
+from reView.utils.plots import (
+    YBFixedBounds, map_geodataframe_column, ascii_histogram
+)
 
 
 def compare_images_approx(
@@ -381,6 +388,36 @@ def test_map_geodataframe_polygons(
             f"Output image does not match expected image {expected_png}"
             f"Difference is {pct_diff * 100}%"
         )
+
+
+def test_ascii_histogram_happy(
+    map_supply_curve_wind, histogram_plot_area_sq_km
+):
+    # pylint: disable=abstract-class-instantiated
+    """Happy path unit test for the ascii_histogram function"""
+
+    df = pd.read_csv(map_supply_curve_wind)
+
+    f = io.StringIO()
+    with redirect_stdout(f):
+        ascii_histogram(df, "area_sq_km", width=75, height=15)
+    plot = f.getvalue()
+
+    similarity = SequenceMatcher(None, plot, histogram_plot_area_sq_km).ratio()
+    assert similarity >= 0.95, (
+        "ASCII Histogram does not match expected result: "
+        f"similarity is only: {similarity}"
+    )
+
+
+def test_ascii_histogram_nonnumeric(map_supply_curve_wind):
+    """Test that the ascii_histogram function raises a TypeError when passed
+    the name of a column that is non-numeric."""
+
+    df = pd.read_csv(map_supply_curve_wind)
+
+    with pytest.raises(TypeError):
+        ascii_histogram(df, "state")
 
 
 if __name__ == '__main__':

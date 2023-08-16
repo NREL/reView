@@ -408,11 +408,10 @@ def map_column(
             f"Column {column} could not be found in input supply curve."
         )
 
-    cap_col = find_capacity_column(supply_curve_df)
-
     if keep_zero:
         supply_curve_subset_df = supply_curve_df
     else:
+        cap_col = find_capacity_column(supply_curve_df)
         supply_curve_subset_df = supply_curve_df[
             supply_curve_df[cap_col] > 0
         ].copy()
@@ -494,3 +493,47 @@ def map_column(
     out_image_path = out_path.joinpath(out_image_name)
     g.figure.savefig(out_image_path, dpi=dpi, transparent=True)
     plt.close(g.figure)
+
+
+@main.command()
+@click.argument('supply_curve_csv',
+                type=click.Path(exists=True, dir_okay=False, file_okay=True)
+                )
+@click.option('--column', '-c', required=True, multiple=True,
+              default=None,
+              type=click.STRING,
+              help=(
+                  "Value column from the input CSV to plot. Multiple value "
+                  "columnscan be specified: e.g., -c area_sq_km -c capacity_mw"
+                  ))
+@click.option('--nbins', '-N', required=False,
+              default=20,
+              type=click.IntRange(min=1),
+              help=("Number of bins to use in the histogram. If not "
+                    "specified, default is 20 bins."))
+@click.option('--width', '-W', required=False,
+              default=None,
+              type=click.IntRange(min=0, max=500),
+              help=("Width of output histogram. If not specified, default "
+                    "width is 80% of the terminal width."))
+@click.option('--height', '-H', required=False,
+              default=None,
+              type=click.IntRange(min=0, max=500),
+              help=("Height of output histogram. If not specified, default "
+                    "height is the smaller of 20% of the terminal width or "
+                    "100% of the terminal height."))
+def histogram(supply_curve_csv, column, nbins, width, height):
+    """
+    Plots a histogram in the terminal for the specified column(s) from the
+    input SUPPLY_CURVE_CSV.
+    """
+
+    df = pd.read_csv(supply_curve_csv)
+    for column_name in column:
+        try:
+            plots.ascii_histogram(
+                df, column_name, nbins=nbins, width=width, height=height
+            )
+            print("\n")
+        except TypeError as e:
+            print(f"Unable to plot column '{column_name}': {e}")

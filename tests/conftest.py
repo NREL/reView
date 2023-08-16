@@ -246,6 +246,62 @@ def output_map_names():
     return map_names
 
 
+@pytest.fixture
+def histogram_plot_area_sq_km():
+    """Returns contents of ASCII histogram with default 20 bins for area_sq_km
+    column of map_supply_curve_wind"""
+
+    ascii_histogram_contents_src = Path(TEST_DATA_DIR).joinpath(
+        "plots", "histogram_area_sq_km.txt"
+    )
+    with open(ascii_histogram_contents_src, "r", encoding="utf-8") as f:
+        contents = f.read()
+
+    return contents
+
+
+@pytest.fixture
+def histogram_plot_capacity_mw():
+    """Returns contents of ASCII histogram with default 20 bins for
+    capacity_mw column of map_supply_curve_wind"""
+
+    ascii_histogram_contents_src = Path(TEST_DATA_DIR).joinpath(
+        "plots", "histogram_capacity_mw.txt"
+    )
+    with open(ascii_histogram_contents_src, "r", encoding="utf-8") as f:
+        contents = f.read()
+
+    return contents
+
+
+@pytest.fixture
+def histogram_plot_area_sq_km_5bins():
+    """Returns contents of ASCII histogram with 5 bins for area_sq_km column
+    of map_supply_curve_wind"""
+
+    ascii_histogram_contents_src = Path(TEST_DATA_DIR).joinpath(
+        "plots", "histogram_area_sq_km_5bins.txt"
+    )
+    with open(ascii_histogram_contents_src, "r", encoding="utf-8") as f:
+        contents = f.read()
+
+    return contents
+
+
+@pytest.fixture
+def histogram_plot_capacity_mw_5bins():
+    """Returns contents of ASCII histogram with 5 bins for capacity_mw column
+    of map_supply_curve_wind"""
+
+    ascii_histogram_contents_src = Path(TEST_DATA_DIR).joinpath(
+        "plots", "histogram_capacity_mw_5bins.txt"
+    )
+    with open(ascii_histogram_contents_src, "r", encoding="utf-8") as f:
+        contents = f.read()
+
+    return contents
+
+
 def pytest_setup_options():
     """Recommended setup based on https://dash.plotly.com/testing."""
     options = Options()

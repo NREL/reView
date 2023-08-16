@@ -2,6 +2,8 @@
 """CLI tests."""
 import pathlib
 import tempfile
+from difflib import SequenceMatcher
+
 import pytest
 import pandas as pd
 import geopandas as gpd
@@ -12,6 +14,7 @@ from reView.cli import (
     unpack_characterizations,
     make_maps,
     map_column,
+    histogram,
     TECH_CHOICES
 )
 from tests.test_utils.test_plots import compare_images_approx
@@ -776,6 +779,111 @@ def test_map_column_pdf(map_supply_curve_solar, cli_runner):
             f"Output pdf could not be found: {out_pdf_name}"
         assert out_pdf.stat().st_size > 0, \
             f"Output pdf appears to be an empty file: {out_pdf_name}"
+
+
+def test_histogram_default_bins(
+    cli_runner, map_supply_curve_wind, histogram_plot_area_sq_km,
+    histogram_plot_capacity_mw
+):
+    """
+    Test that histogram command correctly plots two variables and adjusts
+    the plot size to the input height and width
+    """
+
+    result = cli_runner.invoke(
+        histogram, [
+            map_supply_curve_wind.as_posix(),
+            '-c', 'area_sq_km',
+            '-c', 'capacity_mw',
+            '-W', 75,
+            '-H', 15
+        ],
+        terminal_width=1000 # needed for height to be applied correctly
+    )
+    assert result.exit_code == 0, (
+        f"Command failed with error {result.exception}"
+    )
+
+    plot = result.output
+    expected_combined_plot = (
+        histogram_plot_area_sq_km + '\n' + histogram_plot_capacity_mw
+    )
+    similarity = SequenceMatcher(None, plot, expected_combined_plot).ratio()
+    assert similarity >= 0.95, (
+        "ASCII Histogram does not match expected result: "
+        f"similarity is only: {similarity}"
+    )
+
+
+def test_histogram_5bins(
+    cli_runner, map_supply_curve_wind, histogram_plot_area_sq_km_5bins,
+    histogram_plot_capacity_mw_5bins
+):
+    """
+    Test that histogram command correctly adjusts based on a specified
+    number of bins.
+    """
+
+    result = cli_runner.invoke(
+        histogram, [
+            map_supply_curve_wind.as_posix(),
+            '-c', 'area_sq_km',
+            '-c', 'capacity_mw',
+            '-W', 75,
+            '-H', 15,
+            '-N', 5
+        ],
+        terminal_width=1000 # needed for height to be applied correctly
+    )
+    assert result.exit_code == 0, (
+        f"Command failed with error {result.exception}"
+    )
+
+    plot = result.output
+    expected_combined_plot = (
+        histogram_plot_area_sq_km_5bins + '\n' +
+        histogram_plot_capacity_mw_5bins
+    )
+    similarity = SequenceMatcher(None, plot, expected_combined_plot).ratio()
+    assert similarity >= 0.95, (
+        "ASCII Histogram does not match expected result: "
+        f"similarity is only: {similarity}"
+    )
+
+
+def test_histogram_nonnumeric_column(
+    cli_runner, map_supply_curve_wind, histogram_plot_area_sq_km
+):
+    """
+    Test that histogram command gracefully handles a non-numeric input column
+    by issuing a warning message and skipping over it.
+    """
+
+    result = cli_runner.invoke(
+        histogram,
+        [
+            map_supply_curve_wind.as_posix(),
+            '-c', 'state',
+            '-c', 'area_sq_km',
+            '-W', 75,
+            '-H', 15
+        ],
+        terminal_width=1000 # needed for height to be applied correctly
+    )
+    assert result.exit_code == 0, (
+        f"Command failed with error {result.exception}"
+    )
+    assert result.output.startswith(
+        "Unable to plot column 'state': "
+        "Input column must have a numeric dtype."
+    )
+
+    plot = result.output.split("\n", maxsplit=1)[1]
+    similarity = SequenceMatcher(None, plot, histogram_plot_area_sq_km).ratio()
+    assert similarity >= 0.95, (
+        "ASCII Histogram does not match expected result: "
+        f"similarity is only: {similarity}"
+    )
 
 
 if __name__ == '__main__':
