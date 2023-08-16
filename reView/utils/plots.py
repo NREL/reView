@@ -336,8 +336,8 @@ def ascii_histogram(df, column, nbins=20, width=None, height=None):
     Raises
     ------
     TypeError
-        A TypeError will be raised if the specified column does not have a numeric
-        data type.
+        A TypeError will be raised if the specified column does not have a
+        numeric data type.
     """
 
     if not is_numeric_dtype(df[column]):

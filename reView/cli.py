@@ -537,5 +537,3 @@ def histogram(supply_curve_csv, column, nbins, width, height):
             print("\n")
         except TypeError as e:
             print(f"Unable to plot column '{column_name}': {e}")
-
-
