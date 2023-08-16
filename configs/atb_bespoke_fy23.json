@@ -1,4 +1,5 @@
 {
     "project_name": "ATB Bespoke - FY23",
-    "directory": "~/review_datasets/atb_bespoke_fy23"
+    "directory": "~/review_datasets/atb_bespoke_fy23",
+    "var_options": "~/review_datasets/atb_bespoke_fy23/variable_options.csv"
 }

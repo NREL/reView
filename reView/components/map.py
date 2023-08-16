@@ -222,9 +222,16 @@ class Title:
 
         # If mean, use weights
         if "wind" in self.color_var:
-            weights = df["wind_area_sq_km"]
+            try:
+                weights = df["area_sq_km"]
+            except KeyError:
+                weights = df["wind_area_sq_km"]
+
         elif "solar" in self.color_var:
-            weights = df["solar_area_sq_km"]
+            try:
+                weights = df["area_sq_km"]
+            except KeyError:
+                weights = df["solar_area_sq_km"]
         elif "area_sq_km" not in df:  # Quick fix change for bespoke hybrids
             weights = df["capacity"]
         else:

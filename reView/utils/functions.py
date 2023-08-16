@@ -31,7 +31,6 @@ import pyproj
 
 from reView import REVIEW_CONFIG_DIR, REVIEW_DATA_DIR
 
-
 logger = logging.getLogger(__name__)
 
 

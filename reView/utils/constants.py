@@ -254,6 +254,7 @@ SKIP_VARS = {
 TITLES = {
     "area_sq_km": "Supply Curve Point Area",
     "capacity": "Total Capacity",
+    "capacity_mw": "Total Capacity (MW)",
     "elevation": "Elevation",
     "dist_mi": "Distance to Transmission",
     "lcot": "LCOT",
@@ -271,6 +272,7 @@ COMMON_REV_COLUMN_UNITS = {
     "area_sq_km": "square km",
     "elevation": "m",  # Double check this
     "capacity": "MW",
+    "capacity_mw": "MW",
     "dist_mi": "miles",
     "dist_km": "km",
     "lcot": "USD/MWh",
