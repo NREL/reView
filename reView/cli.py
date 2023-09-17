@@ -10,6 +10,7 @@ import warnings
 import click
 import pandas as pd
 import geopandas as gpd
+import h5py
 import numpy as np
 import matplotlib.pyplot as plt
 import tqdm
@@ -20,6 +21,7 @@ from reView.utils.functions import find_capacity_column
 from reView import __version__, REVIEW_DATA_DIR
 
 logger = logging.getLogger(__name__)
+
 
 CONTEXT_SETTINGS = {
     "max_content_width": 9999,
@@ -33,10 +35,23 @@ DEFAULT_BOUNDARIES = Path(REVIEW_DATA_DIR).joinpath(
 IMAGE_FORMAT_CHOICES = ["png", "pdf", "svg", "jpg"]
 
 
+def read_h5(fpath, datasets):
+    """Read an h5 file and return dataframe."""
+    # Pull data from file
+    with h5py.File(fpath) as ds:
+        meta = pd.DataFrame(ds["meta"][:])
+        for dataset in datasets:
+            data = ds[dataset][:]
+            meta[dataset] = data
+    meta = meta[["gid"] + list(datasets)]
+
+    return meta
+
+
 @click.group(context_settings=CONTEXT_SETTINGS)
 @click.version_option(version=__version__)
-@click.option('-v', '--verbose', is_flag=True,
-              help='Flag to turn on debug logging. Default is not verbose.')
+@click.option("-v", "--verbose", is_flag=True,
+              help="Flag to turn on debug logging. Default is not verbose.")
 @click.pass_context
 def main(ctx, verbose):
     """reView command line interface."""
@@ -48,25 +63,25 @@ def main(ctx, verbose):
 
 
 @main.command()
-@click.option('--supply_curve_csv', '-i', required=True,
+@click.option("--supply_curve_csv", "-i", required=True,
               type=click.Path(exists=True),
-              help='Path to bespoke wind supply curve CSV file created by reV')
-@click.option('--out_gpkg', '-o', required=True,
+              help="Path to bespoke wind supply curve CSV file created by reV")
+@click.option("--out_gpkg", "-o", required=True,
               type=click.Path(),
-              help='Path to regions shapefile containing labeled geometries')
-@click.option('--n_workers', '-n', default=1, type=int,
+              help="Path to regions shapefile containing labeled geometries")
+@click.option("--n_workers", "-n", default=1, type=int,
               show_default=True,
               required=False,
-              help='Number of workers to use for parallel processing.'
-                   'Default is 1 which will unpack turbines from each supply '
-                   'curve grid cell in parallel. This will be slow. It is '
-                   'recommended to use at least 4 workers if possible')
-@click.option('--overwrite', default=False,
+              help="Number of workers to use for parallel processing."
+                   "Default is 1 which will unpack turbines from each supply "
+                   "curve grid cell in parallel. This will be slow. It is "
+                   "recommended to use at least 4 workers if possible")
+@click.option("--overwrite", default=False,
               show_default=True,
               required=False,
               is_flag=True,
-              help='Overwrite output geopackage if it already exists. '
-                   'Default is False.')
+              help="Overwrite output geopackage if it already exists. "
+                   "Default is False.")
 def unpack_turbines(
         supply_curve_csv, out_gpkg, n_workers, overwrite
 ):
@@ -94,30 +109,30 @@ def unpack_turbines(
     if overwrite is True:
         Path(out_gpkg_path).unlink(missing_ok=True)
 
-    turbines_gdf.to_file(out_gpkg_path, driver='GPKG')
+    turbines_gdf.to_file(out_gpkg_path, driver="GPKG")
 
 
 @main.command()
-@click.option('--supply_curve_csv', '-i', required=True,
+@click.option("--supply_curve_csv", "-i", required=True,
               type=click.Path(exists=True, dir_okay=False, file_okay=True),
-              help='Path to bespoke wind supply curve CSV file created by reV')
-@click.option('--char_map', '-m', required=True,
+              help="Path to bespoke wind supply curve CSV file created by reV")
+@click.option("--char_map", "-m", required=True,
               type=click.Path(exists=True, dir_okay=False, file_okay=True),
-              help='Path to JSON file storing characterization map')
-@click.option('--out_csv', '-o', required=True,
+              help="Path to JSON file storing characterization map")
+@click.option("--out_csv", "-o", required=True,
               type=click.Path(dir_okay=False),
-              help='Path to CSV to store results')
-@click.option('--cell_size', '-c', required=False,
+              help="Path to CSV to store results")
+@click.option("--cell_size", "-c", required=False,
               default=90.,
               type=float,
-              help=('Cell size in meters of characterization layers. '
-                    'Default is 90.'))
-@click.option('--overwrite', default=False,
+              help=("Cell size in meters of characterization layers. "
+                    "Default is 90."))
+@click.option("--overwrite", default=False,
               show_default=True,
               required=False,
               is_flag=True,
-              help='Overwrite output CSV if it already exists. '
-                   'Default is False.')
+              help="Overwrite output CSV if it already exists. "
+                   "Default is False.")
 def unpack_characterizations(
     supply_curve_csv, char_map, out_csv, cell_size=90., overwrite=False
 ):
@@ -129,7 +144,7 @@ def unpack_characterizations(
     """
 
     supply_curve_df = pd.read_csv(supply_curve_csv)
-    with open(char_map, 'r') as f:
+    with open(char_map, "r") as f:
         characterization_map = json.load(f)
     char_df = characterizations.unpack_characterizations(
         supply_curve_df, characterization_map, cell_size
@@ -141,47 +156,47 @@ def unpack_characterizations(
 
 
 @main.command()
-@click.option('--supply_curve_csv', '-i', required=True,
+@click.option("--supply_curve_csv", "-i", required=True,
               type=click.Path(exists=True, dir_okay=False, file_okay=True),
-              help='Path to supply curve CSV file.')
+              help="Path to supply curve CSV file.")
 @click.option("--tech",
               "-t",
               required=True,
               type=click.Choice(TECH_CHOICES, case_sensitive=False),
               help="Technology choice for ordinances to export. "
               f"Valid options are: {TECH_CHOICES}.")
-@click.option('--out_folder', '-o', required=True,
+@click.option("--out_folder", "-o", required=True,
               type=click.Path(exists=False, dir_okay=True, file_okay=False),
-              help='Path to output folder for maps.')
-@click.option('--boundaries', '-b', required=False,
+              help="Path to output folder for maps.")
+@click.option("--boundaries", "-b", required=False,
               type=click.Path(exists=True, dir_okay=False, file_okay=True),
               default=DEFAULT_BOUNDARIES,
               # noqa: E126
-              help=('Path to vector dataset with the boundaries to map. '
-                    'Default is to use state boundaries for CONUS from '
-                    'Natural Earth (1:50m scale), which is suitable for CONUS '
-                    'supply curves. For other region, it is recommended to '
-                    'provide a more appropriate boundaries dataset. The input '
-                    'vector dataset can be in CRS.'
+              help=("Path to vector dataset with the boundaries to map. "
+                    "Default is to use state boundaries for CONUS from "
+                    "Natural Earth (1:50m scale), which is suitable for CONUS "
+                    "supply curves. For other region, it is recommended to "
+                    "provide a more appropriate boundaries dataset. The input "
+                    "vector dataset can be in CRS."
                     ))
-@click.option('--keep-zero', '-K', default=False,
+@click.option("--keep-zero", "-k", default=False,
               required=False,
               is_flag=True,
-              help='Keep zero capacity supply curve project sites. These '
-                   'sites are dropped by default.')
-@click.option('--dpi', '-d', required=False,
+              help="Keep zero capacity supply curve project sites. These "
+                   "sites are dropped by default.")
+@click.option("--dpi", "-d", required=False,
               default=600,
               type=click.IntRange(min=0),
-              help='Dots-per-inch (DPI) for output images. Default is 600.')
-@click.option("--out-format", "-F", required=False,
+              help="Dots-per-inch (DPI) for output images. Default is 600.")
+@click.option("--out-format", "-f", required=False,
               default="png",
               type=click.Choice(IMAGE_FORMAT_CHOICES, case_sensitive=True),
               help="Output format for images. Default is ``png`` "
               f"Valid options are: {IMAGE_FORMAT_CHOICES}.")
-@click.option('--drop-legend', '-D', default=False,
+@click.option("--drop-legend", "-d", default=False,
               required=False,
               is_flag=True,
-              help='Drop legend from map. Legend is shown by default.')
+              help="Drop legend from map. Legend is shown by default.")
 def make_maps(
     supply_curve_csv, tech, out_folder, boundaries, keep_zero, dpi, out_format,
     drop_legend
@@ -210,8 +225,8 @@ def make_maps(
     supply_curve_gdf = gpd.GeoDataFrame(
         supply_curve_subset_df,
         geometry=gpd.points_from_xy(
-            x=supply_curve_subset_df['longitude'],
-            y=supply_curve_subset_df['latitude']
+            x=supply_curve_subset_df["longitude"],
+            y=supply_curve_subset_df["latitude"]
         ),
         crs="EPSG:4326"
     )
@@ -237,17 +252,17 @@ def make_maps(
     map_vars = {
         "total_lcoe": {
             "breaks": [25, 30, 35, 40, 45, 50, 60, 70],
-            "cmap": 'YlGn',
+            "cmap": "YlGn",
             "legend_title": "All-in LCOE ($/MWh)"
         },
         "mean_lcoe": {
             "breaks": [25, 30, 35, 40, 45, 50, 60, 70],
-            "cmap": 'YlGn',
+            "cmap": "YlGn",
             "legend_title": "Project LCOE ($/MWh)"
         },
         "lcot": {
             "breaks": [5, 10, 15, 20, 25, 30, 35, 40, 50],
-            "cmap": 'YlGn',
+            "cmap": "YlGn",
             "legend_title": "LCOT ($/MWh)",
         },
         "area_sq_km": {
@@ -264,17 +279,17 @@ def make_maps(
         map_vars.update({
             cap_col: {
                 "breaks": [100, 500, 1000, 2000, 3000, 4000],
-                "cmap": 'YlOrRd',
+                "cmap": "YlOrRd",
                 "legend_title": "Capacity DC (MW)"
             },
             ac_cap_col: {
                 "breaks": [100, 500, 1000, 2000, 3000, 4000],
-                "cmap": 'YlOrRd',
+                "cmap": "YlOrRd",
                 "legend_title": "Capacity AC (MW)"
             },
             "capacity_density": {
                 "breaks": [30, 40, 50, 60, 70],
-                "cmap": 'YlOrRd',
+                "cmap": "YlOrRd",
                 "legend_title": "Capacity Density (MW/sq km)"
             }
         })
@@ -282,12 +297,12 @@ def make_maps(
         map_vars.update({
             cap_col: {
                 "breaks": [60, 120, 180, 240, 275],
-                "cmap": 'Blues',
+                "cmap": "Blues",
                 "legend_title": "Capacity (MW)"
             },
             "capacity_density": {
                 "breaks": [2, 3, 4, 5, 6, 10],
-                "cmap": 'Blues',
+                "cmap": "Blues",
                 "legend_title": "Capacity Density (MW/sq km)"
             }
         })
@@ -323,76 +338,74 @@ def make_maps(
 
 
 @main.command()
-@click.option('--supply_curve_csv', '-i', required=True,
+@click.option("--supply_curve_csv", "-i", required=True,
               type=click.Path(exists=True, dir_okay=False, file_okay=True),
-              help='Path to supply curve CSV file.')
-@click.option('--out_folder', '-o', required=True,
+              help="Path to supply curve CSV file.")
+@click.option("--out_folder", "-o", required=True,
               type=click.Path(exists=False, dir_okay=True, file_okay=False),
-              help='Path to output folder for maps.')
-@click.option('--column', '-c', required=True,
+              help="Path to output folder for maps.")
+@click.option("--column", "-c", required=True,
               type=str,
-              help='Column to map')
-@click.option('--colormap', '-C', required=False,
-              type=str,
-              default=None,
-              help=('Color map to use for the column. Refer to https://'
-                    'matplotlib.org/stable/tutorials/colors/colormaps.html'
-                    ' for valid options. If not specified, the viridis '
-                    'colormap will be applied.'))
-@click.option('--legend_title', '-T', required=False,
+              help="Column to map")
+@click.option("--colormap", "-cm", required=False,
               type=str,
               default=None,
-              help=('Title to use for the map legend. '
-                    'If not provided, legend title will be the column name'))
-@click.option('--legend_breaks', '-B', required=False,
+              help=("Color map to use for the column. Refer to https://"
+                    "matplotlib.org/stable/tutorials/colors/colormaps.html"
+                    " for valid options. If not specified, the viridis "
+                    "colormap will be applied."))
+@click.option("--legend_title", "-t", required=False,
               type=str,
               default=None,
-              help=('Breaks to use for the map legend. Should be formatted '
-                    'like a list in quotes, e.g. : "[10, 50, 100, 150]". If '
-                    'not provided, a 5-class quantile classification will be '
-                    'used to derive the breaks.'))
-@click.option('--boundaries', '-b', required=False,
+              help=("Title to use for the map legend. "
+                    "If not provided, legend title will be the column name"))
+@click.option("--legend_breaks", "-lb", required=False,
+              type=str,
+              default=None,
+              help=("Breaks to use for the map legend. Should be formatted "
+                    "like a list in quotes, e.g. : '[10, 50, 100, 150]'. If "
+                    "not provided, a 5-class quantile classification will be "
+                    "used to derive the breaks."))
+@click.option("--boundaries", "-b", required=False,
               type=click.Path(exists=True, dir_okay=False, file_okay=True),
               default=DEFAULT_BOUNDARIES,
               # noqa: E126
-              help=('Path to vector dataset with the boundaries to map. '
-                    'Default is to use state boundaries for CONUS from '
-                    'Natural Earth (1:50m scale), which is suitable for CONUS '
-                    'supply curves. For other region, it is recommended to '
-                    'provide a more appropriate boundaries dataset. The input '
-                    'vector dataset can be in CRS.'
+              help=("Path to vector dataset with the boundaries to map. "
+                    "Default is to use state boundaries for CONUS from "
+                    "Natural Earth (1:50m scale), which is suitable for CONUS "
+                    "supply curves. For other region, it is recommended to "
+                    "provide a more appropriate boundaries dataset. The input "
+                    "vector dataset can be in CRS."
                     ))
-@click.option('--keep_zero', '-K', default=False,
+@click.option("--keep_zero", "-k", default=False,
               required=False,
               is_flag=True,
-              help='Keep zero capacity supply curve project sites. These '
-                   'Sites are dropped by default.')
-@click.option('--dpi', '-d', required=False,
+              help="Keep zero capacity supply curve project sites. These "
+                   "Sites are dropped by default.")
+@click.option("--dpi", "-d", required=False,
               default=600,
               type=click.IntRange(min=0),
-              help='Dots-per-inch (DPI) for output images. Default is 600.')
-@click.option("--out-format", "-F", required=False,
+              help="Dots-per-inch (DPI) for output images. Default is 600.")
+@click.option("--out-format", "-f", required=False,
               default="png",
               type=click.Choice(IMAGE_FORMAT_CHOICES, case_sensitive=True),
               help="Output format for images. Default is ``png`` "
                    f"Valid options are: {IMAGE_FORMAT_CHOICES}.")
-@click.option('--drop-legend', '-D', default=False,
+@click.option("--drop-legend", "-dl", default=False,
               required=False,
               is_flag=True,
-              help='Drop legend from map. Legend is shown by default.')
-@click.option('--boundaries_kwargs', '-bk', required=False,
+              help="Drop legend from map. Legend is shown by default.")
+@click.option("--boundaries_kwargs", "-bk", required=False,
               type=str,
               default=None,
-              help=('Boundaries keyword arguments to change styling of '
-                    'boundary lines. For example, to make boundaries 2x '
-                    'thicker and black instead of white, specify: '
-                    '\'{"linewidth": 1.0, "zorder": 1, "edgecolor": "black"}\''
+              help=("Boundaries keyword arguments to change styling of "
+                    "boundary lines. For example, to make boundaries 2x "
+                    "thicker and black instead of white, specify: "
+                    "\'{'linewidth': 1.0, 'zorder': 1, 'edgecolor': 'black'}\'"
                     ))
-def map_column(
-    supply_curve_csv, out_folder, column, colormap, legend_title,
-    legend_breaks, boundaries, keep_zero, dpi, out_format, drop_legend,
-    boundaries_kwargs
-):
+def map_column(supply_curve_csv, out_folder, column, colormap, legend_title,
+               legend_breaks, boundaries, keep_zero, dpi, out_format,
+               drop_legend, boundaries_kwargs):
     # pylint: disable=too-many-arguments
     """
     Generates a single map from an input supply curve for the specified column,
@@ -419,8 +432,8 @@ def map_column(
     supply_curve_gdf = gpd.GeoDataFrame(
         supply_curve_subset_df,
         geometry=gpd.points_from_xy(
-            x=supply_curve_subset_df['longitude'],
-            y=supply_curve_subset_df['latitude']
+            x=supply_curve_subset_df["longitude"],
+            y=supply_curve_subset_df["latitude"]
         ),
         crs="EPSG:4326"
     )
@@ -443,12 +456,12 @@ def map_column(
         breaks = None
     else:
         try:
-            if not legend_breaks.startswith('['):
+            if not legend_breaks.startswith("["):
                 raise ValueError("Invalid input: does not start with '['.")
             if not legend_breaks.endswith("]"):
                 raise ValueError("Invalid input: does not start with ']'.")
             breaks = [
-                float(b.strip()) for b in legend_breaks[1:-1].split(',')
+                float(b.strip()) for b in legend_breaks[1:-1].split(",")
             ]
         except Exception as e:
             raise ValueError(
@@ -465,24 +478,24 @@ def map_column(
         boundaries_kwargs_dict = None
 
     g = plots.map_geodataframe_column(
-        supply_curve_gdf,
-        column,
-        color_map=colormap,
-        breaks=breaks,
-        map_title=None,
-        legend_title=legend_title,
-        background_df=background_gdf,
-        boundaries_df=boundaries_singlepart_gdf,
-        extent=map_extent,
-        layer_kwargs={"s": 2.0, "linewidth": 0, "marker": "o"},
-        legend_kwargs={
-            "marker": "s",
-            "frameon": False,
-            "bbox_to_anchor": (1, 0.5),
-            "loc": "center left"
-        },
-        boundaries_kwargs=boundaries_kwargs_dict,
-        legend=(not drop_legend)
+            supply_curve_gdf,
+            column,
+            color_map=colormap,
+            breaks=breaks,
+            map_title=None,
+            legend_title=legend_title,
+            background_df=background_gdf,
+            boundaries_df=boundaries_singlepart_gdf,
+            extent=map_extent,
+            layer_kwargs={"s": 2.0, "linewidth": 0, "marker": "o"},
+            legend_kwargs={
+                "marker": "s",
+                "frameon": False,
+                "bbox_to_anchor": (1, 0.5),
+                "loc": "center left"
+            },
+            boundaries_kwargs=boundaries_kwargs_dict,
+            legend=(not drop_legend)
     )
     bbox = g.get_tightbbox(g.figure.canvas.get_renderer())
     fig_height = g.figure.get_figheight()
@@ -496,39 +509,49 @@ def map_column(
 
 
 @main.command()
-@click.argument('supply_curve_csv',
-                type=click.Path(exists=True, dir_okay=False, file_okay=True)
-                )
-@click.option('--column', '-c', required=True, multiple=True,
-              default=None,
-              type=click.STRING,
-              help=(
-                  "Value column from the input CSV to plot. Multiple value "
-                  "columnscan be specified: e.g., -c area_sq_km -c capacity_mw"
-                  ))
-@click.option('--nbins', '-N', required=False,
+@click.argument(
+    "fpath",
+    type=click.Path(exists=True, dir_okay=False, file_okay=True)
+)
+@click.option(
+    "--column",
+    "-c",
+    default=["cf_mean"],
+    multiple=True,
+    type=click.STRING,
+    help=("Value column from the input CSV or h5 to plot. Multiple value "
+          "columns can be specified: e.g., -c area_sq_km -c capacity_mw")
+)
+@click.option("--nbins", "-n", required=False,
               default=20,
               type=click.IntRange(min=1),
               help=("Number of bins to use in the histogram. If not "
                     "specified, default is 20 bins."))
-@click.option('--width', '-W', required=False,
+@click.option("--width", "-w", required=False,
               default=None,
               type=click.IntRange(min=0, max=500),
               help=("Width of output histogram. If not specified, default "
                     "width is 80% of the terminal width."))
-@click.option('--height', '-H', required=False,
+@click.option("--height", "-h", required=False,
               default=None,
               type=click.IntRange(min=0, max=500),
               help=("Height of output histogram. If not specified, default "
                     "height is the smaller of 20% of the terminal width or "
                     "100% of the terminal height."))
-def histogram(supply_curve_csv, column, nbins, width, height):
+def histogram(fpath, column, nbins, width, height):
     """
     Plots a histogram in the terminal for the specified column(s) from the
     input SUPPLY_CURVE_CSV.
     """
+    # Find file extension
+    ext = fpath.split(".")[-1]
+    if ext == "csv":
+        df = pd.read_csv(fpath)
+    elif ext == "h5":
+        df = read_h5(fpath, column)
+    else:
+        raise NotImplementedError(f"Cannot plot {ext} files.")
 
-    df = pd.read_csv(supply_curve_csv)
     for column_name in column:
         try:
             plots.ascii_histogram(
@@ -537,3 +560,11 @@ def histogram(supply_curve_csv, column, nbins, width, height):
             print("\n")
         except TypeError as e:
             print(f"Unable to plot column '{column_name}': {e}")
+
+
+if __name__ == "__main__":
+    fpath = "/lustre/eaglefs/projects/rev/projects/ffi/fy23/rev/generation/1_n_4800kw_133m_dia_120m_hub/1_n_4800kw_133m_dia_120m_hub_generation_2012.h5"
+    column = ["cf_mean"]
+    nbins = 100
+    width = None
+    height = None

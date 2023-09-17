@@ -353,12 +353,12 @@ def ascii_histogram(df, column, nbins=20, width=None, height=None):
     if height is None:
         height = min(plotext.terminal_width()/5, plotext.terminal_height())
 
-    plotext.hist(x_values, bins=nbins, width=1)
+    plotext.hist(x_values, bins=nbins, width=.9, marker="dot")
     plotext.plotsize(width, height)
     plotext.axes_color("black")
     plotext.canvas_color("black")
     plotext.ticks_color("gray")
-    plotext.xfrequency(nbins+1)
+    plotext.xfrequency(nbins + 1)
     plotext.title(column)
 
     plotext.show()
