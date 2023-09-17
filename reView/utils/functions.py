@@ -30,6 +30,7 @@ import numpy as np
 import pyproj
 
 from reView import REVIEW_CONFIG_DIR, REVIEW_DATA_DIR
+from reView.paths import Paths
 
 logger = logging.getLogger(__name__)
 
@@ -271,6 +272,14 @@ def deep_replace(dictionary, replacement):
             __replace_value(dictionary, replacement, key, value)
     except AttributeError:  # `dictionary`` does not have `.items()` method
         return
+
+
+def get_project_defaults():
+    """Get the default project for each page from a file (easier to change)."""
+    fpath = Paths.home.joinpath("reView/default_project")
+    with open(fpath, "r", encoding="utf-8") as file:
+        defaults = json.load(file)
+    return defaults
 
 
 def get_sheet(file_name, sheet_name=None, header=0):
@@ -648,11 +657,15 @@ def strip_rev_filename_endings(filename):
         r"_nrwal.*\.csv",
         r"_supply-curve\.csv",
         r"_supply-curve-aggregation\.csv",
+        r"_supply_curve\.csv",
+        r"_supply_curve_aggregation\.csv",
         r"_sc\.parquet",
         r"_agg\.parquet",
         r"_nrwal.*\.parquet",
         r"_supply-curve\.parquet",
         r"_supply-curve-aggregation\.parquet",
+        r"_supply_curve\.parquet",
+        r"_supply_curve_aggregation\.parquet",
         r"\.h5"
     ]
     full_pattern = "|".join(patterns)

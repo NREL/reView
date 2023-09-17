@@ -317,6 +317,9 @@ class Plots:
             fig = self.box(y_var)
         elif chart_type == "timeseries":
             fig = self.timeseries(y_var, trace_type, time_period)
+        elif chart_type == "summary_table":
+            fig= self.summary_table()
+
         return fig
 
     def histogram(self, y_var, bins=100):
@@ -390,6 +393,13 @@ class Plots:
         )
 
         return self._update_fig_layout(fig, y_var)
+
+    def summary_table(self):
+        """Return a summary table of all values for all tables."""
+        table = None
+        for key, df in self.datasets.items():
+            break
+        return None
 
     def timeseries(self, y_var="capacity factor", trace_type="bar",
                    time_period="original"):

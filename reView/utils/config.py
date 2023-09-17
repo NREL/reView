@@ -6,6 +6,7 @@ Created on Sat Aug 15 15:47:40 2020
 @author: travis
 """
 import ast
+import json
 import logging
 
 from functools import cached_property, lru_cache
@@ -18,6 +19,7 @@ from reView import REVIEW_DATA_DIR
 from reView.utils.constants import COMMON_REV_COLUMN_UNITS, SCALE_OVERRIDES
 from reView.utils.functions import (
     deep_replace,
+    get_project_defaults,
     load_project_configs,
     strip_rev_filename_endings,
 )
@@ -27,7 +29,7 @@ pd.set_option("mode.chained_assignment", None)
 logger = logging.getLogger(__name__)
 
 
-DEFAULT_PROJECT = "Sample - Wind - Colorado"
+DEFAULT_PROJECT = get_project_defaults()["rev"]
 PROJECT_CONFIGS = load_project_configs()
 PROJECT_NAMES = list(PROJECT_CONFIGS.keys())
 
@@ -245,6 +247,7 @@ class Config:
         for file in self.all_files:
             scenario = strip_rev_filename_endings(file.name)
             if scenario.endswith(".csv"):
+                print(scenario)
                 continue
             yield scenario, file
 

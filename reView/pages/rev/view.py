@@ -20,9 +20,10 @@ from reView.components import (
     SIDE_OPTIONS
 )
 from reView.utils.config import Config
+from reView.utils.functions import get_project_defaults
 
 
-DEFAULT_PROJECT = "ATB Bespoke - FY23"
+DEFAULT_PROJECT = get_project_defaults()["rev"]
 if DEFAULT_PROJECT not in list(Config.projects):
     DEFAULT_PROJECT = sorted(Config.projects)[0]
 DEFAULT_CONFIG = Config(DEFAULT_PROJECT)
@@ -54,6 +55,7 @@ DEFAULT_SIGNAL = {
     "x": "capacity",
     "y": "capacity",
 }
+
 
 layout = html.Div(
     className="eleven columns",

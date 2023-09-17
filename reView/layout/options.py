@@ -66,6 +66,7 @@ CHART_OPTIONS = [
     {"label": "Histogram", "value": "histogram"},
     {"label": "Boxplot", "value": "box"},
     {"label": "Characterizations", "value": "char_histogram"},
+    {"label": "Summary Table", "value": "summary_table"}
 ]
 COLOR_OPTIONS = [{"label": k, "value": k} for k, _ in COLORS.items()]
 COLOR_Q_OPTIONS = [{"label": k, "value": k} for k, _ in COLORS_Q.items()]
