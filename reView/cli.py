@@ -361,7 +361,6 @@ def make_maps(
         }
     }
 
-
     if breaks_scheme == "solar":
         out_suffix = breaks_scheme
         ac_cap_col = find_capacity_column(
@@ -402,7 +401,8 @@ def make_maps(
     else:
         classifier, classifier_kwargs = breaks_scheme
         out_suffix = classifier
-        for map_var in map_vars.keys(): # pylint: disable=C0206
+        # pylint: disable=consider-using-dict-items, consider-iterating-dictionary
+        for map_var in map_vars.keys():
             scheme = mc.classify(
                 supply_curve_gdf[map_var], classifier, **classifier_kwargs
             )

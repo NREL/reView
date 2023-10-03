@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """CLI tests."""
+# pylint: disable=too-many-lines
 import pathlib
 import tempfile
 from difflib import SequenceMatcher
