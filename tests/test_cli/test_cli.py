@@ -5,6 +5,7 @@ import tempfile
 from difflib import SequenceMatcher
 
 import pytest
+import click
 import pandas as pd
 import geopandas as gpd
 from pandas.testing import assert_frame_equal
@@ -17,7 +18,6 @@ from reView.cli import (
     histogram,
     TECH_CHOICES
 )
-from tests.test_utils.test_plots import compare_images_approx
 
 
 def test_main(cli_runner):
@@ -239,7 +239,7 @@ def test_unpack_characterizations_no_overwrite(
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_make_maps(
     map_supply_curve_wind, map_supply_curve_solar, cli_runner, data_dir_test,
-    output_map_names
+    output_map_names, compare_images_approx
 ):
     """
     Happy path test for make_maps() CLI. Tests that it produces the expected
@@ -257,7 +257,7 @@ def test_make_maps(
             result = cli_runner.invoke(
                 make_maps, [
                     '-i', supply_curve_file,
-                    '-t', tech,
+                    '-S', tech,
                     '-o', output_path.as_posix(),
                     '--dpi', 75
                 ]
@@ -286,7 +286,8 @@ def test_make_maps(
 @pytest.mark.filterwarnings("ignore:Skipping")
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_make_maps_wind_keep_zero(
-    map_supply_curve_wind_zeros, cli_runner, data_dir_test, output_map_names
+    map_supply_curve_wind_zeros, cli_runner, data_dir_test, output_map_names,
+    compare_images_approx
 ):
     """
     Test that make_maps() CLI produces the expected images for a wind supply
@@ -330,7 +331,8 @@ def test_make_maps_wind_keep_zero(
 @pytest.mark.filterwarnings("ignore:Skipping")
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_make_maps_wind_drop_zero(
-    map_supply_curve_wind_zeros, cli_runner, data_dir_test, output_map_names
+    map_supply_curve_wind_zeros, cli_runner, data_dir_test, output_map_names,
+    compare_images_approx
 ):
     """
     Test that make_maps() CLI produces the expected images for a wind supply
@@ -373,7 +375,8 @@ def test_make_maps_wind_drop_zero(
 @pytest.mark.filterwarnings("ignore:Skipping")
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_make_maps_wind_drop_legend(
-    map_supply_curve_wind, cli_runner, data_dir_test, output_map_names
+    map_supply_curve_wind, cli_runner, data_dir_test, output_map_names,
+    compare_images_approx
 ):
     """
     Test that make_maps() CLI produces the expected images without legends
@@ -417,7 +420,7 @@ def test_make_maps_wind_drop_legend(
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_make_maps_boundaries(
     map_supply_curve_solar, cli_runner, data_dir_test,
-    states_subset_path, output_map_names
+    states_subset_path, output_map_names, compare_images_approx
 ):
     """
     Test that make_maps() CLI works with an input boundaries file.
@@ -448,6 +451,155 @@ def test_make_maps_boundaries(
             out_png = output_path.joinpath(out_png_name)
             images_match, pct_diff = compare_images_approx(
                 expected_png, out_png, max_diff_pct=0.34
+            )
+            assert images_match, (
+                f"Output image does not match expected image {expected_png}"
+                f"Difference is {pct_diff * 100}%"
+            )
+
+
+@pytest.mark.maptest
+@pytest.mark.filterwarnings("ignore:Skipping")
+@pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
+def test_make_maps_wind_mc_breaks(
+    map_supply_curve_wind, cli_runner, data_dir_test, output_map_names,
+    compare_images_approx
+):
+    """
+    Test that make_maps() CLI produces the expected images when a mapclassifier
+    scheme is passed as input to the --breaks-scheme parameter
+    """
+
+    with tempfile.TemporaryDirectory() as tempdir:
+        output_path = pathlib.Path(tempdir)
+        result = cli_runner.invoke(
+            make_maps, [
+                '-i', map_supply_curve_wind.as_posix(),
+                '-S', "equalinterval:{\"k\": 6}",
+                '-o', output_path.as_posix(),
+                '--dpi', 75
+            ]
+        )
+        assert result.exit_code == 0, (
+            f"Command failed with error {result.exception}"
+        )
+
+        out_png_names = [
+            f"{mapname.replace('wind', 'equalinterval')}.png" for mapname
+            in output_map_names["wind"]
+        ]
+        for out_png_name in out_png_names:
+            expected_png = data_dir_test.joinpath("plots", out_png_name)
+            out_png = output_path.joinpath(out_png_name)
+            images_match, pct_diff = compare_images_approx(
+                expected_png, out_png
+            )
+            assert images_match, (
+                f"Output image does not match expected image {expected_png}"
+                f"Difference is {pct_diff * 100}%"
+            )
+
+
+@pytest.mark.maptest
+@pytest.mark.filterwarnings("ignore:Skipping")
+@pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
+def test_make_maps_wind_bad_breaks_scheme(map_supply_curve_wind, cli_runner):
+    """
+    Test that make_maps() CLI raises BadParameter exceptions when the inputs
+    to --breaks-scheme are not valid.
+    """
+
+    with tempfile.TemporaryDirectory() as tempdir:
+        output_path = pathlib.Path(tempdir)
+
+        # invalid classifier name
+        result = cli_runner.invoke(
+            make_maps, [
+                '-i', map_supply_curve_wind.as_posix(),
+                '-S', "fakeclassifier:{\"k\": 6}",
+                '-o', output_path.as_posix(),
+                '--dpi', 75
+            ], standalone_mode=False
+        )
+        assert result.exit_code == 1, "Command did not fail as expected"
+        with pytest.raises(
+            click.BadParameter,
+            match="Classifier fakeclassifier not recognized*"
+        ):
+            raise result.exception
+
+        # kwargs are not valid json
+        result = cli_runner.invoke(
+            make_maps, [
+                '-i', map_supply_curve_wind.as_posix(),
+                '-S', "equalinterval:\"k\": 6",
+                '-o', output_path.as_posix(),
+                '--dpi', 75
+            ], standalone_mode=False
+        )
+        assert result.exit_code == 1, "Command did not fail as expected"
+        with pytest.raises(
+            click.BadParameter,
+            match="Keyword arguments for classifier must be formated as valid "
+            "JSON."
+        ):
+            raise result.exception
+
+        # neither tech nor breaks-scheme specified
+        result = cli_runner.invoke(
+            make_maps, [
+                '-i', map_supply_curve_wind.as_posix(),
+                '-o', output_path.as_posix(),
+                '--dpi', 75
+            ], standalone_mode=False
+        )
+        assert result.exit_code == 1, "Command did not fail as expected"
+        with pytest.raises(
+            click.BadParameter,
+            match="Either --breaks-scheme or --tech must be specified."
+        ):
+            raise result.exception
+
+
+@pytest.mark.maptest
+@pytest.mark.filterwarnings("ignore:Skipping")
+@pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
+def test_make_maps_wind_breaks_and_techs(
+    map_supply_curve_wind, cli_runner, data_dir_test, output_map_names,
+    compare_images_approx
+):
+    """
+    Test that make_maps() CLI produces the expected images when both --tech and
+    --breaks-scheme are specified
+    """
+
+    with tempfile.TemporaryDirectory() as tempdir:
+        output_path = pathlib.Path(tempdir)
+        with pytest.warns(
+            UserWarning,
+            match="Both --breaks-scheme and --tech were specified*"
+        ):
+            result = cli_runner.invoke(
+                make_maps, [
+                    '-i', map_supply_curve_wind.as_posix(),
+                    '-S', "wind",
+                    '-t', "equalinterval:{\"k\": 6}",
+                    '-o', output_path.as_posix(),
+                    '--dpi', 75
+                ], standalone_mode=True
+            )
+            assert result.exit_code == 0, (
+                f"Command failed with error {result.exception}"
+            )
+
+        out_png_names = [
+            f"{mapname}.png" for mapname in output_map_names["wind"]
+        ]
+        for out_png_name in out_png_names:
+            expected_png = data_dir_test.joinpath("plots", out_png_name)
+            out_png = output_path.joinpath(out_png_name)
+            images_match, pct_diff = compare_images_approx(
+                expected_png, out_png
             )
             assert images_match, (
                 f"Output image does not match expected image {expected_png}"
@@ -496,7 +648,7 @@ def test_make_maps_pdf(map_supply_curve_solar, cli_runner, output_map_names):
 @pytest.mark.filterwarnings("ignore:Skipping")
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_map_column_happy(
-    map_supply_curve_solar, cli_runner, data_dir_test
+    map_supply_curve_solar, cli_runner, data_dir_test, compare_images_approx
 ):
     """
     Happy path test for map_column() CLI. Tests that it produces the expected
@@ -535,7 +687,7 @@ def test_map_column_happy(
 @pytest.mark.filterwarnings("ignore:Skipping")
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_map_column_formatting(
-    map_supply_curve_solar, cli_runner, data_dir_test
+    map_supply_curve_solar, cli_runner, data_dir_test, compare_images_approx
 ):
     """
     Test that map_column() CLI produces the expected image when passed
@@ -636,7 +788,7 @@ def test_map_column_bad_column(
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_map_column_boundaries(
     map_supply_curve_solar, cli_runner, data_dir_test,
-    states_subset_path
+    states_subset_path, compare_images_approx
 ):
     """
     Test that map_column() CLI works with an input boundaries file.
@@ -675,7 +827,7 @@ def test_map_column_boundaries(
 @pytest.mark.filterwarnings("ignore:Skipping")
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_map_column_boundaries_kwargs(
-    map_supply_curve_solar, cli_runner, data_dir_test
+    map_supply_curve_solar, cli_runner, data_dir_test, compare_images_approx
 ):
     """
     Test that map_column() CLI works when boundaries_kwargs are specified
@@ -714,7 +866,7 @@ def test_map_column_boundaries_kwargs(
 @pytest.mark.filterwarnings("ignore:Skipping")
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_map_column_drop_legend(
-    map_supply_curve_solar, cli_runner, data_dir_test
+    map_supply_curve_solar, cli_runner, data_dir_test, compare_images_approx
 ):
     """
     Test that map_column() CLI works when --drop-legend is specified
