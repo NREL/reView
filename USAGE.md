@@ -53,28 +53,22 @@ The `make-maps` command can be used to generate a small set of standardized, rep
 
 This command can be run according to the following usage:
 ```commandline
-Usage: make-maps [OPTIONS]
+Usage: reView-tools make-maps [OPTIONS]
 
-  Generates standardized, presentation-quality maps for the input supply
-  curve, including maps for each of the following attributes: Capacity
-  (capacity), All-in LCOE (total_lcoe), Project LCOE (mean_lcoe), LCOT (lcot),
-  Capacity Density (derived column) [wind only]
+  Generates standardized, presentation-quality maps for the input supply curve, including maps for each of the following attributes: Capacity (capacity), All-in LCOE (total_lcoe), Project LCOE (mean_lcoe), LCOT (lcot), Capacity Density (derived column) [wind only]
 
 Options:
-  -i, --supply_curve_csv FILE  Path to supply curve CSV file.  [required]
-  -t, --tech [wind|solar]      Technology choice for ordinances to export.
-                               Valid options are: ['wind', 'solar'].
-                               [required]
-  -o, --out_folder DIRECTORY   Path to output folder for maps.  [required]
-  -b, --boundaries FILE        Path to vector dataset with the boundaries to
-                               map. Default is to use state boundaries for
-                               CONUS from Natural Earth (1:50m scale), which
-                               is suitable for CONUS supply curves. For other
-                               region, it is recommended to provide a more
-                               appropriate boundaries dataset.
-  -d, --dpi INTEGER RANGE      Dots-per-inch (DPI) for output images. Default
-                               is 600.  [x>=0]
-  --help                       Show this message and exit.
+  -i, --supply_curve_csv FILE     Path to supply curve CSV file.  [required]
+  -S, --breaks-scheme TEXT        Scheme to use for deriving the breaks for classifying the supply curve variables. Valid options are: ['wind', 'solar'] or the name of any scheme from the mapclassify package(see https://pysal.org/mapclassify/api.html#classifiers) followed by optional keyword arguments (e.g., 'equalinterval:{"k": 10}'). If 'solar' or 'wind' are specified, hard-coded breaks will be used for each mapped variable based on the typical range of values for that variable and technology. Alternatively, if a mapclassify scheme is specified, that scheme will be used to dynamically set the breaks for all mapped variables. Must be specified unless the legacy --tech option is used instead.
+  -t, --tech TEXT                 Alias for --breaks-scheme. For backwards compatibility only.
+  -o, --out_folder DIRECTORY      Path to output folder for maps.  [required]
+  -b, --boundaries FILE           Path to vector dataset with the boundaries to map. Default is to use state boundaries for CONUS from Natural Earth (1:50m scale), which is suitable for CONUS supply curves. For other region, it is recommended to provide a more appropriate boundaries dataset. The input vector dataset can be in CRS.
+  -K, --keep-zero                 Keep zero capacity supply curve project sites. These sites are dropped by default.
+  -d, --dpi INTEGER RANGE         Dots-per-inch (DPI) for output images. Default is 600.  [x>=0]
+  -F, --out-format [png|pdf|svg|jpg]
+                                  Output format for images. Default is ``png`` Valid options are: ['png', 'pdf', 'svg', 'jpg'].
+  -D, --drop-legend               Drop legend from map. Legend is shown by default.
+  --help                          Show this message and exit.
 ```
 
 This command intentionally limits the options available to the user because it is meant to produce standard maps that are commonly desired for any supply curve. The main changes that the user can make are to change the DPI of the output image (e.g., for less detaild/smaller image file sizes, set to 300) and to provide a custom `--boundaries` vector dataset. The latter option merits some additional explanation.
