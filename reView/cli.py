@@ -213,19 +213,23 @@ def validate_breaks_scheme(ctx, param, value):
               required=False,
               type=click.STRING,
               callback=validate_breaks_scheme,
-              help=("Scheme to use for deriving the breaks for classifying "
-                    "the supply curve variables. Valid options are: "
-                    f"{TECH_CHOICES} or the name of any scheme from the "
-                    "mapclassify package "
+              help=("The format for this option is either 'wind' or 'solar', "
+                    "for the hard-coded breaks for those technologies, or "
+                    "'<classifier-name>:<classifier-kwargs>' where "
+                    "<classifier-name> is one of the valid classifiers from "
+                    "the mapclassify package "
                     "(see https://pysal.org/mapclassify/api.html#classifiers) "
-                    "followed by optional keyword arguments "
-                    "(e.g., 'equalinterval:{\"k\": 10}'). If 'solar' or "
-                    "'wind' are specified, hard-coded breaks will be used for "
-                    "each mapped variable based on the typical range of "
-                    "values for that variable and technology. Alternatively, "
-                    "if a mapclassify scheme is specified, that scheme will "
-                    "be used to dynamically set the breaks for all mapped "
-                    "variables. This option must be specified unless the "
+                    "and <classifier-kwargs> is an optional set of keyword "
+                    "arguments to pass to the classifier function, formatted "
+                    "as a JSON. So, a valid input would be "
+                    "'equalinterval:{\"k\": 10}' (this would produce 10 equal "
+                    "interval breaks). Note that this should all be entered "
+                    "as a single string, wrapped in single quotes. "
+                    "Alternatively the user can specify just 'equalinterval' "
+                    "without the kwargs JSON for the equal interval "
+                    "classifier to be used with its default 5 bins (in this "
+                    "case, wrapping the string in single quotes is optional) "
+                    "The --breaks-scheme option must be specified unless the "
                     "legacy --tech option is used instead."))
 @click.option("--tech",
               "-t",
