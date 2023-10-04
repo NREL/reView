@@ -23,8 +23,8 @@ from reView import __version__, REVIEW_DATA_DIR
 logger = logging.getLogger(__name__)
 
 CONTEXT_SETTINGS = {
-    "max_content_width": 9999,
-    "terminal_width": 9999
+    "max_content_width": 100,
+    "terminal_width": 100
 }
 TECH_CHOICES = ["wind", "solar"]
 DEFAULT_BOUNDARIES = Path(REVIEW_DATA_DIR).joinpath(
@@ -213,18 +213,20 @@ def validate_breaks_scheme(ctx, param, value):
               required=False,
               type=click.STRING,
               callback=validate_breaks_scheme,
-              help="Scheme to use for deriving the breaks for classifying the "
-              f"supply curve variables. Valid options are: {TECH_CHOICES} or "
-              "the name of any scheme from the mapclassify package"
-              "(see https://pysal.org/mapclassify/api.html#classifiers) "
-              "followed by optional keyword arguments "
-              "(e.g., 'equalinterval:{\"k\": 10}'). If 'solar' or 'wind' are "
-              "specified, hard-coded breaks will be used for each mapped "
-              "variable based on the typical range of values for that "
-              "variable and technology. Alternatively, if a mapclassify "
-              "scheme is specified, that scheme will be used to dynamically "
-              "set the breaks for all mapped variables. Must be specified "
-              "unless the legacy --tech option is used instead.")
+              help=("Scheme to use for deriving the breaks for classifying "
+                    "the supply curve variables. Valid options are: "
+                    f"{TECH_CHOICES} or the name of any scheme from the "
+                    "mapclassify package "
+                    "(see https://pysal.org/mapclassify/api.html#classifiers) "
+                    "followed by optional keyword arguments "
+                    "(e.g., 'equalinterval:{\"k\": 10}'). If 'solar' or "
+                    "'wind' are specified, hard-coded breaks will be used for "
+                    "each mapped variable based on the typical range of "
+                    "values for that variable and technology. Alternatively, "
+                    "if a mapclassify scheme is specified, that scheme will "
+                    "be used to dynamically set the breaks for all mapped "
+                    "variables. This option must be specified unless the "
+                    "legacy --tech option is used instead."))
 @click.option("--tech",
               "-t",
               required=False,
