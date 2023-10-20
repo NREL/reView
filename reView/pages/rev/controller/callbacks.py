@@ -1542,9 +1542,11 @@ def retrieve_signal(
     if project is None:
         raise PreventUpdate
 
+    # Get the config object and triggering element string
     config = Config(project)
     trigger = callback_trigger()
 
+    # Set default scenario data set
     if scenario_a == "placeholder":
         files = list(config.files.values())
         files.sort()
@@ -1554,11 +1556,11 @@ def retrieve_signal(
     if recalc_table:
         recalc_table = json.loads(recalc_table)
 
+    # If 'least cost', build the composite dataset
     lowest_scenario_open = (
         composite_div_style
         and composite_div_style.get("display") != "none"
     )
-
     if lowest_scenario_open:
         if composite_variable in config.low_cost_groups:
             paths = [
@@ -1600,6 +1602,7 @@ def retrieve_signal(
             "y": y,
         }
 
+    # If not least cost, continue with user inputs
     else:
 
         # Prevent the first trigger when difference is off
@@ -1610,6 +1613,7 @@ def retrieve_signal(
         if "mask" in trigger and mask == "off":
             raise PreventUpdate
 
+        # Set PCA components
         if pca1_click_selection and pca1_click_selection.get("points"):
             path = pca1_click_selection["points"][0]["customdata"][0]
             path2 = None
@@ -1630,6 +1634,7 @@ def retrieve_signal(
         logger.debug("path = %s", path)
         logger.debug("path2 = %s", path2)
 
+        # If there are any scenarios left, expand user paths
         if scenarios:
             scenarios = [os.path.expanduser(path) for path in scenarios]
 

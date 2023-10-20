@@ -283,7 +283,7 @@ def cache_table(project, path, y_var, x_var, recalc_table=None, recalc="off"):
 
 
 @cache3.memoize()
-def cache_chart_tables(
+def  cache_chart_tables(
     signal_dict
 ):
     """Read and store a data frame from the config and options given."""
