@@ -13,6 +13,7 @@ import geopandas as gpd
 import numpy as np
 import matplotlib.pyplot as plt
 import tqdm
+import mapclassify as mc
 
 from reView.utils.bespoke import batch_unpack_from_supply_curve
 from reView.utils import characterizations, plots
@@ -22,8 +23,8 @@ from reView import __version__, REVIEW_DATA_DIR
 logger = logging.getLogger(__name__)
 
 CONTEXT_SETTINGS = {
-    "max_content_width": 9999,
-    "terminal_width": 9999
+    "max_content_width": 100,
+    "terminal_width": 100
 }
 TECH_CHOICES = ["wind", "solar"]
 DEFAULT_BOUNDARIES = Path(REVIEW_DATA_DIR).joinpath(
@@ -140,16 +141,103 @@ def unpack_characterizations(
     char_df.to_csv(out_csv, header=True, index=False, mode="x")
 
 
+def validate_breaks_scheme(ctx, param, value):
+    # pylint: disable=unused-argument
+    """
+    Custom validation for --break-scheme/--techs input to make-maps command.
+    Checks that the input value is either one of the valid technologies,
+    None, or a string specifying a mapclassifier classifier and (optionally)
+    its keyword arguments, delimited by a colon (e.g.,
+    'equalinterval:{"k":10}'.)
+
+    Parameters
+    ----------
+    ctx : click.core.Context
+        Unused
+    param : click.core.Option
+        Unused
+    value : [str, None]
+        Value of the input parameter
+
+    Returns
+    -------
+    [str, None, tuple]
+        Returns one of the following:
+         - a string specifying a technology name
+         - None type (if the input value was not specified)
+         - a tuple of the format (str, dict), where the string is the name
+         of a mapclassify classifier and the dictionary are the keyword
+         arguments to be passed to that classfier.
+
+    Raises
+    ------
+    click.BadParameter
+        A BadParameter exception will be raised if either of the following
+        cases are encountered:
+        - an invalid classifier name is specified
+        - the kwargs do not appear to be valid JSON
+    """
+
+
+    if value in TECH_CHOICES or value is None:
+        return value
+
+    classifier_inputs = value.split(":", maxsplit=1)
+    classifier = classifier_inputs[0].lower()
+    if classifier not in [c.lower() for c in mc.CLASSIFIERS]:
+        raise click.BadParameter(
+            f"Classifier {classifier} not recognized as one of the valid "
+            f"options: {mc.CLASSIFIERS}."
+        )
+
+    if len(classifier_inputs) == 1:
+        classifier_kwargs = {}
+    elif len(classifier_inputs) == 2:
+        try:
+            classifier_kwargs = json.loads(classifier_inputs[1])
+        except json.decoder.JSONDecodeError as e:
+            raise click.BadParameter(
+                "Keyword arguments for classifier must be formated as valid "
+                "JSON."
+            ) from e
+
+    return classifier, classifier_kwargs
+
+
 @main.command()
 @click.option('--supply_curve_csv', '-i', required=True,
               type=click.Path(exists=True, dir_okay=False, file_okay=True),
               help='Path to supply curve CSV file.')
+@click.option("--breaks-scheme",
+              "-S",
+              required=False,
+              type=click.STRING,
+              callback=validate_breaks_scheme,
+              help=("The format for this option is either 'wind' or 'solar', "
+                    "for the hard-coded breaks for those technologies, or "
+                    "'<classifier-name>:<classifier-kwargs>' where "
+                    "<classifier-name> is one of the valid classifiers from "
+                    "the mapclassify package "
+                    "(see https://pysal.org/mapclassify/api.html#classifiers) "
+                    "and <classifier-kwargs> is an optional set of keyword "
+                    "arguments to pass to the classifier function, formatted "
+                    "as a JSON. So, a valid input would be "
+                    "'equalinterval:{\"k\": 10}' (this would produce 10 equal "
+                    "interval breaks). Note that this should all be entered "
+                    "as a single string, wrapped in single quotes. "
+                    "Alternatively the user can specify just 'equalinterval' "
+                    "without the kwargs JSON for the equal interval "
+                    "classifier to be used with its default 5 bins (in this "
+                    "case, wrapping the string in single quotes is optional) "
+                    "The --breaks-scheme option must be specified unless the "
+                    "legacy --tech option is used instead."))
 @click.option("--tech",
               "-t",
-              required=True,
-              type=click.Choice(TECH_CHOICES, case_sensitive=False),
-              help="Technology choice for ordinances to export. "
-              f"Valid options are: {TECH_CHOICES}.")
+              required=False,
+              type=click.STRING,
+              callback=validate_breaks_scheme,
+              help="Alias for --breaks-scheme. For backwards compatibility "
+              "only.")
 @click.option('--out_folder', '-o', required=True,
               type=click.Path(exists=False, dir_okay=True, file_okay=False),
               help='Path to output folder for maps.')
@@ -183,8 +271,8 @@ def unpack_characterizations(
               is_flag=True,
               help='Drop legend from map. Legend is shown by default.')
 def make_maps(
-    supply_curve_csv, tech, out_folder, boundaries, keep_zero, dpi, out_format,
-    drop_legend
+    supply_curve_csv, breaks_scheme, tech, out_folder, boundaries, keep_zero,
+    dpi, out_format, drop_legend
 ):
     """
     Generates standardized, presentation-quality maps for the input supply
@@ -192,6 +280,18 @@ def make_maps(
     Capacity (capacity), All-in LCOE (total_lcoe), Project LCOE (mean_lcoe),
     LCOT (lcot), Capacity Density (derived column) [wind only]
     """
+
+    if tech is None and breaks_scheme is None:
+        raise click.MissingParameter(
+            "Either --breaks-scheme or --tech must be specified."
+        )
+    if tech is not None and breaks_scheme is not None:
+        warnings.warn(
+            "Both --breaks-scheme and --tech were specified: "
+            "input for --tech will be ignored"
+        )
+    if tech is not None and breaks_scheme is None:
+        breaks_scheme = tech
 
     out_path = Path(out_folder)
     out_path.mkdir(exist_ok=True, parents=False)
@@ -254,9 +354,21 @@ def make_maps(
             "breaks": [5, 10, 25, 50, 100, 120],
             "cmap": "BuPu",
             "legend_title": "Developable Area (sq km)"
+        },
+        cap_col: {
+            "breaks": None,
+            "cmap": 'PuRd',
+            "legend_title": "Capacity (MW)"
+        },
+        "capacity_density": {
+            "breaks": None,
+            "cmap": 'PuRd',
+            "legend_title": "Capacity Density (MW/sq km)"
         }
     }
-    if tech == "solar":
+
+    if breaks_scheme == "solar":
+        out_suffix = breaks_scheme
         ac_cap_col = find_capacity_column(
             supply_curve_df,
             cap_col_candidates=["capacity_ac", "capacity_mw_ac"]
@@ -278,7 +390,8 @@ def make_maps(
                 "legend_title": "Capacity Density (MW/sq km)"
             }
         })
-    elif tech == "wind":
+    elif breaks_scheme == "wind":
+        out_suffix = breaks_scheme
         map_vars.update({
             cap_col: {
                 "breaks": [60, 120, 180, 240, 275],
@@ -291,6 +404,17 @@ def make_maps(
                 "legend_title": "Capacity Density (MW/sq km)"
             }
         })
+    else:
+        classifier, classifier_kwargs = breaks_scheme
+        out_suffix = classifier
+        # pylint: disable=consider-using-dict-items, consider-iterating-dictionary
+        for map_var in map_vars.keys():
+            scheme = mc.classify(
+                supply_curve_gdf[map_var], classifier, **classifier_kwargs
+            )
+            breaks = scheme.bins
+            map_vars[map_var]["breaks"] = breaks.tolist()[0:-1]
+
     for map_var, map_settings in tqdm.tqdm(map_vars.items()):
         g = plots.map_geodataframe_column(
             supply_curve_gdf,
@@ -316,7 +440,7 @@ def make_maps(
         g.figure.set_figwidth(fig_height * bbox.width / bbox.height)
         plt.tight_layout(pad=0.1)
 
-        out_image_name = f"{map_var}_{tech}.{out_format}"
+        out_image_name = f"{map_var}_{out_suffix}.{out_format}"
         out_image_path = out_path.joinpath(out_image_name)
         g.figure.savefig(out_image_path, dpi=dpi, transparent=True)
         plt.close(g.figure)

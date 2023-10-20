@@ -18,8 +18,6 @@ jobs:
         fetch-depth: 1
 
     - uses: nanasess/setup-chromedriver@v2
-      with:
-          chromedriver-version: '115.0.5790.170'
     - name: Install Chrome Driver
       run: |
         export DISPLAY=:99

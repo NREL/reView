@@ -13,6 +13,8 @@ import reView.utils.config
 from reView import TEST_DATA_DIR
 from reView.utils.functions import load_project_configs
 
+from tests import helper
+
 
 @pytest.fixture
 def data_dir_test():
@@ -300,6 +302,12 @@ def histogram_plot_capacity_mw_5bins():
         contents = f.read()
 
     return contents
+
+
+@pytest.fixture
+def compare_images_approx():
+    """Exposes the compare_images_approx function as a fixture"""
+    return helper.compare_images_approx
 
 
 def pytest_setup_options():

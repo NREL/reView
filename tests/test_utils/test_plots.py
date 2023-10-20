@@ -10,58 +10,11 @@ import pytest
 import mapclassify as mc
 import numpy as np
 import matplotlib.pyplot as plt
-import PIL
-import imagehash
 import pandas as pd
-
 
 from reView.utils.plots import (
     YBFixedBounds, map_geodataframe_column, ascii_histogram
 )
-
-
-def compare_images_approx(
-    image_1_path, image_2_path, hash_size=12, max_diff_pct=0.25
-):
-    """
-    Check if two images match approximately.
-
-    Parameters
-    ----------
-    image_1_path : pathlib.Path
-        File path to first image.
-    image_2_path : pathlib.Path
-        File path to first image.
-    hash_size : int, optional
-        Size of the image hashes that will be used for image comparison,
-        by default 12. Increase to make the check more precise, decrease to
-        make it more approximate.
-    max_diff_pct : float, optional
-        Tolerance for the amount of difference allowed, by default 0.05 (= 5%).
-        Increase to allow for a larger delta between the image hashes, decrease
-        to make the check stricter and require a smaller delta between the
-        image hashes.
-
-    Returns
-    -------
-    bool
-        Returns true if the images match approximately, false if not.
-    """
-
-    expected_hash = imagehash.phash(
-        PIL.Image.open(image_1_path), hash_size=hash_size
-    )
-    out_hash = imagehash.phash(
-        PIL.Image.open(image_2_path), hash_size=hash_size
-    )
-
-    max_diff_bits = int(np.ceil(hash_size * max_diff_pct))
-
-    diff = expected_hash - out_hash
-    matches = diff <= max_diff_bits
-    pct_diff = float(diff) / hash_size
-
-    return matches, pct_diff
 
 
 def test_YBFixedBounds_happy():
@@ -108,7 +61,8 @@ def test_YBFixedBounds_mapclassify():
 @pytest.mark.maptest
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_map_geodataframe_column_happy(
-    data_dir_test, supply_curve_gdf, background_gdf, states_gdf
+    data_dir_test, supply_curve_gdf, background_gdf, states_gdf,
+    compare_images_approx
 ):
     """
     Happy path test for map_geodataframe_column. Test that when run
@@ -146,7 +100,8 @@ def test_map_geodataframe_column_happy(
 @pytest.mark.maptest
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_map_geodataframe_column_styling(
-    data_dir_test, supply_curve_gdf, background_gdf, states_gdf
+    data_dir_test, supply_curve_gdf, background_gdf, states_gdf,
+    compare_images_approx
 ):
     """
     Test that map_geodataframe_column() produces expected output image when
@@ -200,7 +155,8 @@ def test_map_geodataframe_column_styling(
 @pytest.mark.maptest
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_map_geodataframe_column_repeat(
-    data_dir_test, supply_curve_gdf, background_gdf, states_gdf
+    data_dir_test, supply_curve_gdf, background_gdf, states_gdf,
+    compare_images_approx
 ):
     """
     Test that running map_geodataframe_column twice exactly the same produces
@@ -248,7 +204,8 @@ def test_map_geodataframe_column_repeat(
 @pytest.mark.maptest
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_map_geodataframe_column_no_legend(
-    data_dir_test, supply_curve_gdf, background_gdf, states_gdf
+    data_dir_test, supply_curve_gdf, background_gdf, states_gdf,
+    compare_images_approx
 ):
     """
     Test that map_geodataframe_column function produces a map without a legend
@@ -286,7 +243,8 @@ def test_map_geodataframe_column_no_legend(
 @pytest.mark.maptest
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_map_geodataframe_column_boundaries_kwargs(
-    data_dir_test, supply_curve_gdf, background_gdf, states_gdf
+    data_dir_test, supply_curve_gdf, background_gdf, states_gdf,
+    compare_images_approx
 ):
     """
     Test that map_geodataframe_column function produces a map with correctly
@@ -327,7 +285,7 @@ def test_map_geodataframe_column_boundaries_kwargs(
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_map_geodataframe_polygons(
     data_dir_test, supply_curve_gdf, county_background_gdf, states_gdf,
-    counties_gdf
+    counties_gdf, compare_images_approx
 ):
     """
     Test that map_geodataframe_column() produces expected output image
