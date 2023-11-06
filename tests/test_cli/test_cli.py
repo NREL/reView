@@ -148,8 +148,9 @@ def test_unpack_turbines_results(
         output_df_no_geoms,
         check_exact=False,
         rtol=0.001)
-    assert correct_df.geom_almost_equals(output_df).all(),\
-        "Geometries are not the same."
+    assert correct_df.geom_equals_exact(
+        output_df, tolerance=1e-6, align=True
+    ).all(), "Geometries are not the same."
 
 
 @pytest.mark.filterwarnings("ignore:Skipping")
