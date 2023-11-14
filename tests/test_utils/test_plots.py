@@ -11,6 +11,8 @@ import mapclassify as mc
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+import geoplot as gplt
+from shapely.geometry import box
 
 from reView.utils.plots import (
     YBFixedBounds, map_geodataframe_column, ascii_histogram
@@ -336,6 +338,55 @@ def test_map_geodataframe_polygons(
         out_png = Path(tempdir).joinpath(out_png_name)
         g.figure.savefig(out_png, dpi=75)
         plt.close(g.figure)
+
+        expected_png = data_dir_test.joinpath("plots", out_png_name)
+
+        images_match, pct_diff = compare_images_approx(
+            expected_png, out_png
+        )
+        assert images_match, (
+            f"Output image does not match expected image {expected_png}"
+            f"Difference is {pct_diff * 100}%"
+        )
+
+
+@pytest.mark.maptest
+@pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
+def test_map_geodataframe_column_existing_ax(
+    data_dir_test, supply_curve_gdf, background_gdf, states_gdf,
+    compare_images_approx
+):
+    """
+    Test that map_geodataframe_column correctly plots on an existing GeoAxes
+    when provided as an input to the function.
+    """
+    col_name = "area_sq_km"
+
+    center_lon, center_lat = box(
+        *supply_curve_gdf.total_bounds.tolist()
+    ).centroid.coords[0]
+    with tempfile.TemporaryDirectory() as tempdir:
+        fig, ax = plt.subplots(
+            ncols=2, nrows=1, figsize=(13, 4),
+            subplot_kw={
+                "projection": gplt.crs.AlbersEqualArea(
+                    central_longitude=center_lon, central_latitude=center_lat
+                )
+            },
+        )
+        for panel in ax.ravel().tolist():
+            panel = map_geodataframe_column(
+                supply_curve_gdf,
+                col_name,
+                background_df=background_gdf,
+                boundaries_df=states_gdf,
+                ax=panel
+            )
+
+        out_png_name = "map_2panels.png"
+        out_png = Path(tempdir).joinpath("map_2panels.png")
+        fig.savefig(out_png, dpi=75)
+        plt.close(fig)
 
         expected_png = data_dir_test.joinpath("plots", out_png_name)
 
