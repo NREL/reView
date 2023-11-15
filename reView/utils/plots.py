@@ -80,7 +80,8 @@ def map_geodataframe_column(  # noqa: C901
     layer_kwargs=None,
     legend_kwargs=None,
     projection=gplt.crs.AlbersEqualArea(),
-    legend=True
+    legend=True,
+    ax=None
 ):
     # pylint: disable=too-many-arguments,too-many-branches
     """
@@ -171,6 +172,9 @@ def map_geodataframe_column(  # noqa: C901
         Projection to use for creating the map. Default is
         gplt.crs.AlbersEqualArea(). For names of other options, refer to
         https://scitools.org.uk/cartopy/docs/v0.15/crs/projections.html.
+    ax : [cartopy.mpl.geoaxes.GeoAxes, None]
+        If specified, the map will be added to the specified existing GeoAxes.
+        If not specified (default), a new GeoAxes will be created and returned.
 
     Returns
     -------
@@ -222,11 +226,11 @@ def map_geodataframe_column(  # noqa: C901
             projection=projection,
             extent=extent,
             path_effects=drop_shadow_effects,
+            ax=ax
         )
     else:
         if extent is None:
             extent = data_df.total_bounds
-        ax = None
 
     input_geom_types = list(set(data_df.geom_type))
 
