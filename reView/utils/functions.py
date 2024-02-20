@@ -483,10 +483,11 @@ def read_timeseries(file, gids=None, nsteps=None):
     capacity = meta["capacity"].values
 
     # If it has any "rep_profiles_" datasets it rep-profiles
-    if "rep_profiles_0" in ds.keys():
+    if "bespoke" not in str(file):
         # Break down time entries
         time = [t.decode() for t in ds["time_index"][:nsteps]]
         dtime = [dt.datetime.strptime(t, TIME_PATTERN) for t in time]
+        minutes = [t.minute for t in dtime]
         hours = [t.hour for t in dtime]
         days = [t.timetuple().tm_yday for t in dtime]
         weeks = [t.isocalendar().week for t in dtime]
@@ -498,7 +499,7 @@ def read_timeseries(file, gids=None, nsteps=None):
         cf = cf.mean(axis=1)
         gen = gen.sum(axis=1)
 
-    # Otherwise, it's probably bespoke and has each year
+    # Otherwise, it's bespoke and has each year
     else:
         # Get all capacity factor keys
         cf_keys = [key for key in ds.keys() if "cf_profile-" in key]
@@ -529,26 +530,13 @@ def read_timeseries(file, gids=None, nsteps=None):
         weeks = [t.isocalendar().week for t in dtime]
         months = [t.month for t in dtime]
         hours = [t.hour for t in dtime]
-
-        # Break down time entries
-        # hours = [t.hour for t in dtime]
-
-        # days = []
-        # y = 0
-        # for i, t in enumerate(dtime):
-        #     if day == 1:
-        #         y += 1
-        #     day = t.timetuple().tm_yday * y
-        #     print(day)
-
-        # t.timetuple().tm_yday for t in dtime]
-        # weeks = [t.isocalendar().week for t in dtime]
-        # months = [t.month for t in dtime]
+        minutes = [t.minute for t in dtime]
 
     ds.close()
 
     data = pd.DataFrame({
         "time": time,
+        "minute": minutes,
         "hour": hours,
         "daily": days,
         "weekly": weeks,

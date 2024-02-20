@@ -1,0 +1,64 @@
+{
+    "project_name": "GTO - Geothermal Supply Curves - FY23",
+    "directory": "~/review_datasets/gto_fy23",
+    "scales": {
+        "capacity": {
+            "min": 0.0,
+            "max": 1307.1103675460815
+        },
+        "aep": {
+            "min": 0.0,
+            "max": 13.709752452348209
+        },
+        "mean_lcoe": {
+            "min": 0.0,
+            "max": 94.66755
+        },
+        "lcot": {
+            "min": 0.189102089981965,
+            "max": 450625.1158003255
+        },
+        "total_lcoe": {
+            "min": 48.01484082341875,
+            "max": 450693.2539103255
+        },
+        "distance_tie_line": {
+            "min": 0.0,
+            "max": 651.2707917469756
+        },
+        "transmission_cap_cost": {
+            "min": 1845.945740779562,
+            "max": 61760501036.25692
+        },
+        "distance_reinforcement_line": {
+            "min": 0.8472792206135786,
+            "max": 992.5462461764806
+        },
+        "reinforcement_cap_cost": {
+            "min": 1473.5336222331916,
+            "max": 4909779.532384742
+        }
+    },
+    "titles": {
+        "capacity": "Capacity",
+        "aep": "Annual Energy Production",
+        "mean_lcoe": "Resource Levelized Cost of Energy",
+        "lcot": "Levelized Cost of Transmission",
+        "total_lcoe": "Total Levelized Cost of Energy",
+        "distance_tie_line": "Tie Line Distance",
+        "transmission_cap_cost": "Tie Line Capital Cost",
+        "distance_reinforcement_line": "Reinforcement Line Distance",
+        "reinforcement_cap_cost": "Reinforcement Line Captial Cost"
+    },
+    "units": {
+        "capacity": "MW",
+        "aep": "TWh",
+        "mean_lcoe": "USD/MWh",
+        "lcot": "USD/MWh",
+        "total_lcoe": "USD/MWh",
+        "distance_tie_line": "km",
+        "transmission_cap_cost": "USD/MW",
+        "distance_reinforcement_line": "km",
+        "reinforcement_cap_cost": "USD/MW"
+    }
+}
