@@ -34,18 +34,6 @@ from reView.paths import Paths
 
 logger = logging.getLogger(__name__)
 
-_trans_table_1 = str.maketrans({",": None, "$": None, "%": None})
-_trans_table_2 = str.maketrans({
-        "-": "_",
-        " ": "_",
-        "/": "_",
-        "$": "usd",
-        "?": None,
-        "(": None,
-        ")": None,
-        "%": "pct",
-        "&": "and"
-    })
 TIME_PATTERN = "%Y-%m-%d %H:%M:%S+00:00"
 
 
@@ -101,7 +89,7 @@ def as_float(value):
         Input string value represented as a float.
     """
     if isinstance(value, str):
-        value = value.translate(_trans_table_1)
+        value = value.replace(",", "").replace("$", "").replace("%", "")
         value = float(value)
     return value
 
@@ -696,6 +684,17 @@ def to_geo(df, dst, layer):
         del df["index"]
 
     # Remove or rename columns
+    replacements = {
+        "-": "_",
+        " ": "_",
+        "/": "_",
+        "$": "usd",
+        "?": "",
+        "(": "",
+        ")": "",
+        "%": "pct",
+        "&": "and"
+    }
     replace_columns = False
     new_columns = []
     for col in df.columns:
@@ -703,12 +702,15 @@ def to_geo(df, dst, layer):
         if is_int(col[0]):
             del df[col]
             print(col)
+
         # This happens when you save the index
         elif "Unnamed:" in col:
             del df[col]
         else:
-            # Remove unnacceptable characters
-            ncol = col.translate(_trans_table_2)
+            # Remove unacceptable characters
+            ncol = col
+            for char, repl in replacements.items():
+                ncol = ncol.replace(char, repl)
 
             # Lower case just because
             ncol = ncol.lower()
@@ -721,10 +723,10 @@ def to_geo(df, dst, layer):
             #         npart2 = ncol.split("_")[0]
             #         ncol = "_".join([npart1, npart2])
 
-
             new_columns.append(ncol)
             if col != ncol:
                 replace_columns = True
+
     if replace_columns:
         df.columns = new_columns
 
