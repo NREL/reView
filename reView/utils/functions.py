@@ -695,9 +695,9 @@ def to_geo(df, dst, layer):
     if "index" in df:
         del df["index"]
 
+    # Remove or rename columns
     replace_columns = False
     new_columns = []
-    # Remove or rename columns
     for col in df.columns:
         # Remove columns that start with numbers
         if is_int(col[0]):
