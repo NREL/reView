@@ -34,7 +34,18 @@ from reView.paths import Paths
 
 logger = logging.getLogger(__name__)
 
-
+_trans_table_1 = str.maketrans({",": None, "$": None, "%": None})
+_trans_table_2 = str.maketrans({
+        "-": "_",
+        " ": "_",
+        "/": "_",
+        "$": "usd",
+        "?": None,
+        "(": None,
+        ")": None,
+        "%": "pct",
+        "&": "and"
+    })
 TIME_PATTERN = "%Y-%m-%d %H:%M:%S+00:00"
 
 
@@ -90,7 +101,7 @@ def as_float(value):
         Input string value represented as a float.
     """
     if isinstance(value, str):
-        value = value.replace(",", "").replace("$", "").replace("%", "")
+        value = value.translate(_trans_table_1)
         value = float(value)
     return value
 
@@ -684,32 +695,20 @@ def to_geo(df, dst, layer):
     if "index" in df:
         del df["index"]
 
+    replace_columns = False
+    new_columns = []
     # Remove or rename columns
-    replacements = {
-        "-": "_",
-        " ": "_",
-        "/": "_",
-        "$": "usd",
-        "?": "",
-        "(": "",
-        ")": "",
-        "%": "pct",
-        "&": "and"
-    }
     for col in df.columns:
         # Remove columns that start with numbers
         if is_int(col[0]):
             del df[col]
             print(col)
-
         # This happens when you save the index
-        if "Unnamed:" in col:
+        elif "Unnamed:" in col:
             del df[col]
         else:
             # Remove unnacceptable characters
-            ncol = col
-            for char, repl in replacements.items():
-                ncol = ncol.replace(char, repl)
+            ncol = col.translate(_trans_table_2)
 
             # Lower case just because
             ncol = ncol.lower()
@@ -722,9 +721,12 @@ def to_geo(df, dst, layer):
             #         npart2 = ncol.split("_")[0]
             #         ncol = "_".join([npart1, npart2])
 
-            # Rename column
+
+            new_columns.append(ncol)
             if col != ncol:
-                df = df.rename({col: ncol}, axis=1)
+                replace_columns = True
+    if replace_columns:
+        df.columns = new_columns
 
     # Create fields and set types
     fields = []
@@ -761,8 +763,7 @@ def to_geo(df, dst, layer):
         lat = row["latitude"]
         lon = row["longitude"]
         wkb = point_to_gpkg_point(header, lon, lat)
-        values = list(row.values)
-        values.insert(0, wkb)
+        values = [wkb, *row.values]
         rows.append(values)
 
     # Finally insert rows

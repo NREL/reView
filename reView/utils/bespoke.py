@@ -87,11 +87,7 @@ class BespokeUnpacker:
             self.src_crs,
             always_xy=True
         )
-        lons, lats = transformer.transform(xs, ys)
-        rdf["longitude"] = lons
-        rdf["latitude"] = lats
-        del rdf["x"]
-        del rdf["y"]
+        rdf[['longitude', 'latitude']] = transformer.transform(xs, ys)
         rdf = rdf[self.df.columns]
         return rdf
 
@@ -179,7 +175,8 @@ def batch_unpack_from_supply_curve(sc_df, n_workers=1):
         Parameters
         ----------
         sc_df : pd.core.frame.DataFrame
-            A reV supply curve pandas data frame.
+            A reV supply curve pandas data frame. This will get modified in
+            place.
         n_workers : int
             Number of workers to use for parallel processing.
             Default is 1 which will run in serial (and will be slow).
@@ -193,8 +190,7 @@ def batch_unpack_from_supply_curve(sc_df, n_workers=1):
     """
 
     # cap nb_workers to the total CPUs on the machine/node
-    if n_workers > cpu_count():
-        n_workers = cpu_count()
+    n_workers = min(cpu_count(), n_workers)
 
     if n_workers > 1:
         # initialize functionality for parallela dataframe.apply
@@ -202,43 +198,55 @@ def batch_unpack_from_supply_curve(sc_df, n_workers=1):
             progress_bar=True, nb_workers=n_workers, use_memory_fs=False)
 
     # filter out supply curve points with no capacity (i.e., no turbines)
-    sc_developable_df = sc_df[sc_df['capacity'] > 0].copy()
+    sc_df = sc_df[sc_df['capacity'] > 0]
     # reset the index because otherwise the unpacker will get messed up
-    sc_developable_df.reset_index(drop=True, inplace=True)
+    sc_df.reset_index(drop=True, inplace=True)
 
     # unpack the turbine coordinates
     if n_workers > 1:
         # run in parallel
-        all_turbines = sc_developable_df.parallel_apply(
+        all_turbines = sc_df.parallel_apply(
             lambda row:
                 BespokeUnpacker(
-                    sc_developable_df,
+                    sc_df,
                     sc_point_gid=row['sc_point_gid']
                 ).unpack_turbines(drop_sc_points=True),
             axis=1
         )
     else:
         # run in serial
-        all_turbines = sc_developable_df.apply(
+        all_turbines = sc_df.apply(
             lambda row:
                 BespokeUnpacker(
-                    sc_developable_df,
+                    sc_df,
                     sc_point_gid=row['sc_point_gid']
                 ).unpack_turbines(drop_sc_points=True),
             axis=1
         )
 
     # stack the results back into a single df
-    all_turbines_df = pd.concat(all_turbines.tolist())
+    all_turbines_df = pd.concat(all_turbines.values)
 
     # extract the geometries
-    all_turbines_df['geometry'] = all_turbines_df.apply(
-        lambda row: geometry.Point(
-            row['longitude'],
-            row['latitude']
-        ),
-        axis=1
-    )
+    if n_workers > 1:
+        # run in parallel
+        all_turbines_df['geometry'] = all_turbines_df.parallel_apply(
+            lambda row: geometry.Point(
+                row['longitude'],
+                row['latitude']
+            ),
+            axis=1
+        )
+    else:
+        # run in serial
+        all_turbines_df['geometry'] = all_turbines_df.apply(
+            lambda row: geometry.Point(
+                row['longitude'],
+                row['latitude']
+            ),
+            axis=1
+        )
+
     # turn into a geodataframe
     all_turbines_gdf = gpd.GeoDataFrame(all_turbines_df, crs='EPSG:4326')
 

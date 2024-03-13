@@ -72,16 +72,13 @@ def recast_categories(df, col, lkup, cell_size_sq_km):
     col_df = pd.DataFrame(col_data)
     col_df.fillna(0, inplace=True)
     col_df.drop(
-        columns=[c for c in col_df.columns if c not in lkup.keys()],
+        columns=[c for c in col_df.columns if c not in lkup],
         inplace=True
     )
     col_df.rename(columns=lkup, inplace=True)
     if cell_size_sq_km is not None:
         col_df *= cell_size_sq_km
-        col_df.rename(
-            columns={c: f"{c}_area_sq_km" for c in col_df.columns},
-            inplace=True
-        )
+        col_df.columns += "_area_sq_km"
 
     col_df.index = df.index
 
@@ -216,14 +213,12 @@ def validate_characterization_remapper(  # noqa: C901
         parameters are encountered in characterization_remapper.
     """
 
-    characterization_cols = list(characterization_remapper.keys())
-    df_cols = supply_curve_df.columns.tolist()
-    cols_not_in_df = list(set(characterization_cols).difference(set(df_cols)))
-    if len(cols_not_in_df) > 0:
+    if any(key not in df.columns for key in characterization_remapper):
+        keys = [key not in df.columns for key in characterization_remapper]
         raise KeyError(
             "Invalid column name(s) in characterization_remapper. "
             "The following column name(s) were not found in the input "
-            f"dataframe: {cols_not_in_df}."
+            f"dataframe: {keys}."
         )
 
     for col_name, col_remapper in characterization_remapper.items():
