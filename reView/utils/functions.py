@@ -485,12 +485,6 @@ def read_timeseries(file, gids=None, nsteps=None):
     if "bespoke" not in str(file):
         # Break down time entries
         time = [t.decode() for t in ds["time_index"][:nsteps]]
-        dtime = [dt.datetime.strptime(t, TIME_PATTERN) for t in time]
-        minutes = [t.minute for t in dtime]
-        hours = [t.hour for t in dtime]
-        days = [t.timetuple().tm_yday for t in dtime]
-        weeks = [t.isocalendar().week for t in dtime]
-        months = [t.month for t in dtime]
 
         # Process generation data
         cf = ds["rep_profiles_0"][:nsteps, idx]
@@ -524,14 +518,15 @@ def read_timeseries(file, gids=None, nsteps=None):
 
         # This will only take the average across the year
         time = [t.decode() for t in time]
-        dtime = [dt.datetime.strptime(t, TIME_PATTERN) for t in time]
-        days = [t.timetuple().tm_yday for t in dtime]
-        weeks = [t.isocalendar().week for t in dtime]
-        months = [t.month for t in dtime]
-        hours = [t.hour for t in dtime]
-        minutes = [t.minute for t in dtime]
 
     ds.close()
+
+    dtime = [dt.datetime.strptime(t, TIME_PATTERN) for t in time]
+    minutes = [t.minute for t in dtime]
+    hours = [t.hour for t in dtime]
+    days = [t.timetuple().tm_yday for t in dtime]
+    weeks = [t.isocalendar().week for t in dtime]
+    months = [t.month for t in dtime]
 
     data = pd.DataFrame({
         "time": time,
