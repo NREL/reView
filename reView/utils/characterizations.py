@@ -213,8 +213,10 @@ def validate_characterization_remapper(  # noqa: C901
         parameters are encountered in characterization_remapper.
     """
 
-    if any(key not in df.columns for key in characterization_remapper):
-        keys = [key not in df.columns for key in characterization_remapper]
+    if any(key not in supply_curve_df.columns
+           for key in characterization_remapper):
+        keys = [key not in supply_curve_df.columns
+                for key in characterization_remapper]
         raise KeyError(
             "Invalid column name(s) in characterization_remapper. "
             "The following column name(s) were not found in the input "
