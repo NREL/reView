@@ -1,6 +1,6 @@
 dash_bootstrap_components>=1.1.0,<2
 pygeopkg>=0.1.2,<1
-pyarrow~> 14.0.1
+pyarrow>=14.0.1,<14.1
 scikit-learn>=1.1.1,<2
 us>=2.0.2,<2.0.3
 plotext>=5.2.8,<5.3
