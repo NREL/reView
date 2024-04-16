@@ -182,8 +182,6 @@ def unpack_characterizations(  # noqa: C901
         elif method is None:
             warnings.warn(f"Skipping {char_col}: No method provided")
 
-        in_df = in_df.copy()
-
     return in_df
 
 
