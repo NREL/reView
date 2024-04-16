@@ -570,7 +570,7 @@ class Plots:
         pdf = count / sum(count)
         cdf = np.cumsum(pdf)
         df = pd.DataFrame({y_var: cbins, "cdf": cdf, "pdf": pdf})
-        df = df.reset_index()
+        df.reset_index(inplace=True)
         return df
 
     def _histogram(self, main_df, y_var, bins):

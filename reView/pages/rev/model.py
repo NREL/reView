@@ -545,7 +545,7 @@ def composite(dfs, composite_variable="total_lcoe",
     """Return a single least cost df from a list dfs."""
     # Make one big data frame
     bdf = pd.concat(dfs)
-    bdf = bdf.reset_index(drop=True)
+    bdf.reset_index(drop=True, inplace=True)
 
     # Group, find minimum, and subset
     if composite_function == "min":
