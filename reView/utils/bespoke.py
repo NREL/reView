@@ -87,7 +87,10 @@ class BespokeUnpacker:
             self.src_crs,
             always_xy=True
         )
-        rdf[['longitude', 'latitude']] = transformer.transform(xs, ys)
+        lons, lats = transformer.transform(xs, ys)
+        rdf["x"] = lons
+        rdf["y"] = lats
+        rdf.rename(columns={'x': 'longitude', 'y': 'latitude'}, inplace=True)
         rdf = rdf[self.df.columns]
         return rdf
 
@@ -106,8 +109,7 @@ class BespokeUnpacker:
 
         # Get coordinates from equal area projection
         x, y = self.get_xy(row)
-        del row["longitude"]
-        del row["latitude"]
+        row.drop(['longitude', 'latitude'], inplace=True)
 
         # Get bottom left coordinates
         blx = x - (self.spacing / 2)
@@ -119,28 +121,21 @@ class BespokeUnpacker:
         xs = [x + blx for x in xs]
         ys = [y + bly for y in ys]
 
-        # Build new data frame entries for each turbine
-        nrows = []
-
         # use len(xs) to determine number of turbines because
         # nturbines does not appear to be a standard column
         turbine_capacity_mw = row['capacity'] / len(xs)
 
-        for i, x in enumerate(xs):
-            nrow = row.copy()
-            # overwrite existing capacity column (which is typically system
-            # capacity in mw) with turbine capacity in kw for this turbine row.
-            # This maintains compatibility with how capacity is summed and
-            # displayed in the dashboard
-            nrow["capacity"] = turbine_capacity_mw
-            nrow["x"] = x
-            nrow["y"] = ys[i]
-            nrows.append(nrow)
+        # Build new data frame with a row for each turbine
+        new_index = range(df.index[-1] + 1, df.index[-1] + 1 + len(xs))
+        rdf = pd.DataFrame([row]*len(xs), index=new_index)
 
-        # Build new data frame
-        rdf = pd.DataFrame(nrows)
-        rdf = rdf.reset_index(drop=True)
-        rdf.index = df.index[-1] + rdf.index + 1
+        # overwrite existing capacity column (which is typically system
+        # capacity in mw) with turbine capacity in kw for this turbine row.
+        # This maintains compatibility with how capacity is summed and
+        # displayed in the dashboard
+        rdf['capacity'] = turbine_capacity_mw
+        rdf['x'] = xs
+        rdf['y'] = ys
 
         # Convert back to WGS84
         rdf = self.to_wgs(rdf)
@@ -150,7 +145,7 @@ class BespokeUnpacker:
 
         # Replace the original row with one of the new rows.
         df.iloc[self.index] = rdf.iloc[-1]
-        rdf = rdf.iloc[:-1]
+        rdf.drop(rdf.index[-1], inplace=True)
         df = pd.concat([df, rdf])
 
         return df
