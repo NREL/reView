@@ -98,6 +98,10 @@ class BespokeUnpacker:
     def unpack_turbines(self, drop_sc_points=False):
         """Unpack bespoke turbines if possible.
 
+        drop_sc_points : bool
+            Only return a data frame of individual turbine locations and not
+            the rest of the supply-curve table. Defaults to False.
+
         Returns
         -------
         pd.core.frame.DataFrame
@@ -105,7 +109,7 @@ class BespokeUnpacker:
             except one that is replaced with individual turbine entries.
         """
         # Separate target row
-        row = self.df.iloc[self.index]
+        row = self.df.loc[self.index]
         df = self.df.copy()
 
         # Get coordinates from equal area projection

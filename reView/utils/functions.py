@@ -700,7 +700,6 @@ def to_geo(df, dst, layer):
         # Remove columns that start with numbers
         if is_int(col[0]):
             del df[col]
-            print(col)
 
         # This happens when you save the index
         if "Unnamed:" in col:
