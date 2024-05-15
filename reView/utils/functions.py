@@ -34,7 +34,6 @@ from reView.paths import Paths
 
 logger = logging.getLogger(__name__)
 
-
 TIME_PATTERN = "%Y-%m-%d %H:%M:%S+00:00"
 
 
@@ -486,12 +485,6 @@ def read_timeseries(file, gids=None, nsteps=None):
     if "bespoke" not in str(file):
         # Break down time entries
         time = [t.decode() for t in ds["time_index"][:nsteps]]
-        dtime = [dt.datetime.strptime(t, TIME_PATTERN) for t in time]
-        minutes = [t.minute for t in dtime]
-        hours = [t.hour for t in dtime]
-        days = [t.timetuple().tm_yday for t in dtime]
-        weeks = [t.isocalendar().week for t in dtime]
-        months = [t.month for t in dtime]
 
         # Process generation data
         cf = ds["rep_profiles_0"][:nsteps, idx]
@@ -525,14 +518,15 @@ def read_timeseries(file, gids=None, nsteps=None):
 
         # This will only take the average across the year
         time = [t.decode() for t in time]
-        dtime = [dt.datetime.strptime(t, TIME_PATTERN) for t in time]
-        days = [t.timetuple().tm_yday for t in dtime]
-        weeks = [t.isocalendar().week for t in dtime]
-        months = [t.month for t in dtime]
-        hours = [t.hour for t in dtime]
-        minutes = [t.minute for t in dtime]
 
     ds.close()
+
+    dtime = [dt.datetime.strptime(t, TIME_PATTERN) for t in time]
+    minutes = [t.minute for t in dtime]
+    hours = [t.hour for t in dtime]
+    days = [t.timetuple().tm_yday for t in dtime]
+    weeks = [t.isocalendar().week for t in dtime]
+    months = [t.month for t in dtime]
 
     data = pd.DataFrame({
         "time": time,
@@ -696,16 +690,18 @@ def to_geo(df, dst, layer):
         "%": "pct",
         "&": "and"
     }
+    replace_columns = False
+    new_columns = []
     for col in df.columns:
         # Remove columns that start with numbers
         if is_int(col[0]):
             del df[col]
 
         # This happens when you save the index
-        if "Unnamed:" in col:
+        elif "Unnamed:" in col:
             del df[col]
         else:
-            # Remove unnacceptable characters
+            # Remove unacceptable characters
             ncol = col
             for char, repl in replacements.items():
                 ncol = ncol.replace(char, repl)
@@ -721,9 +717,12 @@ def to_geo(df, dst, layer):
             #         npart2 = ncol.split("_")[0]
             #         ncol = "_".join([npart1, npart2])
 
-            # Rename column
+            new_columns.append(ncol)
             if col != ncol:
-                df = df.rename({col: ncol}, axis=1)
+                replace_columns = True
+
+    if replace_columns:
+        df.columns = new_columns
 
     # Create fields and set types
     fields = []
@@ -760,8 +759,7 @@ def to_geo(df, dst, layer):
         lat = row["latitude"]
         lon = row["longitude"]
         wkb = point_to_gpkg_point(header, lon, lat)
-        values = list(row.values)
-        values.insert(0, wkb)
+        values = [wkb, *row.values]
         rows.append(values)
 
     # Finally insert rows
