@@ -17,6 +17,7 @@ import tempfile
 
 from pathlib import Path
 
+import h5py
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
@@ -823,6 +824,34 @@ def dropdown_x_variables(
     return variable_options, val
 
 
+@app.callback(
+    Output("rev_time_var_options", "options"),
+    Output("rev_time_var_options", "value"),
+    Input("submit", "n_clicks"),
+    State("scenario_dropdown_a", "value"),
+    State("rev_time_var_options", "value")
+)
+@calls.log
+def dropdown_time_variables(_, scenario_a, old_variable):
+    """Return dropdown options for the timeseries variable."""
+    logger.debug("Setting timeseries variable options")
+
+    # Get the 2D (timeseries) datasets and create an option list
+    with h5py.File(scenario_a) as ds:
+        dsets = list(ds)
+        shapes = [len(ds[dset].shape) for dset in dsets]
+    variables = [dsets[i] for i, s in enumerate(shapes) if s == 2]
+    variable_options = [{"label": var, "value": var} for var in variables]
+
+    # If this has already been built, use the existing value
+    if old_variable in variables:
+        variable = old_variable
+    else:
+        variable = variables[0]
+
+    return variable_options, variable
+
+
 # @app.callback(
 #     Output("rev_additional_scenarios", "options"),
 #     Output("rev_additional_scenarios_time", "options"),
@@ -1126,7 +1155,7 @@ def figure_map(
     Input("map_signal", "children"),
     Input("rev_time_trace_options_tab", "value"),
     Input("rev_time_period_options_tab", "value"),
-    Input("rev_variable_time", "value"),
+    Input("rev_time_var_options", "value"),
     Input("rev_additional_scenarios", "value"),
     Input("rev_chart", "selectedData"),
     Input("rev_map", "selectedData"),
@@ -1170,7 +1199,8 @@ def figure_timeseries(
                 file,
                 map_selection,
                 chart_selection,
-                map_click
+                map_click,
+                variable
             )
         except (KeyError, ValueError) as exc:
             raise PreventUpdate from exc

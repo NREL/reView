@@ -143,14 +143,9 @@ def above_time_options_div(id_prefix, class_name=None):
                     html.Div(                  
                         className="six columns",
                         children=dcc.Dropdown(
-                            id=f"{id_prefix}_variable_time",
+                            id=f"{id_prefix}_time_var_options",
                             style={"width": "100%"},
                             clearable=False,
-                            value="capacity factor",
-                            options=[
-                                {"label": "Capacity Factor", "value": "capacity factor"},
-                                {"label": "Generation (MW)", "value": "generation"},
-                            ],
                             multi=False
                         )
                     )

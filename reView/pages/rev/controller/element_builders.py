@@ -299,7 +299,7 @@ class Plots:
 
         return self._update_fig_layout(fig, y_var)
 
-    def figure(self, chart_type="cumsum", x_var=None, y_var=None, bins=None, 
+    def figure(self, chart_type="cumsum", x_var=None, y_var=None, bins=None,
                trace_type="bar", time_period="original"):
         """Return plotly figure for requested chart type."""
         if chart_type == "cumsum":
@@ -318,7 +318,7 @@ class Plots:
         elif chart_type == "timeseries":
             fig = self.timeseries(y_var, trace_type, time_period)
         elif chart_type == "summary_table":
-            fig= self.summary_table()
+            fig = self.summary_table()
 
         return fig
 
@@ -399,17 +399,14 @@ class Plots:
         table = None
         for key, df in self.datasets.items():
             break
-        return None
+        return table
 
     def timeseries(self, y_var="capacity factor", trace_type="bar",
                    time_period="original"):
         """Render time series."""
         # Check for valid options
-        try:
-            assert trace_type in ["bar", "line"]
-        except:
-            raise AssertionError(f"{trace_type} traces not available for this "
-                                 "graph.")
+        msg = f"{trace_type} traces not available for this graph."
+        assert trace_type in ["bar", "line"], msg
 
         # Create the plottable dataframe
         main_df = None
@@ -460,7 +457,7 @@ class Plots:
         # Update the layout and axes
         ymin = main_df[y].min()
         ymax = main_df[y].max()
-        # fig.update_layout(yaxis_range=[ymin, ymax * 1.1])
+        fig.update_layout(yaxis_range=[ymin, ymax * 1.1])
         fig.update_xaxes(showspikes=True)
         fig.update_yaxes(showspikes=True)
 
@@ -471,53 +468,50 @@ class Plots:
                     main_df["time"].iloc[500]
                 ]
             )
-
-        return self._update_fig_layout(fig, y_var)
+        fig = self._update_fig_layout(fig, y_var)
+        return fig
 
     def _aggregate_timeseries(self, data, y_var="capacity factor",
-                              time_period="daily"):
+                              time_period="daily", fun="mean"):
         """Aggregate timeseries to a given time period."""
         # Check inputs
-        try:
-            assert time_period in ["daily", "hour", "weekly", "monthly", "cdf",
-                                   "pdf"]
-        except:
-            raise AssertionError("Cannot aggregate timeseries to "
-                                 f"{time_period} steps.")
+        msg = f"Cannot aggregate timeseries to {time_period} steps."
+        periods = ["daily", "hour", "weekly", "monthly", "cdf", "pdf"]
+        assert time_period in periods, msg
 
         # Aggregate temporally, or via a distribution
         if time_period not in ["cdf", "pdf"]:
             # Aggregate data
             grouped = data.groupby(time_period)
-            if y_var == "capacity factor":
+            if fun == "mean":
                 out = grouped[y_var].mean()
             else:
                 out = grouped[y_var].sum()
-    
+
             # Reset time stamp
-            t1 = data["time"].iloc[0]
-            t2 = data["time"].iloc[-1]
+            time1 = data["time"].iloc[0]
+            time2 = data["time"].iloc[-1]
 
             if time_period == "daily":
-                time = pd.date_range(t1, t2, freq="1D")
+                time = pd.date_range(time1, time2, freq="1D")
             elif time_period == "hour":
                 hours = range(0, 24)
                 time = [dt.datetime(1, 1, 1, h) for h in hours]
                 time = [t.strftime("%H:%M") for t in time]
             elif time_period == "weekly":
-                time = pd.date_range(t1, t2, freq="1W")
+                time = pd.date_range(time1, time2, freq="1W")
             elif time_period == "monthly":
-                time = pd.date_range(t1, t2, freq="MS")
+                time = pd.date_range(time1, time2, freq="MS")
                 time = [t + pd.offsets.MonthEnd() for t in time]
             time = [str(t) for t in time]
-    
+
             # Rebuild data
             data = pd.DataFrame({y_var: out, "time": time})
 
         else:
             data = self._distributions(data, y_var)
             if time_period == "cdf":
-                data = data[[y_var, "cdf"]]     
+                data = data[[y_var, "cdf"]]
             elif time_period == "pdf":
                 data = data[[y_var, "pdf"]]
             data.columns = [y_var, "Probability"]
@@ -618,6 +612,6 @@ class Plots:
         layout["title"]["text"] = self.plot_title
         layout["legend_title_text"] = self.GROUP
         fig.update_layout(**layout)
-        if y_var:
-            fig.update_layout(yaxis={"range": self._plot_range(y_var)})
+        # if y_var:
+        #     fig.update_layout(yaxis={"range": self._plot_range(y_var)})
         return fig
