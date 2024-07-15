@@ -12,7 +12,10 @@ from reView.layout.styles import (
     TABLET_STYLE_CLOSED,
 )
 from reView.utils.config import Config
+from reView.utils.functions import get_project_defaults
 
+
+DEFAULT_PROJECT = get_project_defaults()["rev"]
 
 TOP_TABS = html.Div(
     id="options_tab",
@@ -154,6 +157,7 @@ TOPTIONS = [
                             html.H5("Project"),
                             dcc.Dropdown(
                                 id="project",
+                                value=DEFAULT_PROJECT,
                                 options=[
                                     # pylint: disable=not-an-iterable
                                     {"label": project, "value": project}

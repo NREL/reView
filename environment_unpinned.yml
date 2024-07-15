@@ -1,0 +1,38 @@
+name: review
+channels:
+    - conda-forge
+    - nrel
+dependencies:
+    - addfips
+    - colorama
+    - dash
+    - flask
+    - flask-caching
+    - cartopy
+    - geopandas
+    - h5py
+    - numpy
+    - pandas
+    - pandarallel
+    - pint
+    - plotly
+    - pyproj
+    - pytest
+    - python-dotenv
+    - requests
+    - scipy
+    - setuptools
+    - tqdm
+    - werkzeug
+    - shapely
+    - geoplot
+    - openpyxl
+    - xlrd
+    - pip
+    - pip:
+        - dash_bootstrap_components
+        - pygeopkg
+        - pyarrow
+        - scikit-learn
+        - us
+        - plotext

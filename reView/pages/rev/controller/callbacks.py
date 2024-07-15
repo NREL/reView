@@ -321,6 +321,17 @@ def files_to_dropdown(files):
     return scenario_options
 
 
+def find_capacity(project):
+    """Find a useable capacity string from a list of column names."""
+    config = Config(project)
+    file = config.files[next(iter(config.files))]
+    columns = read_file(file, nrows=0).columns
+    capcols = [col for col in columns if "capacity" in col]
+    if len(capcols) == 0:
+        raise KeyError("No capacity column found!")
+    return capcols[0]
+
+
 @calls.log
 def options_chart_type(project, y_var=None):
     """Add characterization plot option, if necessary."""
@@ -500,7 +511,10 @@ def dropdown_composite_plot_options(scenario_options, project):
 
     logger.debug("Setting minimizing plot options")
     config = Config(project)
-    path = choose_scenario(scenario_options, config)
+    try:
+        path = choose_scenario(scenario_options, config)
+    except KeyError:
+        raise PreventUpdate
     plot_options = [{"label": "Scenario", "value": "scenario"}]
 
     if path and os.path.exists(path):
@@ -571,7 +585,10 @@ def dropdown_composite_targets(scenario_options, project):
 
     logger.debug("Setting minimizing target options")
     config = Config(project)
-    path = choose_scenario(scenario_options, config)
+    try:
+        path = choose_scenario(scenario_options, config)
+    except KeyError:
+        raise PreventUpdate
 
     target_options = []
     if path and os.path.exists(path):
@@ -776,7 +793,7 @@ def dropdown_variables(
     if old_variable in values:
         value = old_variable
     else:
-        value = "capacity"
+        value = find_capacity(project)
 
     return (
         variable_options,
@@ -815,7 +832,7 @@ def dropdown_x_variables(
         variable_options = get_variable_options(
             project, scenario_a, scenario_b, b_div
         )
-        val = "capacity"
+        val = find_capacity(project)
 
     if not variable_options:
         variable_options = [{"label": "None", "value": "None"}]
@@ -837,6 +854,8 @@ def dropdown_time_variables(_, scenario_a, old_variable):
     logger.debug("Setting timeseries variable options")
 
     # Get the 2D (timeseries) datasets and create an option list
+    if not scenario_a.endswith(".h5"):
+        raise PreventUpdate
     with h5py.File(scenario_a) as ds:
         dsets = list(ds)
         shapes = [len(ds[dset].shape) for dset in dsets]
@@ -1576,6 +1595,10 @@ def retrieve_signal(
     config = Config(project)
     trigger = callback_trigger()
 
+    # If no x is specified
+    if not x:
+        x = find_capacity(project)
+
     # Set default scenario data set
     if scenario_a == "placeholder":
         files = list(config.files.values())
@@ -1612,9 +1635,6 @@ def retrieve_signal(
             y = composite_variable
         else:
             y = composite_plot_value
-
-        if not x:
-            x = "capacity"
 
         signal = {
             "filters": [],

@@ -110,7 +110,7 @@ class Plots:
             main_df,
             x="xbin",
             y="yagg",  # Plot all y's so we can share selections with map
-            custom_data=["sc_point_gid", "capacity"],
+            custom_data=["sc_point_gid", self.capacity_col(main_df)],
             labels={x_var: xtitle, y_var: ytitle},
             color=self.GROUP,
             color_discrete_sequence=px.colors.qualitative.Safe,
@@ -194,6 +194,11 @@ class Plots:
         )
 
         return self._update_fig_layout(fig, y_var)
+
+    @property
+    def capacity(self):
+        """Find the most appropriate cpacity column."""
+
 
     def char_hist(self, x_var):
         """Make a histogram of the characterization column."""
