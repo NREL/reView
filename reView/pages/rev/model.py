@@ -398,13 +398,14 @@ def cache_map_data(signal_dict):
 
 
 @cache4.memoize()
-def cache_timeseries(file, map_selection, chart_selection, map_click=None):
+def cache_timeseries(file, map_selection, chart_selection, map_click=None,
+                     variable="rep_profiles_0"):
     """Read and store a timeseries data frame with site selections."""
     # Convert map and chart selections into site indices
     gids = point_filter(map_selection, chart_selection, map_click)
 
     # Read in data frame
-    data = read_timeseries(file, gids)
+    data = read_timeseries(file, gids, nsteps=None, variable=variable)
 
     return data
 

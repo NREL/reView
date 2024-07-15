@@ -324,7 +324,7 @@ class Map:
 
     def figure(self, point_size, reverse_color=False):
         """Build scatter plot figure."""
-        self.df["text"] = self.hover_text
+        self.df.loc[:, "text"] = self.hover_text
         if self.df.empty:
             figure = go.Figure()
             figure.update_layout(
@@ -410,7 +410,6 @@ class Map:
 
         # Update the layout
         layout = self.layout
-        # layout["mapbox"]["center"]
         figure.update_layout(**layout)
         figure.update_traces(
             unselected={"marker": {"opacity": 1}},
@@ -423,25 +422,26 @@ class Map:
     def hover_text(self):
         """Return hover text column."""
         # Convert NaNs to strings for international projects
+        df = self.df.copy()
         if "state" in self.df:
-            if self.df["state"].isnull().all():
-                self.df["state"] = ""
+            if df["state"].isnull().all():
+                df.loc[:, "state"] = ""
             else:
-                self.df["state"][self.df["state"].isnull()] = "N/A"
-                self.df["state"][self.df["state"] != "nan"] = \
-                    self.df["state"] + ":"
+                df.loc[df["state"].isnull(), "state"] = "N/A"
+                df.loc[df["state"] != "nan", "state"] = \
+                    df["state"] + ":"
         else:
-            self.df["state"] = ""
+            df.loc[:, "state"] = ""
 
-        if "county" in self.df:
-            if self.df["county"].isnull().all():
-                self.df["county"] = ""
+        if "county" in df:
+            if df["county"].isnull().all():
+                df.loc[:, "county"] = ""
             else:
-                self.df["county"][self.df["county"].isnull()] = "N/A"
-                self.df["county"][self.df["county"] != "nan"] = \
-                    self.df["county"] + " County, "
+                df.loc[df["county"].isnull(), "county"] = "N/A"
+                df.loc[df["county"] != "nan", "county"] = \
+                    df["county"] + " County, "
         else:
-            self.df["county"] = ""
+            df.loc[:, "county"] = ""
 
         # Include demand data fro hydrogen runs
         if self.demand_data is not None:
@@ -456,31 +456,31 @@ class Map:
         elif self.units == "category":
             try:
                 text = (
-                    self.df["county"]
-                    + self.df["state"]
+                    df["county"]
+                    + df["state"]
                     + "<br>   "
-                    + self.df[self.color_var].astype(str)
+                    + df[self.color_var].astype(str)
                     + " "
                     + self.units
                 )
             except KeyError:
                 text = (
-                    round(self.df[self.color_var], 2).astype(str)
+                    round(df[self.color_var], 2).astype(str)
                     + " "
                     + self.units
                 )
         else:
             extra_str = ""
-            if "hydrogen_annual_kg" in self.df:
+            if "hydrogen_annual_kg" in df:
                 extra_str += (
                     "<br>    H2 Supply:    "
-                    + self.df["hydrogen_annual_kg"].apply(lambda x: f"{x:,}")
+                    + df["hydrogen_annual_kg"].apply(lambda x: f"{x:,}")
                     + " kg    "
                 )
-            if "dist_to_selected_load" in self.df:
+            if "dist_to_selected_load" in df:
                 extra_str += (
                     "<br>    Dist to load:    "
-                    + self.df["dist_to_selected_load"].apply(
+                    + df["dist_to_selected_load"].apply(
                         lambda x: f"{x:,.2f}"
                     )
                     + " km    "
@@ -488,11 +488,11 @@ class Map:
 
             try:
                 text = (
-                    self.df["county"]
-                    + self.df["state"]
+                    df["county"]
+                    + df["state"]
                     + extra_str
                     + f"<br>    {convert_to_title(self.color_var)}:   "
-                    + self.df[self.color_var].round(2).astype(str)
+                    + df[self.color_var].round(2).astype(str)
                     + " "
                     + self.units
                 )
@@ -500,12 +500,12 @@ class Map:
                 text = (
                     extra_str
                     + f"<br>    {convert_to_title(self.color_var)}:   "
-                    + self.df[self.color_var].round(2).astype(str)
+                    + df[self.color_var].round(2).astype(str)
                     + " "
                     + self.units
                 )
 
-        return text
+        return text.values
 
     @property
     def layout(self):

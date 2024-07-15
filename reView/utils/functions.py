@@ -440,7 +440,7 @@ def read_file(file, nrows=None):
     return data
 
 
-def read_timeseries(file, gids=None, nsteps=None):
+def read_timeseries(file, gids=None, nsteps=None, variable="rep_profiles_0"):
     # pylint: disable=no-member
     """Read in a time-series from an HDF5 file.
 
@@ -452,6 +452,8 @@ def read_timeseries(file, gids=None, nsteps=None):
         List of sc_point_gids to use to filter sites.
     nsteps : int
         Number of time-steps to read in.
+    variable : str
+        Name of the HDF5 data set to return.
 
     Returns
     -------
@@ -479,61 +481,35 @@ def read_timeseries(file, gids=None, nsteps=None):
         meta = meta[meta["sc_point_gid"].isin(gids)]
     idx = list(meta.index)
 
-    # Get capacity, time index, format
-    capacity = meta["capacity"].values
+    # If no time index found, raise error
+    variables = list(ds)
+    if not any("time_index" in var for var in variables):
+        raise NotImplementedError("Cannot handle the time series formatting "
+                                  f"in {file}.")
 
-    # If it has any "rep_profiles_" datasets it rep-profiles
-    if "bespoke" not in str(file):
-        # Break down time entries
-        time = [t.decode() for t in ds["time_index"][:nsteps]]
-        dtime = [dt.datetime.strptime(t, TIME_PATTERN) for t in time]
-        minutes = [t.minute for t in dtime]
-        hours = [t.hour for t in dtime]
-        days = [t.timetuple().tm_yday for t in dtime]
-        weeks = [t.isocalendar().week for t in dtime]
-        months = [t.month for t in dtime]
+    # If dset is associated with a year time index, use that time index
+    time_index = "time_index"
+    if "-" in variable and "time_index" not in variables:
+        year = int(variable.split("-")[-1])
+        time_index = f"time_index-{year}"
 
-        # Process generation data
-        cf = ds["rep_profiles_0"][:nsteps, idx]
-        gen = cf * capacity
-        cf = cf.mean(axis=1)
-        gen = gen.sum(axis=1)
+    # Break down time entries
+    time = [t.decode() for t in ds[time_index][:nsteps]]
+    dtime = [dt.datetime.strptime(t, TIME_PATTERN) for t in time]
+    minutes = [t.minute for t in dtime]
+    hours = [t.hour for t in dtime]
+    days = [t.timetuple().tm_yday for t in dtime]
+    weeks = [t.isocalendar().week for t in dtime]
+    months = [t.month for t in dtime]
 
-    # Otherwise, it's bespoke and has each year
-    else:
-        # Get all capacity factor keys
-        cf_keys = [key for key in ds.keys() if "cf_profile-" in key]
-        time_keys = [key for key in ds.keys() if "time_index-" in key]
-        scale = ds[cf_keys[0]].attrs["scale_factor"]
+    # Process target data set
+    data = ds[variable][:nsteps, idx]
+    data = data.mean(axis=1)
 
-        # Build complete time-series at each site
-        all_cfs = []
-        all_time = []
-        for i, cf_key in enumerate(cf_keys):
-            time_key = time_keys[i]
-            cf = ds[cf_key][:nsteps, idx]
-            time = ds[time_key][:nsteps]
-            all_cfs.append(cf)
-            all_time.append(time)
-        site_cfs = np.concatenate(all_cfs)
-        time = np.concatenate(all_time)
-        site_gen = site_cfs * capacity
-
-        # Build single long-term average timeseries for all sites
-        cf = np.mean(site_cfs, axis=1) / scale
-        gen = site_gen.sum(axis=1)
-
-        # This will only take the average across the year
-        time = [t.decode() for t in time]
-        dtime = [dt.datetime.strptime(t, TIME_PATTERN) for t in time]
-        days = [t.timetuple().tm_yday for t in dtime]
-        weeks = [t.isocalendar().week for t in dtime]
-        months = [t.month for t in dtime]
-        hours = [t.hour for t in dtime]
-        minutes = [t.minute for t in dtime]
-
+    # Close dataset, how do we handle read errors with context management?
     ds.close()
 
+    # Compile data frame
     data = pd.DataFrame({
         "time": time,
         "minute": minutes,
@@ -541,8 +517,7 @@ def read_timeseries(file, gids=None, nsteps=None):
         "daily": days,
         "weekly": weeks,
         "monthly": months,
-        "capacity factor": cf,
-        "generation": gen
+        variable: data
     })
 
     return data
