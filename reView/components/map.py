@@ -23,6 +23,7 @@ from reView.utils.functions import (
     convert_to_title,
     strip_rev_filename_endings
 )
+from reView.pages.rev.controller.element_builders import find_capacity
 from reView.pages.rev.model import point_filter
 
 logger = logging.getLogger(__name__)
@@ -90,6 +91,7 @@ class Title:
         self.chart_selection = chart_selection
         self.delimiter = delimiter
         self.x_var = x_var
+        self.capcol = find_capacity(project)
 
     @property
     def scenario(self):
@@ -194,7 +196,7 @@ class Title:
 
         # we can make this more general by
         # allowing user input about this in config
-        if "capacity" in self.no_diff_suffix and units != "percent":
+        if self.capcol in self.no_diff_suffix and units != "percent":
             extra = self._add_total_info("MW", extra)
 
         title = self.delimiter.join([title, extra])
@@ -233,11 +235,11 @@ class Title:
             except KeyError:
                 weights = df["solar_area_sq_km"]
         elif "area_sq_km" not in df:  # Quick fix change for bespoke hybrids
-            weights = df["capacity"]
+            weights = df[self.capcol]
         else:
             weights = df["area_sq_km"]
 
-        skippers = ["capacity", "area_sq_km"]  # Don't use weights for these
+        skippers = [self.capcol, "area_sq_km"]  # Don't use weights for these
 
         if (agg_type == "mean" and self.color_var not in skippers):
             aggregation = np.average(
@@ -301,6 +303,7 @@ class Map:
             df, color_var, project, color_range[0], color_range[1]
         )
         self.demand_data = demand_data
+        self.capcol = find_capacity(project)
 
         if project:
             self.config = Config(project)
@@ -361,7 +364,7 @@ class Map:
                     lon="longitude",
                     lat="latitude",
                     color_discrete_map=colormap,
-                    custom_data=["sc_point_gid", "capacity"],
+                    custom_data=["sc_point_gid", self.capcol],
                     hover_name="text",
                 )
             else:
@@ -371,7 +374,7 @@ class Map:
                     lon="longitude",
                     lat="latitude",
                     color_discrete_sequence=px.colors.qualitative.Safe,
-                    custom_data=["sc_point_gid", "capacity"],
+                    custom_data=["sc_point_gid", self.capcol],
                     hover_name="text",
                 )
             figure.update_traces(marker=self.marker(point_size, reverse_color))
@@ -381,7 +384,7 @@ class Map:
                 data_frame=self.df,
                 lon="longitude",
                 lat="latitude",
-                custom_data=["sc_point_gid", "capacity"],
+                custom_data=["sc_point_gid", self.capcol],
                 hover_name="text",
             )
 

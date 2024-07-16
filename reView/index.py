@@ -24,6 +24,7 @@ def main():
         host=APP_HOST,
         port=APP_PORT,
         debug=False,
+        dev_tools_hot_reload=False
     )
 
 

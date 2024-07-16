@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 """Common reView callbacks. """
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
 
 from reView.app import app
-from reView.layout.styles import RC_STYLES
 from reView.components.logic import tab_styles, format_capacity_title
+from reView.layout.styles import RC_STYLES
+from reView.pages.rev.controller.element_builders import find_capacity
 from reView.utils import calls
 
 
@@ -115,10 +116,12 @@ def capacity_print(id_prefix):
         Output(f"{id_prefix}_site_print", "children"),
         Input(f"{id_prefix}_mapcap", "children"),
         Input(f"{id_prefix}_map", "selectedData"),
+        State("project", "value")
     )
     @calls.log
-    def _capacity_print(map_capacity, map_selection):
+    def _capacity_print(map_capacity, map_selection, project):
         """Calculate total remaining capacity."""
-        return format_capacity_title(map_capacity, map_selection)
+        capcol = find_capacity(project)
+        return format_capacity_title(map_capacity, map_selection, capcol)
 
     return _capacity_print

@@ -38,7 +38,7 @@ from reView.layout.options import (
     COLOR_Q_OPTIONS,
 )
 from reView.layout.styles import TABLET_STYLE
-from reView.pages.rev.controller.element_builders import Plots
+from reView.pages.rev.controller.element_builders import Plots, find_capacity
 from reView.pages.rev.controller.selection import (
     choose_scenario,
     get_variable_options,
@@ -169,7 +169,8 @@ def build_specs(scenario, project):
 
 def build_spec_split(path, project):
     """Calculate the percentage of each scenario present."""
-    df = cache_table(project, y_var="capacity", x_var="mean_lcoe", path=path)
+    cap_field = find_capacity(project)
+    df = cache_table(project, y_var=cap_field, x_var="mean_lcoe", path=path)  # Also find mean lcoe field (new field = lcoe_site_usd_per_mwh)
     scenarios, counts = np.unique(df["scenario"], return_counts=True)
     total = df.shape[0]
     percentages = [counts[i] / total for i in range(len(counts))]
@@ -319,17 +320,6 @@ def files_to_dropdown(files):
     ]
 
     return scenario_options
-
-
-def find_capacity(project):
-    """Find a useable capacity string from a list of column names."""
-    config = Config(project)
-    file = config.files[next(iter(config.files))]
-    columns = read_file(file, nrows=0).columns
-    capcols = [col for col in columns if "capacity" in col]
-    if len(capcols) == 0:
-        raise KeyError("No capacity column found!")
-    return capcols[0]
 
 
 @calls.log
@@ -977,7 +967,7 @@ def figure_chart(
     # Collect minimum needed inputs
     x_var = signal_dict["x"]
     if x_var == "None":
-        x_var = "capacity"
+        x_var = find_capacity(project)
     y_var = signal_dict["y"]
     project = signal_dict["project"]
 
@@ -986,21 +976,21 @@ def figure_chart(
 
     # Return empty alert
     if all(df.empty for df in dfs.values()):
-        figure = go.Figure()
-        figure.update_layout(
-            xaxis={"visible": False},
-            yaxis={"visible": False},
-            annotations=[
-                {
-                    "text": "No matching data found",
-                    "xref": "paper",
-                    "yref": "paper",
-                    "showarrow": False,
-                    "font": {"size": 28},
-                }
-            ],
-        )
-        return figure
+        raise PreventUpdate  # Error Popup?
+        # figure = go.Figure()
+        # figure.update_layout(
+        #     xaxis={"visible": False},
+        #     yaxis={"visible": False},
+        #     annotations=[
+        #         {
+        #             "text": "No matching data found",
+        #             "xref": "paper",
+        #             "yref": "paper",
+        #             "showarrow": False,
+        #             "font": {"size": 28},
+        #         }
+        #     ],
+        # )
 
     # Turn the map selection object into indices
     if map_selection:
@@ -1158,7 +1148,8 @@ def figure_map(
         point_size=point_size,
         reverse_color=reverse_color_clicks % 2 == 1,
     )
-    mapcap = df[["sc_point_gid", "capacity"]].to_dict()
+    capcol = find_capacity(project)
+    mapcap = df[["sc_point_gid", capcol]].to_dict()
 
     # Package returns
     mapcap = json.dumps(mapcap)

@@ -22,11 +22,24 @@ import plotly.express as px
 from reView.utils.classes import DiffUnitOptions
 from reView.utils.config import Config
 from reView.utils.constants import DEFAULT_POINT_SIZE, DEFAULT_LAYOUT
-from reView.utils.functions import convert_to_title
+from reView.utils.functions import convert_to_title, read_file
 
 
 CHART_LAYOUT = copy.deepcopy(DEFAULT_LAYOUT)
 CHART_LAYOUT.update({"legend_title_font_color": "black"})
+
+
+def find_capacity(project):
+    """Find a useable capacity string from a list of column names."""
+    config = Config(project)
+    file = config.files[next(iter(config.files))]
+    columns = read_file(file, nrows=0).columns
+    capcols = [col for col in columns if "capacity" in col]
+    capcols = [col for col in capcols if "factor" not in col]
+    # capcols.sort()  # Need to figure out how to handle ac vs dc
+    if len(capcols) == 0:
+        raise KeyError("No capacity column found!")
+    return capcols[0]
 
 
 def _fix_doubles(df):
@@ -71,7 +84,9 @@ class Plots:
         self.point_size = point_size
         self.user_scale = user_scale
         self.alpha = alpha
+        self.project = project
         self.config = Config(project)
+        self.capcol = find_capacity(project)
 
     def __repr__(self):
         """Print representation string."""
@@ -110,7 +125,7 @@ class Plots:
             main_df,
             x="xbin",
             y="yagg",  # Plot all y's so we can share selections with map
-            custom_data=["sc_point_gid", self.capacity_col(main_df)],
+            custom_data=["sc_point_gid", self.capcol],
             labels={x_var: xtitle, y_var: ytitle},
             color=self.GROUP,
             color_discrete_sequence=px.colors.qualitative.Safe,
@@ -178,7 +193,7 @@ class Plots:
             main_df,
             x=self.GROUP,
             y=y_var,
-            custom_data=["sc_point_gid", "capacity"],
+            custom_data=["sc_point_gid", self.capcol],
             labels={y_var: y_title},
             color=self.GROUP,
             color_discrete_sequence=px.colors.qualitative.Safe,
@@ -288,7 +303,7 @@ class Plots:
             main_df,
             x="cumsum",
             y=y_var,
-            custom_data=["sc_point_gid", "capacity"],
+            custom_data=["sc_point_gid", self.capcol],
             labels={
                 "cumsum": f"Cumulative {x_title}",
                 y_var: y_title,
@@ -385,7 +400,7 @@ class Plots:
             x=x_var,
             y=y_var,
             opacity=self.alpha,
-            custom_data=["sc_point_gid", "capacity"],
+            custom_data=["sc_point_gid", self.capcol],
             labels={x_var: x_title, y_var: y_title},
             color=self.GROUP,
             color_discrete_sequence=px.colors.qualitative.Safe,
