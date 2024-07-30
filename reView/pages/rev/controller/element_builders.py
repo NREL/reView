@@ -29,19 +29,6 @@ CHART_LAYOUT = copy.deepcopy(DEFAULT_LAYOUT)
 CHART_LAYOUT.update({"legend_title_font_color": "black"})
 
 
-def find_capacity(project):
-    """Find a useable capacity string from a list of column names."""
-    config = Config(project)
-    file = config.files[next(iter(config.files))]
-    columns = read_file(file, nrows=0).columns
-    capcols = [col for col in columns if "capacity" in col]
-    capcols = [col for col in capcols if "factor" not in col]
-    # capcols.sort()  # Need to figure out how to handle ac vs dc
-    if len(capcols) == 0:
-        raise KeyError("No capacity column found!")
-    return capcols[0]
-
-
 def _fix_doubles(df):
     """Check and/or fix columns names when they match."""
     if not isinstance(df, pd.core.frame.Series):
@@ -86,7 +73,7 @@ class Plots:
         self.alpha = alpha
         self.project = project
         self.config = Config(project)
-        self.capcol = find_capacity(project)
+        self.capcol = self.config.capacity_column
 
     def __repr__(self):
         """Print representation string."""

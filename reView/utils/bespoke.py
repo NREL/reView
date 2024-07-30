@@ -12,12 +12,16 @@ Created on Wed Apr 13 10:37:14 2022
 @author: twillia2
 """
 import json
+
 from multiprocessing import cpu_count
+
+import geopandas as gpd
 import pandas as pd
 import pyproj
+
 from pandarallel import pandarallel
 from shapely import geometry
-import geopandas as gpd
+from tqdm import tqdm
 
 pyproj.network.set_network_enabled(False)  # Resolves VPN issues
 
@@ -39,8 +43,7 @@ class BespokeUnpacker:
             A reV supply curve pandas data frame.
         clicksel : dict
             Dictionary containing plotly point attributes from a
-            scattermapbox point selection. If not provided an sc_point_gid
-            is required. Defaults to None.
+            scattermapbox point selection. Defaults to None.
         sc_point_gid : int
             Supply curve grid id. An ID indicating a specific site within a
             full supply curve grid. If not provided, a clicksel dictionary
@@ -53,7 +56,8 @@ class BespokeUnpacker:
         self.sc_point_gid = sc_point_gid
         self.src_crs = "epsg:4326"
         self.trgt_crs = trgt_crs
-        self._declick(clicksel)
+        if sc_point_gid or clicksel:
+            self._declick(clicksel)
 
     def __repr__(self):
         """Return representation string for Layout object."""
@@ -95,6 +99,39 @@ class BespokeUnpacker:
         rdf = rdf[self.df.columns]
         return rdf
 
+    def unpack_row(self, row, capacity_col="capacity"):
+        """Unpack a single row (pandas Series) in a supply curve table."""
+        x, y = self.get_xy(row)
+
+        # Get bottom left coordinates
+        blx = x - (self.spacing / 2)
+        bly = y - (self.spacing / 2)
+
+        # Get layout
+        xs = json.loads(row["turbine_x_coords"])
+        ys = json.loads(row["turbine_y_coords"])
+        xs = [x + blx for x in xs]
+        ys = [y + bly for y in ys]
+
+        # use len(xs) to determine number of turbines because
+        # nturbines does not appear to be a standard column
+        turbine_capacity_mw = row[capacity_col] / len(xs)
+
+        # Build new data frame entries for each turbine
+        new_rows = []
+        for i, x in enumerate(xs):
+            new_row = row.copy()
+            # overwrite existing capacity column (which is typically system
+            # capacity in mw) with turbine capacity in kw for this turbine row.
+            # This maintains compatibility with how capacity is summed and
+            # displayed in the dashboard
+            new_row["capacity"] = turbine_capacity_mw
+            new_row["x"] = x
+            new_row["y"] = ys[i]
+            new_rows.append(new_row)
+
+        return new_rows
+
     def unpack_turbines(self, drop_sc_points=False):
         """Unpack bespoke turbines if possible.
 
@@ -113,40 +150,10 @@ class BespokeUnpacker:
         df = self.df.copy()
 
         # Get coordinates from equal area projection
-        x, y = self.get_xy(row)
-        del row["longitude"]
-        del row["latitude"]
-
-        # Get bottom left coordinates
-        blx = x - (self.spacing / 2)
-        bly = y - (self.spacing / 2)
-
-        # Get layout
-        xs = json.loads(row["turbine_x_coords"])
-        ys = json.loads(row["turbine_y_coords"])
-        xs = [x + blx for x in xs]
-        ys = [y + bly for y in ys]
-
-        # Build new data frame entries for each turbine
-        nrows = []
-
-        # use len(xs) to determine number of turbines because
-        # nturbines does not appear to be a standard column
-        turbine_capacity_mw = row['capacity'] / len(xs)
-
-        for i, x in enumerate(xs):
-            nrow = row.copy()
-            # overwrite existing capacity column (which is typically system
-            # capacity in mw) with turbine capacity in kw for this turbine row.
-            # This maintains compatibility with how capacity is summed and
-            # displayed in the dashboard
-            nrow["capacity"] = turbine_capacity_mw
-            nrow["x"] = x
-            nrow["y"] = ys[i]
-            nrows.append(nrow)
+        new_rows = self.unpack_row(row)
 
         # Build new data frame
-        rdf = pd.DataFrame(nrows)
+        rdf = pd.DataFrame(new_rows)
         rdf = rdf.reset_index(drop=True)
         rdf.index = df.index[-1] + rdf.index + 1
 
@@ -162,6 +169,17 @@ class BespokeUnpacker:
         df = pd.concat([df, rdf])
 
         return df
+
+    def unpack_all(self, capacity_col="capacity_ac_mw"):
+        """Unpack all turbines in all sc points."""
+        new_entries = []
+        df = self.df
+        df = df[df[capacity_col] > 0]
+        for i, row in tqdm(df.iterrows(), total=len(df)):
+            entry = self.unpack_row(row, capacity_col=capacity_col)
+            new_entries += entry
+        ndf = pd.DataFrame(new_entries)
+        ndf = ndf.reset_index(drop=True)
 
     def _declick(self, clicksel):
         """Set needed values from click selection as attributes."""
@@ -247,3 +265,13 @@ def batch_unpack_from_supply_curve(sc_df, n_workers=1):
     all_turbines_gdf = gpd.GeoDataFrame(all_turbines_df, crs='EPSG:4326')
 
     return all_turbines_gdf
+
+
+if __name__ == "__main__":
+    from pathlib import Path
+    HOME = Path("/Users/twillia2/projects/fy24/noise/")
+    SC_FPATH = HOME.joinpath("data/bespoke_config_supply-curve.csv")
+
+    df = pd.read_csv(SC_FPATH)
+    self = BespokeUnpacker(df)
+    ndf = self.unpack_all(capacity_col="capacity_ac_mw")

@@ -38,7 +38,7 @@ from reView.layout.options import (
     COLOR_Q_OPTIONS,
 )
 from reView.layout.styles import TABLET_STYLE
-from reView.pages.rev.controller.element_builders import Plots, find_capacity
+from reView.pages.rev.controller.element_builders import Plots
 from reView.pages.rev.controller.selection import (
     choose_scenario,
     get_variable_options,
@@ -169,7 +169,7 @@ def build_specs(scenario, project):
 
 def build_spec_split(path, project):
     """Calculate the percentage of each scenario present."""
-    cap_field = find_capacity(project)
+    cap_field = Config(project).capacity_column
     df = cache_table(project, y_var=cap_field, x_var="mean_lcoe", path=path)  # Also find mean lcoe field (new field = lcoe_site_usd_per_mwh)
     scenarios, counts = np.unique(df["scenario"], return_counts=True)
     total = df.shape[0]
@@ -783,7 +783,7 @@ def dropdown_variables(
     if old_variable in values:
         value = old_variable
     else:
-        value = find_capacity(project)
+        value = Config(project).capacity_column
 
     return (
         variable_options,
@@ -811,8 +811,8 @@ def dropdown_x_variables(
 ):
     """Return dropdown options for x variable."""
     logger.debug("Setting X variable options")
+    config = Config(project)
     if chart_type == "char_histogram":
-        config = Config(project)
         variable_options = [
             {"label": config.titles.get(x, convert_to_title(x)), "value": x}
             for x in config.characterization_cols
@@ -822,7 +822,7 @@ def dropdown_x_variables(
         variable_options = get_variable_options(
             project, scenario_a, scenario_b, b_div
         )
-        val = find_capacity(project)
+        val = config.capacity_column
 
     if not variable_options:
         variable_options = [{"label": "None", "value": "None"}]
@@ -967,7 +967,7 @@ def figure_chart(
     # Collect minimum needed inputs
     x_var = signal_dict["x"]
     if x_var == "None":
-        x_var = find_capacity(project)
+        x_var = Config(project).capacity_column
     y_var = signal_dict["y"]
     project = signal_dict["project"]
 
@@ -1148,7 +1148,7 @@ def figure_map(
         point_size=point_size,
         reverse_color=reverse_color_clicks % 2 == 1,
     )
-    capcol = find_capacity(project)
+    capcol = Config(project).capacity_column
     mapcap = df[["sc_point_gid", capcol]].to_dict()
 
     # Package returns
@@ -1588,7 +1588,7 @@ def retrieve_signal(
 
     # If no x is specified
     if not x:
-        x = find_capacity(project)
+        x = config.capacity_column
 
     # Set default scenario data set
     if scenario_a == "placeholder":

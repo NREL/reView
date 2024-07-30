@@ -5,8 +5,8 @@ from dash.dependencies import Input, Output, State
 from reView.app import app
 from reView.components.logic import tab_styles, format_capacity_title
 from reView.layout.styles import RC_STYLES
-from reView.pages.rev.controller.element_builders import find_capacity
 from reView.utils import calls
+from reView.utils.config import Config
 
 
 def toggle_reverse_color_button_style(id_prefix):
@@ -121,7 +121,7 @@ def capacity_print(id_prefix):
     @calls.log
     def _capacity_print(map_capacity, map_selection, project):
         """Calculate total remaining capacity."""
-        capcol = find_capacity(project)
+        capcol = Config(project).capacity_column
         return format_capacity_title(map_capacity, map_selection, capcol)
 
     return _capacity_print

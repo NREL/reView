@@ -23,7 +23,6 @@ from reView.utils.functions import (
     convert_to_title,
     strip_rev_filename_endings
 )
-from reView.pages.rev.controller.element_builders import find_capacity
 from reView.pages.rev.model import point_filter
 
 logger = logging.getLogger(__name__)
@@ -91,7 +90,7 @@ class Title:
         self.chart_selection = chart_selection
         self.delimiter = delimiter
         self.x_var = x_var
-        self.capcol = find_capacity(project)
+        self.capcol = self.config.capacity_column
 
     @property
     def scenario(self):
@@ -303,7 +302,7 @@ class Map:
             df, color_var, project, color_range[0], color_range[1]
         )
         self.demand_data = demand_data
-        self.capcol = find_capacity(project)
+        self.capcol = Config(project).capacity_column
 
         if project:
             self.config = Config(project)

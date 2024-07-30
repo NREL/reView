@@ -34,6 +34,50 @@ PROJECT_CONFIGS = load_project_configs()
 PROJECT_NAMES = list(PROJECT_CONFIGS.keys())
 
 
+def contains(pattern, patterns):
+    """Check if a pattern contains any of a list of patterns.
+
+    Parameters
+    ----------
+    pattern : str
+        A string of characters.
+    patterns : list | list-like
+        A list of strings of characters.
+
+    Returns
+    -------
+    bool : A boolean indicating if pattern contains any one of the strings in
+           patterns.
+    """
+    pattern = str(pattern)
+    patterns = [str(pat) for pat in patterns]
+    return any(p in pattern for p in patterns)
+
+
+def infer_capcol(file):
+    """Infer the capacity column from a data frame (prefer ac)."""
+    cols = read_rev(file, nrows=0).columns
+    skippers = ["density", "turbine", "system"]
+    capcols = [col for col in cols if "capacity" in col]
+    capcols = [col for col in capcols if not contains(col, skippers)]
+    if len(capcols) == 1:
+        capcol = capcols[0]
+    elif any("_ac" in col for col in capcols):
+        capcol = [col for col in capcols if "ac" in capcol][0]
+    else:
+        raise KeyError("Could not find capacity column")
+    return capcol
+
+
+def read_rev(fpath, nrows=None):
+    """Infer the appropriate read method for a reV supply curve."""
+    if Path(fpath).name.endswith("parquet"):
+        sc = pd.read_parquet(fpath, nrows=nrows)
+    else:
+        sc = pd.read_csv(fpath, nrows=nrows)
+    return sc
+
+
 class Config:
     """Class for handling configuration variables."""
 
@@ -60,6 +104,14 @@ class Config:
 
     def __repr__(self):
         return f"Config({self.project!r})"
+
+    @property
+    def capacity_column(self):
+        """Return the most appropriate capacity column."""
+        for name, file in self._project_files:
+            break
+        capcol = infer_capcol(file)
+        return capcol
 
     @property
     def capacity_density(self):
