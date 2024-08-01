@@ -180,6 +180,7 @@ class BespokeUnpacker:
             new_entries += entry
         ndf = pd.DataFrame(new_entries)
         ndf = ndf.reset_index(drop=True)
+        return ndf
 
     def _declick(self, clicksel):
         """Set needed values from click selection as attributes."""
@@ -265,13 +266,3 @@ def batch_unpack_from_supply_curve(sc_df, n_workers=1):
     all_turbines_gdf = gpd.GeoDataFrame(all_turbines_df, crs='EPSG:4326')
 
     return all_turbines_gdf
-
-
-if __name__ == "__main__":
-    from pathlib import Path
-    HOME = Path("/Users/twillia2/projects/fy24/noise/")
-    SC_FPATH = HOME.joinpath("data/bespoke_config_supply-curve.csv")
-
-    df = pd.read_csv(SC_FPATH)
-    self = BespokeUnpacker(df)
-    ndf = self.unpack_all(capacity_col="capacity_ac_mw")
