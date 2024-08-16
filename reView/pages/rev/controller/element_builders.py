@@ -310,7 +310,6 @@ class Plots:
                trace_type="bar", time_period="original"):
         """Return plotly figure for requested chart type."""
         if chart_type == "cumsum":
-            print(x_var)
             fig = self.cumulative_sum(x_var, y_var)
         elif chart_type == "scatter":
             fig = self.scatter(x_var, y_var)

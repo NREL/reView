@@ -1,4 +1,5 @@
- # pylint: disable=too-many-lines
+# -*- coding: utf-8 -*-
+# pylint: disable=too-many-lines
 """View reV results using a configuration file.
 
 Things to do:
@@ -20,7 +21,6 @@ from pathlib import Path
 import h5py
 import numpy as np
 import pandas as pd
-import plotly.graph_objects as go
 
 from dash import dcc, html, Input, Output, State, ALL
 from dash.exceptions import PreventUpdate
@@ -976,21 +976,7 @@ def figure_chart(
 
     # Return empty alert
     if all(df.empty for df in dfs.values()):
-        raise PreventUpdate  # Error Popup?
-        # figure = go.Figure()
-        # figure.update_layout(
-        #     xaxis={"visible": False},
-        #     yaxis={"visible": False},
-        #     annotations=[
-        #         {
-        #             "text": "No matching data found",
-        #             "xref": "paper",
-        #             "yref": "paper",
-        #             "showarrow": False,
-        #             "font": {"size": 28},
-        #         }
-        #     ],
-        # )
+        raise PreventUpdate  # Put error popup here
 
     # Turn the map selection object into indices
     if map_selection:
@@ -1587,8 +1573,16 @@ def retrieve_signal(
     trigger = callback_trigger()
 
     # If no x is specified
+    if x.startswith("capacity") and "density" not in x:
+        if x != config.capacity_column:
+            x = config.capacity_column
     if not x:
         x = config.capacity_column
+
+    # Fix y if y is capacity
+    if y.startswith("capacity") and "density" not in y:
+        if y != config.capacity_column:
+            y = config.capacity_column
 
     # Set default scenario data set
     if scenario_a == "placeholder":

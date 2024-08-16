@@ -23,7 +23,7 @@ def main():
     app.run_server(
         host=APP_HOST,
         port=APP_PORT,
-        debug=True,
+        debug=False,
         dev_tools_hot_reload=False
     )
 

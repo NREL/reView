@@ -63,7 +63,7 @@ def infer_capcol(file):
     if len(capcols) == 1:
         capcol = capcols[0]
     elif any("_ac" in col for col in capcols):
-        capcol = [col for col in capcols if "ac" in capcol][0]
+        capcol = [col for col in capcols if "ac" in col][0]
     else:
         raise KeyError("Could not find capacity column")
     return capcol
