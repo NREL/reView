@@ -13,6 +13,7 @@ from functools import cached_property, lru_cache
 from itertools import chain
 from pathlib import Path
 
+import h5py
 import pandas as pd
 
 from reView import REVIEW_DATA_DIR
@@ -54,16 +55,49 @@ def contains(pattern, patterns):
     return any(p in pattern for p in patterns)
 
 
-def infer_capcol(file):
+def decode(df):
+    """Decode the columns of a meta data object from a reV output."""
+    def decode_single(x):
+        """Try to decode a single value, pass if fail."""
+        try:
+            x = x.decode()
+        except UnicodeDecodeError:
+            x = "indecipherable"
+        return x
+
+    for c in df.columns:
+        x = df[c].iloc[0]
+        if isinstance(x, bytes):
+            try:
+                df[c] = df[c].apply(decode_single)
+            except Exception:
+                df[c] = None
+                print("Column " + c + " could not be decoded.")
+        elif isinstance(x, str):
+            try:
+                if isinstance(ast.literal_eval(x), bytes):
+                    try:
+                        self._obj[c] = self._obj[c].apply(
+                            lambda x: ast.literal_eval(x).decode()
+                        )
+                    except Exception:
+                        df[c] = None
+                        print("Column " + c + " could not be decoded.")
+            except:
+                pass
+    return df
+
+
+def infer_capcol(fpath):
     """Infer the capacity column from a data frame (prefer ac)."""
-    cols = read_rev(file, nrows=0).columns
+    cols = read_rev(fpath, nrows=0).columns
     skippers = ["density", "turbine", "system"]
     capcols = [col for col in cols if "capacity" in col]
     capcols = [col for col in capcols if not contains(col, skippers)]
     if len(capcols) == 1:
         capcol = capcols[0]
     elif any("_ac" in col for col in capcols):
-        capcol = [col for col in capcols if "ac" in col][0]
+        capcol = [col for col in capcols if "_ac" in col][0]
     else:
         raise KeyError("Could not find capacity column")
     return capcol
@@ -73,8 +107,12 @@ def read_rev(fpath, nrows=None):
     """Infer the appropriate read method for a reV supply curve."""
     if Path(fpath).name.endswith("parquet"):
         sc = pd.read_parquet(fpath, nrows=nrows)
-    else:
+    elif Path(fpath).name.endswith("csv"):
         sc = pd.read_csv(fpath, nrows=nrows)
+    elif Path(fpath).name.endswith(".h5"):
+        sc = pd.DataFrame(h5py.File(fpath)["meta"][:nrows])
+        if sc.shape[0] > 0:
+            sc = decode(sc)
     return sc
 
 
@@ -108,9 +146,9 @@ class Config:
     @property
     def capacity_column(self):
         """Return the most appropriate capacity column."""
-        for name, file in self._project_files:
+        for _, fpath in self._project_files:
             break
-        capcol = infer_capcol(file)
+        capcol = infer_capcol(fpath)
         return capcol
 
     @property

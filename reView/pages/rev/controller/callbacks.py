@@ -1573,11 +1573,11 @@ def retrieve_signal(
     trigger = callback_trigger()
 
     # If no x is specified
-    if x.startswith("capacity") and "density" not in x:
-        if x != config.capacity_column:
-            x = config.capacity_column
     if not x:
         x = config.capacity_column
+    elif x.startswith("capacity") and "density" not in x:
+        if x != config.capacity_column:
+            x = config.capacity_column
 
     # Fix y if y is capacity
     if y.startswith("capacity") and "density" not in y:
@@ -1987,12 +1987,3 @@ def toggle_timeseries_below_options(n_clicks, is_open):
     if n_clicks:
         return not is_open
     return is_open
-
-
-# @app.callback(
-#     Output("last_project", "children"),
-#     Input("project", "value"),
-# )
-# def store_last_project(project):
-#     """Store last project to reView knows when we switch."""
-#     return project
