@@ -15,6 +15,9 @@ from pathlib import Path
 
 import h5py
 import pandas as pd
+import pyarrow as pa 
+
+from pyarrow.parquet import ParquetFile
 
 from reView import REVIEW_DATA_DIR
 from reView.utils.constants import COMMON_REV_COLUMN_UNITS, SCALE_OVERRIDES
@@ -106,7 +109,12 @@ def infer_capcol(fpath):
 def read_rev(fpath, nrows=None):
     """Infer the appropriate read method for a reV supply curve."""
     if Path(fpath).name.endswith("parquet"):
-        sc = pd.read_parquet(fpath, nrows=nrows)
+        if nrows:
+            pf = ParquetFile(fpath)
+            nrows = next(pf.iter_batches(batch_size=nrows)) 
+            sc = pa.Table.from_batches([nrows]).to_pandas() 
+        else:
+            sc = pd.read_parquet(fpath)
     elif Path(fpath).name.endswith("csv"):
         sc = pd.read_csv(fpath, nrows=nrows)
     elif Path(fpath).name.endswith(".h5"):
