@@ -302,10 +302,12 @@ class Map:
             df, color_var, project, color_range[0], color_range[1]
         )
         self.demand_data = demand_data
-        self.capcol = Config(project).capacity_column
 
         if project:
+            self.capcol = Config(project).capacity_column
             self.config = Config(project)
+        else:
+            self.capcol = "built_capacity"
 
         if project:
             self.units = Config(self.project).units.get(self.color_var, "")
