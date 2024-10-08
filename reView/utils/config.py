@@ -345,7 +345,7 @@ class Config:
         for file in self.all_files:
             scenario = strip_rev_filename_endings(file.name)
             if scenario.endswith(".csv"):
-                print(scenario)
+                #print(scenario)
                 continue
             yield scenario, file
 
