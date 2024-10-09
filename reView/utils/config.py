@@ -15,7 +15,7 @@ from pathlib import Path
 
 import h5py
 import pandas as pd
-import pyarrow as pa 
+import pyarrow as pa
 
 from pyarrow.parquet import ParquetFile
 
@@ -111,8 +111,8 @@ def read_rev(fpath, nrows=None):
     if Path(fpath).name.endswith("parquet"):
         if nrows:
             pf = ParquetFile(fpath)
-            nrows = next(pf.iter_batches(batch_size=nrows)) 
-            sc = pa.Table.from_batches([nrows]).to_pandas() 
+            nrows = next(pf.iter_batches(batch_size=nrows))
+            sc = pa.Table.from_batches([nrows]).to_pandas()
         else:
             sc = pd.read_parquet(fpath)
     elif Path(fpath).name.endswith("csv"):
@@ -310,7 +310,7 @@ class Config:
             pfiles = self.directory.rglob("*.parquet")
             hfiles = self.directory.rglob("*.h5")
             files = chain(cfiles, pfiles, hfiles)
-            yield from files 
+            yield from files
 
     def _check_required_keys_exist(self):
         """Ensure all required keys are present in config file."""
@@ -345,7 +345,6 @@ class Config:
         for file in self.all_files:
             scenario = strip_rev_filename_endings(file.name)
             if scenario.endswith(".csv"):
-                #print(scenario)
                 continue
             yield scenario, file
 

@@ -54,7 +54,6 @@ MAP_LAYOUT.update(
 )
 
 
-
 def make_view(df):
     """Return an updated center view object for mapbox."""
     layout = copy.deepcopy(MAP_LAYOUT)
@@ -380,7 +379,7 @@ class Map:
                 )
             figure.update_traces(marker=self.marker(point_size, reverse_color))
         else:
-            # Create data object 
+            # Create data object
             if "p_name" in self.df:
                 figure = px.scatter_mapbox(
                     data_frame=self.df,
