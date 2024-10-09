@@ -54,7 +54,6 @@ MAP_LAYOUT.update(
 )
 
 
-
 def make_view(df):
     """Return an updated center view object for mapbox."""
     layout = copy.deepcopy(MAP_LAYOUT)
@@ -381,13 +380,24 @@ class Map:
             figure.update_traces(marker=self.marker(point_size, reverse_color))
         else:
             # Create data object
-            figure = px.scatter_mapbox(
-                data_frame=self.df,
-                lon="longitude",
-                lat="latitude",
-                custom_data=["sc_point_gid", self.capcol],
-                hover_name="text",
-            )
+            if "p_name" in self.df:
+                figure = px.scatter_mapbox(
+                    data_frame=self.df,
+                    lon="longitude",
+                    lat="latitude",
+                    # custom_data=["sc_point_gid", self.capcol],
+                    hover_name="p_name",
+                    hover_data="built_capacity"
+                )
+            else:
+                figure = px.scatter_mapbox(
+                    data_frame=self.df,
+                    lon="longitude",
+                    lat="latitude",
+                    # custom_data=["sc_point_gid", self.capcol],
+                    hover_name="sc_point_gid",
+                    hover_data="built_capacity"
+                )
 
             figure.update_traces(
                 marker=self.marker(point_size, reverse_color)
@@ -435,6 +445,7 @@ class Map:
                 df.loc[df["state"] != "nan", "state"] = \
                     df["state"] + ":"
         else:
+            # print(df)
             df.loc[:, "state"] = ""
 
         if "county" in df:

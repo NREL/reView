@@ -33,7 +33,6 @@ SOLAR["lbnl_upv_1km_buffer"][np.isnan(SOLAR["lbnl_upv_1km_buffer"])] = 0
 
 def adjust(file):
     """Separate lease/capacity rates, calculate total charge."""
-    print(file)
     df = pd.read_csv(file)
     df = df[KEEPERS]
     del df["lbnl_upv_1km_buffer"]

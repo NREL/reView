@@ -16,6 +16,9 @@ pd.set_option("mode.chained_assignment", None)
 def cache_reeds(path, year):
     """Create table of single year buildout."""
     df = pd.read_csv(path)
+    # years = df["year"].values
+    # if year not in range(min(years.tolist()), max(years.tolist())+1):
+    #    print(f"{path} does not have data for year : {year}")
     if year not in df["year"].values:
         df = df[df["year"] == year - 1]
     else:

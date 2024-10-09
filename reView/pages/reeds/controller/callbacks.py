@@ -151,8 +151,8 @@ for i in [1, 2]:
             point_size=point_size,
             reverse_color=reverse_color_clicks % 2 == 1,
         )
-
-        mapcap = df[["sc_point_gid", "capacity"]].to_dict()
+        # removed sc_point_gid from 155
+        mapcap = df[["capacity"]].to_dict()
 
         return figure, json.dumps(mapcap)
 
