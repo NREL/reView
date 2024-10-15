@@ -435,7 +435,10 @@ class Map:
                 df.loc[df["state"] != "nan", "state"] = \
                     df["state"] + ":"
         else:
-            df.loc[:, "state"] = ""
+            try:
+                df.loc[:, "state"] = ""
+            except ValueError:
+                df["state"] = ""
 
         if "county" in df:
             if df["county"].isnull().all():
@@ -445,7 +448,10 @@ class Map:
                 df.loc[df["county"] != "nan", "county"] = \
                     df["county"] + " County, "
         else:
-            df.loc[:, "county"] = ""
+            try:
+                df.loc[:, "county"] = ""
+            except ValueError:
+                df["county"] = ""
 
         # Include demand data fro hydrogen runs
         if self.demand_data is not None:

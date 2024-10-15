@@ -1580,7 +1580,7 @@ def retrieve_signal(
             x = config.capacity_column
 
     # Fix y if y is capacity
-    if y.startswith("capacity") and "density" not in y:
+    if y.startswith("capacity") and "density" not in y and "factor" not in y:
         if y != config.capacity_column:
             y = config.capacity_column
 

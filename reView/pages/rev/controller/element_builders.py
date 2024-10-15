@@ -359,12 +359,14 @@ class Plots:
             barmode="group"
         )
 
-        fig.update_traces(
-            marker={"line": {"width": 0}},
-            unselected={"marker": {"color": 'grey'}},
-        )
+        # fig.update_traces(
+        #     unselected={"marker": {"color": 'grey'}},
+        # )
 
-        return self._update_fig_layout(fig, y_var)
+        fig = fig.update_layout(bargap=0.01)
+        fig = self._update_fig_layout(fig, y_var)
+
+        return fig
 
     def scatter(self, x_var, y_var):
         """Return a regular scatter plot."""
@@ -590,7 +592,10 @@ class Plots:
             sdf["count"] = sdf.groupby(y_var)[y_var].transform("count")
             sdf = sdf[[y_var, "count"]].drop_duplicates()
             sdf["group"] = group
-            df = pd.concat([df, sdf])
+            if df.shape[0] > 0:
+                df = pd.concat([df, sdf])
+            else:
+                df = sdf
 
         # Add bin size for chart selection filtering later
         df["bin_size"] = bin_size

@@ -12,10 +12,13 @@ Created on Wed Apr 13 10:37:14 2022
 @author: twillia2
 """
 import json
+import multiprocessing as mp
 
+from functools import partial
 from multiprocessing import cpu_count
 
 import geopandas as gpd
+import numpy as np
 import pandas as pd
 import pyproj
 
@@ -170,15 +173,35 @@ class BespokeUnpacker:
 
         return df
 
-    def unpack_all(self, capacity_col="capacity_ac_mw"):
+    def unpack_all(self, capacity_col="capacity_ac_mw", just_coords=False,
+                   n_workers=None, n_chunks=500):
         """Unpack all turbines in all sc points."""
+        if n_workers is None:
+            n_workers = mp.cpu_count()
+        df = self.df[self.df[capacity_col] > 0]
+        if just_coords:
+            df = df[["sc_point_gid", "latitude", "longitude", capacity_col,
+                     "turbine_y_coords", "turbine_x_coords"]]
+        chunks = np.array_split(df, n_chunks)
         new_entries = []
-        df = self.df
-        df = df[df[capacity_col] > 0]
-        for i, row in tqdm(df.iterrows(), total=len(df)):
-            entry = self.unpack_row(row, capacity_col=capacity_col)
-            new_entries += entry
-        ndf = pd.DataFrame(new_entries)
+        with mp.Pool(n_workers) as pool:
+            mapper = pool.imap(
+                partial(self._unpack_all, capacity_col=capacity_col),
+                chunks
+            )
+            for entry in tqdm(mapper, total=len(chunks)):
+                new_entries.append(entry)
+        ndf = pd.concat(new_entries)
+        ndf = ndf.reset_index(drop=True)
+        return ndf
+
+    def _unpack_all(self, df, capacity_col="capacity_ac_mw"):
+        """Unpack all turbines in all sc points."""
+        new_rows = []
+        for i, row in df.iterrows():
+            out = self.unpack_row(row, capacity_col=capacity_col)
+            new_rows += out
+        ndf = pd.DataFrame(new_rows)
         ndf = ndf.reset_index(drop=True)
         return ndf
 
