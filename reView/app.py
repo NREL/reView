@@ -12,7 +12,7 @@ import dash_bootstrap_components as dbc
 
 from flask_caching import Cache
 
-from reView.layout.layout import layout
+from reView.layout.layout import get_layout
 
 
 DATA_DIR = Path("~/.review/cache-directory").expanduser()
@@ -22,10 +22,12 @@ DATA_DIR.mkdir(exist_ok=True, parents=True)
 app = dash.Dash(
     __name__,
     suppress_callback_exceptions=True,
+    serve_locally=True,
     external_stylesheets=[dbc.themes.BOOTSTRAP],
 )
-app.layout = layout
+app.layout = get_layout
 server = app.server
+
 
 # Dash adds a StreamHandler by default, as do we,
 # so we get rid of the Dash handler instance in favor of our own

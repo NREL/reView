@@ -21,7 +21,7 @@ from reView.layout.options import (
 
 
 def above_map_options_div(id_prefix, class_name=None):
-    """Standard "above map" options div.
+    """Build standard "above map" options div.
 
     Parameters
     ----------

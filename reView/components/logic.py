@@ -30,7 +30,7 @@ def tab_styles(tab_choice, options):
 
 
 def format_capacity_title(
-    map_capacity, map_selection=None, capacity_col_name="capacity"
+    map_capacity, map_selection=None, capacity_col_name="capacity_ac_mw"
 ):
     """Calculate total remaining capacity after all filters are applied.
 
@@ -54,7 +54,6 @@ def format_capacity_title(
     str
         Number of selected sites, formatted as a string.
     """
-
     if not map_capacity:
         return "--", "--"
 

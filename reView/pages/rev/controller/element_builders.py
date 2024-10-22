@@ -12,18 +12,18 @@ Created on Fri May 20 12:07:29 2022
 import copy
 import datetime as dt
 import json
+
 from collections import Counter
 from itertools import cycle
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 import plotly.express as px
 
 from reView.utils.classes import DiffUnitOptions
 from reView.utils.config import Config
 from reView.utils.constants import DEFAULT_POINT_SIZE, DEFAULT_LAYOUT
-from reView.utils.functions import convert_to_title, read_file
-
+from reView.utils.functions import convert_to_title
 
 CHART_LAYOUT = copy.deepcopy(DEFAULT_LAYOUT)
 CHART_LAYOUT.update({"legend_title_font_color": "black"})
@@ -144,7 +144,6 @@ class Plots:
 
     def box(self, y_var):
         """Return a box plot."""
-
         units = self.config.units.get(
             DiffUnitOptions.remove_from_variable_name(y_var), ""
         )
@@ -409,7 +408,7 @@ class Plots:
             break
         return table
 
-    def timeseries(self, y_var="capacity factor", trace_type="bar",
+    def timeseries(self, y_var="profile", trace_type="bar",
                    time_period="original"):
         """Render time series."""
         # Check for valid options
@@ -418,7 +417,10 @@ class Plots:
 
         # Create the plottable dataframe
         main_df = None
+        units = []
         for key, df in self.datasets.items():
+            if df["units"].iloc[0]:
+                units.append(df["units"].iloc[0])
             if main_df is None:
                 key1 = key
                 main_df = df.copy()
@@ -432,13 +434,21 @@ class Plots:
                 df[self.GROUP] = key
                 main_df = pd.concat([main_df, df])
 
-        # Get the right x-axis
+        # Get the right x-axis and y-axis ranges
         if time_period in ["cdf", "pdf"]:
             x = y_var
             y = "Probability"
         else:
             x = "time"
             y = y_var
+        ymin = main_df[y].min()
+        ymax = main_df[y].max()
+
+        # Make sure we're not plotting mutliple y-variables
+        label = "Profile"
+        assert len(np.unique(units)) == 1, "Multiple y-variable units detected"
+        label = units[0]
+        main_df = main_df.rename(columns={"profile": label})
 
         # Aggregate time series if needed
         if trace_type == "bar":
@@ -446,8 +456,8 @@ class Plots:
             fig = px.bar(
                 data_frame=df,  # Single dataset for now
                 x=x,
-                y=y,
-                color=y,
+                y=label,
+                color=label,
                 color_discrete_sequence=px.colors.sequential.Viridis
             )
             fig.update_layout(hovermode="x unified")
@@ -457,14 +467,12 @@ class Plots:
                 line_group=self.GROUP,
                 color=self.GROUP,
                 x=x,
-                y=y
+                y=label
             )
 
             fig.update_layout(hovermode="x")
 
         # Update the layout and axes
-        ymin = main_df[y].min()
-        ymax = main_df[y].max()
         fig.update_layout(yaxis_range=[ymin, ymax * 1.1])
         fig.update_xaxes(showspikes=True)
         fig.update_yaxes(showspikes=True)
@@ -477,6 +485,7 @@ class Plots:
                 ]
             )
         fig = self._update_fig_layout(fig, y_var)
+
         return fig
 
     def _aggregate_timeseries(self, data, y_var="capacity factor",

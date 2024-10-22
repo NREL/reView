@@ -3,9 +3,8 @@
 import os
 import logging
 
-import pandas as pd
 
-from reView.pages.rev.model import read_file
+from reView.utils.readers import read_file
 from reView.utils.config import Config
 from reView.utils.functions import convert_to_title
 
@@ -143,13 +142,13 @@ def get_variable_options(
     # Table variables
     if scenario_a and os.path.exists(scenario_a):
         try:
-            columns = read_file(scenario_a, nrows=1).columns
+            columns = read_file(scenario_a, project, nrows=1).columns
         except:
             print(f"COULD NOT READ {scenario_a}")
             raise
         if "display" in b_div and b_div["display"] == "none":
             if scenario_b and os.path.exists(scenario_b):
-                b_columns = read_file(scenario_b, nrows=1).columns
+                b_columns = read_file(scenario_b, project, nrows=1).columns
                 columns = [c for c in columns if c in b_columns]
         titles = {col: convert_to_title(col) for col in columns}
         config_titles = {k: v for k, v in config.titles.items() if k in titles}

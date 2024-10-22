@@ -12,16 +12,10 @@ from reView.layout.styles import (
     TAB_STYLE,
     TABLET_STYLE,
 )
-from reView.layout.options import (
-    BASEMAP_OPTIONS,
-    COLOR_OPTIONS,
-    REGION_OPTIONS,
-    STATE_OPTIONS,
-)
 
 
 def above_time_options_div(id_prefix, class_name=None):
-    """Standard "above map" options div.
+    """Build standard "above map" options div.
 
     Parameters
     ----------
@@ -146,33 +140,18 @@ def above_time_options_div(id_prefix, class_name=None):
                             id=f"{id_prefix}_time_var_options",
                             style={"width": "100%"},
                             clearable=False,
-                            multi=False
+                            multi=True
                         )
                     )
                 ]
-            ),
-
-            # Placeholder Second Options
-            html.Div(
-                id=f"{id_prefix}_options_2",
-                style={"display": "none"},
-                children=[
-                    dcc.Dropdown(
-                        id=f"{id_prefix}_option_2_options",
-                        clearable=False,
-                        # options=COLOR_OPTIONS,
-                        multi=False,
-                        value="Viridis",
-                    )
-                ],
-            ),
-        ],
+            )
+        ]
     )
 
 
 # pylint: disable=redefined-builtin,invalid-name
 def time_div(id_prefix, class_name=None):
-    """Standard reView time div.
+    """Build standard reView time div.
 
     Parameters
     ----------
@@ -256,7 +235,7 @@ def time_div(id_prefix, class_name=None):
 
 
 def below_time_options_div(id_prefix, class_name=None):
-    """Standard "below time" options div.
+    """Build standard "below time" options div.
 
     Parameters
     ----------

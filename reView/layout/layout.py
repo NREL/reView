@@ -9,9 +9,12 @@ from reView.layout import navbar
 
 
 # fmt: off
-layout = html.Div([
-    navbar.NAVBAR,
-    dcc.Location(id="url", refresh=False),
-    html.Div(id="page_content"),
-    navbar.SIDE_BUTTON,
-])
+def get_layout():
+    """Get the application layout."""
+    layout = html.Div([
+        navbar.NAVBAR,
+        dcc.Location(id="url", refresh=True),
+        html.Div(id="page_content"),
+        navbar.SIDE_BUTTON,
+    ])
+    return layout

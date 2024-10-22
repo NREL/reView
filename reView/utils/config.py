@@ -6,7 +6,6 @@ Created on Sat Aug 15 15:47:40 2020
 @author: travis
 """
 import ast
-import json
 import logging
 
 from functools import cached_property, lru_cache
@@ -18,18 +17,18 @@ import pandas as pd
 import pyarrow as pa 
 
 from pyarrow.parquet import ParquetFile
+from reV.utilities import SupplyCurveField
 
 from reView import REVIEW_DATA_DIR
 from reView.utils.constants import COMMON_REV_COLUMN_UNITS, SCALE_OVERRIDES
 from reView.utils.functions import (
     deep_replace,
     get_project_defaults,
-    load_project_configs,
-    strip_rev_filename_endings,
+    load_project_configs
 )
+from reView.utils.functions import strip_rev_filename_endings
 
 pd.set_option("mode.chained_assignment", None)
-
 logger = logging.getLogger(__name__)
 
 
@@ -75,35 +74,20 @@ def decode(df):
                 df[c] = df[c].apply(decode_single)
             except Exception:
                 df[c] = None
-                print("Column " + c + " could not be decoded.")
+                print(f"Column {c} could not be decoded.")
         elif isinstance(x, str):
             try:
                 if isinstance(ast.literal_eval(x), bytes):
                     try:
-                        self._obj[c] = self._obj[c].apply(
+                        df[c] = df[c].apply(
                             lambda x: ast.literal_eval(x).decode()
                         )
                     except Exception:
                         df[c] = None
-                        print("Column " + c + " could not be decoded.")
+                        print(f"Column {c} could not be decoded.")
             except:
                 pass
     return df
-
-
-def infer_capcol(fpath):
-    """Infer the capacity column from a data frame (prefer ac)."""
-    cols = read_rev(fpath, nrows=0).columns
-    skippers = ["density", "turbine", "system"]
-    capcols = [col for col in cols if "capacity" in col]
-    capcols = [col for col in capcols if not contains(col, skippers)]
-    if len(capcols) == 1:
-        capcol = capcols[0]
-    elif any("_ac" in col for col in capcols):
-        capcol = [col for col in capcols if "_ac" in col][0]
-    else:
-        raise KeyError("Could not find capacity column")
-    return capcol
 
 
 def read_rev(fpath, nrows=None):
@@ -124,17 +108,18 @@ def read_rev(fpath, nrows=None):
     return sc
 
 
-class Config:
+class Config():
     """Class for handling configuration variables."""
 
     _all_configs = {}
     REQUIREMENTS = {"directory"}
 
     def __new__(cls, project=DEFAULT_PROJECT):
+        """Create a new Config object."""
         return cls._all_configs.setdefault(project, super().__new__(cls))
 
     def __init__(self, project=DEFAULT_PROJECT):
-        """Initialize plotting object for a reV project."""
+        """Initialize Config object for a reV project."""
         self.project = project
         self._config = None
         self._check_valid_project_name()
@@ -142,6 +127,7 @@ class Config:
         self._check_required_keys_exist()
 
     def __str__(self):
+        """Return a Config object's string representation.""" 
         msg = (
             f"<reView Config object: "
             f"project={self.project!r}, {len(self.files)} files>"
@@ -149,20 +135,40 @@ class Config:
         return msg
 
     def __repr__(self):
+        """Return a Config object's representation string.""" 
         return f"Config({self.project!r})"
+
+    @property
+    def all_files(self):
+        """:obj:`generator`: Generator of raw project files."""
+        if self.options is not None and "file" in self.options:
+            for file in self.options.file:
+                if file.startswith("./"):
+                    yield self.directory.joinpath(file).expanduser()
+                else:
+                    yield Path(file).expanduser()
+        else:
+            cfiles = self.directory.rglob("*.csv")
+            pfiles = self.directory.rglob("*.parquet")
+            hfiles = self.directory.rglob("*.h5")
+            files = chain(cfiles, pfiles, hfiles)
+            yield from files
 
     @property
     def capacity_column(self):
         """Return the most appropriate capacity column."""
-        for _, fpath in self._project_files:
-            break
-        capcol = infer_capcol(fpath)
-        return capcol
+        if self.current == "ac":
+            col = "capacity_ac_mw"
+        else:
+            col = "capacity_dc_mw"
+            self.legacy_mapping["capacity"] = col
+        return col
 
     @property
     def capacity_density(self):
         """Return capacity-dependent scaling information if available."""
-        density = self._config.get("capacity_density", None)
+        density_field = "capacity_density_included_area_mw_per_km2"
+        density = self._config.get(density_field, None)
         if density:
             density = float(density)
         return density
@@ -171,6 +177,15 @@ class Config:
     def characterization_cols(self):
         """Return list of column names with characterization info."""
         return self._config.get("characterization_cols", [])
+
+    @property
+    def current(self):
+        """Return the expected type of capacity (i.e, 'ac' or 'dc')."""
+        value = self._config.get("current")
+        if not value:
+            # Assume AC for now
+            value = "ac"
+        return value
 
     @property
     def directory(self):
@@ -206,6 +221,29 @@ class Config:
         return self._config.get("groups", {})
 
     @property
+    def legacy_mapping(self):
+        """Return a dictionary mapping of legacy to new field names."""
+        # Read in the official reV mapping
+        mapping = SupplyCurveField.map_from_legacy()
+        mapping = {key: value.value for key, value in mapping.items()}
+
+        # Add a few more we're likely to encounter
+        mapping["capacity_mw"] = "capacity_ac_mw"  # <------------------------- Old key, but sometimes false assumption. Infer wind from solar.
+        mapping["capacity_density"] = \
+            "capacity_density_included_area_mw_per_km2"
+
+        # Hybrid run columns
+        mapping["hybrid_capacity_ac_mw"] = "capacity_ac_mw"
+        mapping["wind_area_sq_km"] = "wind_area_developable_sq_km"
+        mapping["solar_area_sq_km"] = "solar_area_developable_sq_km"
+
+        # Alphabetize
+        sorted_mapping = sorted(mapping.items(), key=lambda item: item[0])
+        mapping = {k: v for k, v in sorted_mapping}
+
+        return mapping
+
+    @property
     def low_cost_groups(self):
         """dict: Low-cost group options dictionary."""
         return self._config.get("low_cost_groups", {})
@@ -217,7 +255,11 @@ class Config:
 
     @cached_property
     def options(self):
-        """:obj:`pandas.DataFrame` or `None`: DataFrame containing
+        """Return a variable options data frame for dropdown selections
+        
+        Returns
+        -------
+        pd.core.frame.DataFrame or None: DataFrame containing
         variables as column names and values as rows, or `None` if the
         "var_file" key was not specified in the config.
         """
@@ -295,22 +337,6 @@ class Config:
         units = COMMON_REV_COLUMN_UNITS.copy()
         units.update(provided_units)
         return units
-
-    @property
-    def all_files(self):
-        """:obj:`generator`: Generator of raw project files."""
-        if self.options is not None and "file" in self.options:
-            for file in self.options.file:
-                if file.startswith("./"):
-                    yield self.directory.joinpath(file).expanduser()
-                else:
-                    yield Path(file).expanduser()
-        else:
-            cfiles = self.directory.rglob("*.csv")
-            pfiles = self.directory.rglob("*.parquet")
-            hfiles = self.directory.rglob("*.h5")
-            files = chain(cfiles, pfiles, hfiles)
-            yield from files 
 
     def _check_required_keys_exist(self):
         """Ensure all required keys are present in config file."""

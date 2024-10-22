@@ -5,9 +5,10 @@ Some of the code in this module is borrowed from rex
 (https://github.com/NREL/rex), though rex itself is not used to limit
 the number of dependencies.
 """
+import logging
 import os
 import sys
-import logging
+
 from functools import partial
 from pathlib import Path
 
@@ -30,12 +31,7 @@ def log_versions():
     logger.debug("  - plotly version %s", plotly.__version__)
 
 
-def init_logger(
-    stream=True,
-    level="INFO",
-    file=None,
-    fmt=FORMAT,
-):
+def init_logger(stream=True, level="INFO", file=None, fmt=FORMAT):
     """Initialize and setup logging instance.
 
     Parameters
@@ -55,7 +51,6 @@ def init_logger(
     fmt : str, optional
         Format for loggings. By default `FORMAT`.
     """
-
     file = file or []
     if isinstance(file, str):
         file = [file]
@@ -92,14 +87,10 @@ def make_handler(factory, level="INFO", fmt=FORMAT):
     handler : `logging.Handler`
         Handler with the specified log level and format.
     """
-
     handler = factory()
-
     handler.setLevel(level.upper())
-
     log_format = logging.Formatter(fmt)
     handler.setFormatter(log_format)
-
     return handler
 
 
@@ -119,7 +110,6 @@ def make_log_file_handler(file_path):
     handler : `logging.FileHandler`
         File handler with `file_path` as the name.
     """
-
     log_file = Path(file_path).resolve()
     os.makedirs(log_file.parent, exist_ok=True)
 
@@ -137,7 +127,6 @@ def make_log_stream_handler():
     handler : `logging.StreamHandler`
         Stream handler with name "stream".
     """
-
     handler = logging.StreamHandler(sys.stdout)
     handler.set_name("stream")
 
@@ -166,7 +155,6 @@ def add_handlers(handlers):
 
 def print_logging_info():
     """Print logger names, levels, and handlers."""
-
     logger_names = [__name__.split(".", maxsplit=1)[0]]
     for name in logger_names:
         print(f"LOGGER: {name!r}")
@@ -184,7 +172,8 @@ def print_logging_info_all_libraries():
 
     Reference
     ---------
-    https://stackoverflow.com/questions/3630774/logging-remove-inspect-modify-handlers-configured-by-fileconfig
+    https://stackoverflow.com/questions/3630774/logging-remove-inspect-modify\
+        -handlers-configured-by-fileconfig
     """
     loggers = logging.Logger.manager.loggerDict
     for package, logger_ in loggers.items():

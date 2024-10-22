@@ -52,8 +52,8 @@ DEFAULT_SIGNAL = {
     "regions": None,
     "diff_units": "original",
     "states": None,
-    "x": "capacity",
-    "y": "capacity",
+    "x": "capacity_ac_mw",
+    "y": "lcoe_site_usd_per_mwh",
 }
 
 
@@ -160,5 +160,5 @@ layout = html.Div(
         dcc.Download(id="download_chart"),
         dcc.Download(id="download_map"),
         html.Div(id="download_info_chart", style={"display": "none"}),
-    ],
+    ]
 )

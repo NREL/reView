@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Chart Divs
+"""Chart Divs.
 
 Functions for generating a chart divs with a given element type and class.
 """
@@ -18,7 +18,7 @@ from reView.layout.styles import (
 
 
 def above_chart_options_div(id_prefix, class_name="row"):
-    """Standard "above chart" options div.
+    """Build standard "above chart" options div.
 
     Parameters
     ----------
@@ -76,7 +76,7 @@ def above_chart_options_div(id_prefix, class_name="row"):
                         multi=False,
                         value="cumsum",
                     )
-                ],
+                ]
             ),
 
             # X-axis Variable
@@ -94,16 +94,16 @@ def above_chart_options_div(id_prefix, class_name="row"):
                             }
                         ],
                         multi=False,
-                        value="capacity",
+                        value="capacity_ac_mw",
                     )
-                ],
+                ]
             )
         ]
     )
 
 
 def below_chart_options_div(id_prefix, class_name=None):
-    """Standard "below chart" options div.
+    """Build standard "below chart" options div.
 
     Parameters
     ----------
@@ -202,7 +202,7 @@ def below_chart_options_div(id_prefix, class_name=None):
 
 # pylint: disable=redefined-builtin,invalid-name
 def chart_div(id_prefix, class_name=None):
-    """Standard reView chart div.
+    """Build standard reView chart div.
 
     Parameters
     ----------

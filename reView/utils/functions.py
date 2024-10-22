@@ -1,7 +1,6 @@
 """reView functions."""
 # pylint: disable=broad-exception-caught
 import ast
-import datetime as dt
 import json
 import logging
 import os
@@ -9,11 +8,6 @@ import re
 
 from pathlib import Path
 
-import h5py
-import pandas as pd
-import pyarrow as pa
-
-from pyarrow.parquet import ParquetFile
 from pygeopkg.conversion.to_geopkg_geom import (
     point_to_gpkg_point,
     make_gpkg_geom_header
@@ -23,7 +17,6 @@ from pygeopkg.core.geopkg import GeoPackage
 from pygeopkg.core.srs import SRS
 from pygeopkg.shared.constants import SHAPE
 from pygeopkg.shared.enumeration import GeometryType, SQLFieldTypes
-from xlrd import XLRDError
 
 import dash
 import numpy as np
@@ -104,7 +97,6 @@ def callback_trigger():
         String representation of callback trigger, or "Unknown" if
         context not found.
     """
-
     try:
         trigger = dash.callback_context.triggered[0]
         trigger = trigger["prop_id"]
@@ -197,7 +189,7 @@ def convert_to_title(col_name):
 
 
 def data_paths():
-    """Dictionary of posix path objects for reView package data.
+    """Return dictionary of posix path objects for reView package data.
 
     Returns
     -------
@@ -236,7 +228,7 @@ def decode(df):
                     try:
                         df[c] = df[c].apply(
                             lambda x: ast.literal_eval(x).decode()
-                            )
+                        )
                     except Exception:
                         df[c] = None
                         print(f"Column {c} could not be decoded.")
@@ -280,30 +272,6 @@ def get_project_defaults():
     with open(fpath, "r", encoding="utf-8") as file:
         defaults = json.load(file)
     return defaults
-
-
-def get_sheet(file_name, sheet_name=None, header=0):
-    """Read in/check available sheets from an excel spreadsheet file."""
-    # Open file
-    file = pd.ExcelFile(file_name)
-    sheets = file.sheet_names
-
-    # Run with no sheet_name for a list of available sheets
-    if not sheet_name:
-        print("No sheet specified, returning a list of available sheets.")
-        return sheets
-    if sheet_name not in sheets:
-        raise ValueError(sheet_name + " not in file.")
-
-    # Try to open sheet, print options if it fails
-    try:
-        table = file.parse(sheet_name=sheet_name, header=header)
-    except XLRDError:
-        print(sheet_name + " is not available. Available sheets:\n")
-        for s in sheets:
-            print("   " + s)
-
-    return table
 
 
 def is_int(val):
@@ -395,134 +363,6 @@ def load_project_configs(config_dir=REVIEW_CONFIG_DIR):
     return project_configs
 
 
-def read_file(file, nrows=None):
-    """Read a CSV, Parquet, or HDF5 file. Only the meta read for HDF5.
-
-    Parameters
-    ----------
-    file : str
-        Path to a reV data frame. CSV, Parquet, and HDF5 formats accepted.
-    nrows : int
-        Number of rows to read in.
-
-    Returns
-    -------
-    pd.core.frame.DataFrame
-    """
-    # Get extension
-    ext = os.path.splitext(file)[-1]
-    name = os.path.basename(file)
-
-    # Check extension and read file
-    if ext in (".parquet", ".pqt"):
-        if nrows:
-            pf = ParquetFile(file)
-            rows = next(pf.iter_batches(batch_size=nrows))
-            data = pa.Table.from_batches([rows]).to_pandas()
-        else:
-            data = pd.read_parquet(file)
-    elif ext == ".csv":
-        data = pd.read_csv(file, nrows=nrows, low_memory=False)
-    elif ext == ".h5":
-        with h5py.File(file, "r") as ds:
-            if nrows:
-                data = pd.DataFrame(ds["meta"][:nrows])
-            else:
-                data = pd.DataFrame(ds["meta"][:])
-            decode(data)
-    else:
-        raise OSError(f"{file}'s extension not compatible at the moment.")
-
-    # Assign a scenario name to the dataframe (useful for composite building)
-    if "scenario" not in data:
-        data["scenario"] = strip_rev_filename_endings(name)
-
-    return data
-
-
-def read_timeseries(file, gids=None, nsteps=None, variable="rep_profiles_0"):
-    # pylint: disable=no-member
-    """Read in a time-series from an HDF5 file.
-
-    Parameters
-    ----------
-    file : str
-        Path to HDF5 file.
-    gids : list
-        List of sc_point_gids to use to filter sites.
-    nsteps : int
-        Number of time-steps to read in.
-    variable : str
-        Name of the HDF5 data set to return.
-
-    Returns
-    -------
-    pd.core.frame.DataFrame
-        A apandas dataframe containing the time-series, datetime stamp,
-        day, week, and month.
-    """
-    # Open file and pull out needed datasets (how to catch with context mgmt?)
-    try:
-        ds = h5py.File(file)
-    except OSError:
-        print(f"Could not read {file} with h5py.")
-        logger.error("Could not read %s with h5py.", str(file))
-        raise
-
-    # Get meta, convert gids to index positions if needed
-    meta = pd.DataFrame(ds["meta"][:])
-
-    # Set nsteps
-    if nsteps is None:
-        nsteps = ds["time_index"].shape[0]
-
-    # Find site indices
-    if gids is not None:
-        meta = meta[meta["sc_point_gid"].isin(gids)]
-    idx = list(meta.index)
-
-    # If no time index found, raise error
-    variables = list(ds)
-    if not any("time_index" in var for var in variables):
-        raise NotImplementedError("Cannot handle the time series formatting "
-                                  f"in {file}.")
-
-    # If dset is associated with a year time index, use that time index
-    time_index = "time_index"
-    if "-" in variable and "time_index" not in variables:
-        year = int(variable.split("-")[-1])
-        time_index = f"time_index-{year}"
-
-    # Break down time entries
-    time = [t.decode() for t in ds[time_index][:nsteps]]
-    dtime = [dt.datetime.strptime(t, TIME_PATTERN) for t in time]
-    minutes = [t.minute for t in dtime]
-    hours = [t.hour for t in dtime]
-    days = [t.timetuple().tm_yday for t in dtime]
-    weeks = [t.isocalendar().week for t in dtime]
-    months = [t.month for t in dtime]
-
-    # Process target data set
-    data = ds[variable][:nsteps, idx]
-    data = data.mean(axis=1)
-
-    # Close dataset, how do we handle read errors with context management?
-    ds.close()
-
-    # Compile data frame
-    data = pd.DataFrame({
-        "time": time,
-        "minute": minutes,
-        "hour": hours,
-        "daily": days,
-        "weekly": weeks,
-        "monthly": months,
-        variable: data
-    })
-
-    return data
-
-
 def safe_convert_percentage_to_decimal(value):
     """Convert a percentage value to a decimal if it is > 1%.
 
@@ -572,7 +412,6 @@ def shorten(string, new_length, inset="...", chars_at_end=5):
     str
         Shortened string.
     """
-
     if len(string) <= new_length:
         return string
 
@@ -601,7 +440,7 @@ def strip_rev_filename_endings(filename):
 
     Returns
     -------
-    str
+    str : 
         Filename without the file endings listed above.
 
     Examples
@@ -613,7 +452,6 @@ def strip_rev_filename_endings(filename):
     >>> strip_rev_filename_endings('name_supply-curve-aggregation.csv')
     'name'
     """
-
     patterns = [
         r"_sc\.csv",
         r"_agg\.csv",
@@ -687,14 +525,6 @@ def to_geo(df, dst, layer):
 
             # Lower case just because
             ncol = ncol.lower()
-
-            # Columns also can't start with an integer
-            # parts = ncol.split("_")
-            # for part in parts:
-            #     if is_int(part):
-            #         npart1 = "_".join(ncol.split("_")[1:])
-            #         npart2 = ncol.split("_")[0]
-            #         ncol = "_".join([npart1, npart2])
 
             # Rename column
             if col != ncol:
@@ -789,7 +619,7 @@ def to_sarray(df):
 
 
 def __replace_value(dictionary, replacement, key, value):
-    """Attempts replacement and recursively calls `deep_replace`."""
+    """Attempt to replace values and recursively call `deep_replace`."""
     try:
         if value in replacement:
             dictionary[key] = replacement[value]
@@ -797,49 +627,3 @@ def __replace_value(dictionary, replacement, key, value):
         pass
 
     deep_replace(value, replacement)
-
-
-def find_capacity_column(supply_curve_df, cap_col_candidates=None):
-    """
-    Identifies the capacity column in a supply curve dataframe from a list of
-    candidate columns. If more than one of the candidate columns is found in
-    the dataframe, only the first one that occurs will be returned.
-
-    Parameters
-    ----------
-    supply_curve_df : pandas.DataFrame
-        Supply curve data frame
-    cap_col_candidates : [list, None], optional
-        Candidate capacity column names, by default None, which will result in
-        using the candidate column names ["capacity", "capacity_mw",
-        "capacity_mw_dc"].
-
-    Returns
-    -------
-    str
-        Name of capacity column
-
-    Raises
-    ------
-    ValueError
-        Raises a ValueError if none of the candidate capacity columns are
-        found in the input dataframe.
-    """
-    if cap_col_candidates is None:
-        cap_col_candidates = [
-            "capacity", "capacity_mw", "capacity_mw_dc"
-        ]
-
-    cap_col = None
-    for candidate in cap_col_candidates:
-        if candidate in supply_curve_df.columns:
-            cap_col = candidate
-            break
-
-    if cap_col is None:
-        raise ValueError(
-            "Could not find capacity column using candidate column names: "
-            f"{cap_col_candidates} "
-        )
-
-    return cap_col

@@ -264,10 +264,10 @@ TOPTIONS = [
                         options=[
                             {
                                 "label": "Capacity",
-                                "value": "capacity",
+                                "value": "capacity_ac_mw",
                             }
                         ],
-                        value="capacity",
+                        value="capacity_ac_mw",
                     ),
                 ],
                 className="three columns",

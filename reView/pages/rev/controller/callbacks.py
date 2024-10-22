@@ -46,12 +46,14 @@ from reView.pages.rev.controller.selection import (
 from reView.pages.rev.model import (
     apply_all_selections,
     apply_filters,
+    ReCalculatedData
+)
+from reView.utils.readers import (
     cache_chart_tables,
     cache_map_data,
     cache_table,
     cache_timeseries,
     calc_least_cost,
-    ReCalculatedData
 )
 from reView.pages.rev.view import DEFAULT_PROJECT
 from reView.utils.bespoke import BespokeUnpacker
@@ -59,10 +61,9 @@ from reView.utils.constants import SKIP_VARS
 from reView.utils.functions import (
     convert_to_title,
     callback_trigger,
-    read_file,
-    strip_rev_filename_endings,
     to_geo
 )
+from reView.utils.readers import (read_file, strip_rev_filename_endings)
 from reView.utils.config import Config
 from reView.utils import calls
 
@@ -109,9 +110,6 @@ def build_scenario_dropdowns(groups, dropid=None, multi=False, dynamic=False,
             height = f"{58}px"
         else:
             height = None
-
-        # Don't use "all" as the default value (large file list problem)
-        values = [op["value"] for op in options if op["value"] != "all"]
 
         # Build dropdown object
         dropdown = html.Div(
@@ -1181,32 +1179,41 @@ def figure_timeseries(
     if not project:
         project = signal_dict["project"]
 
-    # Collect all requested datasets
-    datasets = {}
+    # Collect all requested files
     files = [file]
     if additional_scenarios:
         files += additional_scenarios
 
-    # Read in timeseries data
+    # If we have a single variable, we still want to iterate
+    if not isinstance(variable, list):
+        variable = [variable]
+
+    # Read in all timeseries datasets
+    datasets = {}
     for file in files:
-        name = strip_rev_filename_endings(Path(file).name)
-        try:
-            data = cache_timeseries(
-                file,
-                map_selection,
-                chart_selection,
-                map_click,
-                variable
-            )
-        except (KeyError, ValueError) as exc:
-            raise PreventUpdate from exc
-        datasets[name] = data
+        for var in variable:
+            name = strip_rev_filename_endings(Path(file).name) + f"_{var}"
+            try:
+                data = cache_timeseries(
+                    file,
+                    project,
+                    map_selection,
+                    chart_selection,
+                    map_click,
+                    var
+                )
+            except (KeyError, ValueError) as exc:
+                raise PreventUpdate from exc
+            datasets[name] = data
+
+    # We need a singular variable?
+    var_title = ", ".join(variable)
 
     # Build Title
-    title_builder = Title(datasets, signal_dict, variable, project)
+    title_builder = Title(datasets, signal_dict, var_title, project)
     title = title_builder.chart_title
 
-    # Create figure
+    # Create plotting object
     plotter = Plots(
         project,
         datasets=datasets,
@@ -1215,9 +1222,11 @@ def figure_timeseries(
         user_scale=(0, 1),
         alpha=1,
     )
+
+    # Create figure
     fig = plotter.figure(
         chart_type="timeseries",
-        y_var=variable,
+        y_var="profile",
         trace_type=trace_type,
         time_period=time_period
     )
@@ -1489,7 +1498,6 @@ def retrieve_chart_tables(y_var, x_var, state):
 @calls.log
 def retrieve_filters(__, ___, var1, var2, var3, var4, q1, q2, q3, q4):
     """Retrieve filter variable names and queries."""
-
     variables = [var1, var2, var3, var4]
     queries = [q1, q2, q3, q4]
 
@@ -1572,17 +1580,11 @@ def retrieve_signal(
     config = Config(project)
     trigger = callback_trigger()
 
-    # If no x is specified
+    # If no x or y is specified
     if not x:
         x = config.capacity_column
-    elif x.startswith("capacity") and "density" not in x:
-        if x != config.capacity_column:
-            x = config.capacity_column
-
-    # Fix y if y is capacity
-    if y.startswith("capacity") and "density" not in y and "factor" not in y:
-        if y != config.capacity_column:
-            y = config.capacity_column
+    if not y:
+        y = "lcoe_site_usd_per_mwh"
 
     # Set default scenario data set
     if scenario_a == "placeholder":
@@ -1772,7 +1774,6 @@ def tabs_chart(tab_choice, chart_choice):
 @calls.log
 def toggle_bins(chart_type):
     """Show the bin size option under the chart."""
-
     if chart_type in {"binned", "histogram", "char_histogram"}:
         return {}
     return {"display": "none"}
@@ -1784,6 +1785,7 @@ def toggle_bins(chart_type):
     State("side_options", "is_open"),
 )
 def toggle_offcanvas(n1, is_open):
+    """Toggle the side options canvas on and off."""
     if n1:
         return not is_open
     return is_open

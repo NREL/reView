@@ -2,13 +2,10 @@
 """Scenario page data model."""
 import json
 import logging
-import multiprocessing as mp
 import operator
-import os
 import platform
 
 from collections import Counter
-from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -16,10 +13,7 @@ import pandas as pd
 from pandarallel import pandarallel as pdl
 from sklearn.neighbors import BallTree
 from sklearn.metrics import DistanceMetric
-from tqdm import tqdm
 
-from reView.app import cache, cache2, cache3, cache4
-from reView.layout.options import REGIONS
 from reView.utils.functions import (
     adjust_cf_for_losses,
     as_float,
@@ -27,9 +21,6 @@ from reView.utils.functions import (
     lcoe,
     lcot,
     safe_convert_percentage_to_decimal,
-    read_file,
-    read_timeseries,
-    strip_rev_filename_endings
 )
 from reView.utils.config import Config
 
@@ -125,27 +116,31 @@ def adjust_capacities(df, project, signal_dict, x_var, chart_selection):
 # pylint: disable=too-many-locals, too-many-branches, too-many-statements
 def apply_all_selections(df, signal_dict, project, chart_selection,
                          map_selection, y_var, x_var, chart_type):
-    """_summary_
+    """Apply all user selections to a data frame.
 
     Parameters
     ----------
-    df : _type_
-        _description_
-    map_func : _type_
-        _description_
-    project : _type_
-        _description_
-    chartsel : _type_
-        _description_
-    mapsel : _type_
-        _description_
-    clicksel : _type_
-        _description_
+    df : pd.core.frame.DataFrame
+        A reV data frame.
+    project : str
+        The name of the project containing the reV data frame.
+    chart_selection : dict
+        A plotly-derived dictionary of selected elements from the chart.
+    mapsel : dict
+        A plotly-derived dictionary of selected elements from the map.
+    y_var : str
+        The column in `df` representing the y variable.
+    x_var : str
+        The column in `df` representing the x variable.
+    chart_type : str
+        A string representing the type of chart the output data frame will be
+        used in. Options include: `char_histogram` for a characterization
+        layer histogram or `histogram` for standard variable histograms.
 
     Returns
     -------
-    _type_
-        _description_
+    pd.core.frame.DataFrame
+        A formatted data frame for use in the chart element of the layout.
     """
     if chart_type == "char_histogram":
         if chart_selection and len(chart_selection["points"]) > 0:
@@ -179,7 +174,6 @@ def apply_all_selections(df, signal_dict, project, chart_selection,
 
 def apply_filters(df, filters):
     """Apply filters from string entries to dataframe."""
-
     ops = {
         ">=": operator.ge,
         ">": operator.gt,
@@ -197,217 +191,6 @@ def apply_filters(df, filters):
                 df = df[operator_(df[var], value)]
 
     return df
-
-
-def build_name(path):
-    """Infer scenario name from path."""
-    file = os.path.basename(path)
-    name = strip_rev_filename_endings(file)
-    name = " ".join([n.capitalize() for n in name.split("_")])
-    return name
-
-
-def calc_least_cost(paths, dst, composite_function="min",
-                    composite_variable="total_lcoe"):
-    """Build the single least cost table from a list of tables."""
-    # Not including an overwrite option for now
-    if not os.path.exists(dst):
-
-        # Collect all data frames - biggest lift of all
-        paths = [Path(path) for path in paths]
-        dfs = []
-        ncpu = min([len(paths), mp.cpu_count() - 1])
-        with mp.pool.ThreadPool(ncpu) as pool:
-            for data in tqdm(pool.imap(read_file, paths), total=ncpu):
-                dfs.append(data)
-
-        # Make one big data frame and save
-        data = composite(
-            dfs,
-            composite_function=composite_function,
-            composite_variable=composite_variable
-        )
-        data.to_csv(dst, index=False)
-
-
-# pylint: disable=no-member
-# pylint: disable=unsubscriptable-object
-# pylint: disable=unsupported-assignment-operation
-@cache.memoize()
-def cache_table(project, path, y_var, x_var, recalc_table=None, recalc="off"):
-    """Read in just a single table."""
-    # Get config
-    config = Config(project)
-
-    # Get the table
-    if recalc == "on":
-        data = ReCalculatedData(
-            config=Config(project)).build(
-                path, recalc_table
-        )
-    else:
-        data = read_file(path)
-
-    # We want some consistent fields
-    if "capacity" not in data.columns and "hybrid_capacity" in data.columns:
-        data["capacity"] = data["hybrid_capacity"].copy()
-
-    # If characterization, use modal category
-    if x_var in config.characterization_cols:
-        ncol = x_var + "_mode"
-        cdata = data[(~data[y_var].isnull()) & (data[y_var] != "{}")]
-        odata = data[(data[y_var].isnull()) | (data[y_var] == "{}")]
-        odata[ncol] = "nan"
-        cdata[ncol] = cdata[x_var].map(json.loads)
-        cdata[ncol] = cdata[ncol].apply(key_mode)
-        if "lookup" in config.characterization_cols[x_var]:
-            lookup = config.characterization_cols[x_var]["lookup"]
-            cdata[ncol] = cdata[ncol].map(lookup)
-        data = pd.concat([odata, cdata])
-
-    # If characterization, use modal category
-    if y_var in config.characterization_cols:
-        ncol = y_var + "_mode"
-        cdata = data[(~data[y_var].isnull()) & (data[y_var] != "{}")]
-        odata = data[(data[y_var].isnull()) | (data[y_var] == "{}")]
-        odata[ncol] = "nan"
-        cdata[ncol] = cdata[x_var].map(json.loads)
-        cdata[ncol] = cdata[ncol].apply(key_mode)
-        if "lookup" in config.characterization_cols[y_var]:
-            lookup = config.characterization_cols[y_var]["lookup"]
-            cdata[ncol] = cdata[ncol].astype(float).astype(int).astype(str)
-            cdata[ncol] = cdata[ncol].map(lookup)
-        data = pd.concat([odata, cdata])
-
-    return data
-
-
-@cache3.memoize()
-def  cache_chart_tables(
-    signal_dict
-):
-    """Read and store a data frame from the config and options given."""
-    # Unpack subsetting information
-    signal_copy = signal_dict.copy()
-    states = signal_copy["states"]
-    regions = signal_dict["regions"]
-
-    # If multiple tables selected, make a list of those files
-    if signal_copy["added_scenarios"]:
-        files = [signal_copy["path"]] + signal_copy["added_scenarios"]
-    else:
-        files = [signal_copy["path"]]
-
-    # Remove additional scenarios from signal_dict for the cache's sake
-    del signal_copy["added_scenarios"]
-
-    # Make a signal copy for each file
-    signal_dicts = []
-    for file in files:
-        signal = signal_copy.copy()
-        signal["path"] = file
-        signal_dicts.append(signal)
-
-    # Get the requested data frames
-    dfs = {}
-    for signal in signal_dicts:
-        name = build_name(signal["path"])
-        df = cache_map_data(signal)
-
-        # Subset by state selection
-        if states:
-            if any(df["state"].isin(states)):
-                df = df[df["state"].isin(states)]
-
-            if "offshore" in states:
-                df = df[df["offshore"] == 1]
-            if "onshore" in states:
-                df = df[df["offshore"] == 0]
-
-        # Divide into regions if one table (cancel otherwise for now)
-        if regions is not None and len(signal_dicts) == 1:
-            dfs = {r: df[df["state"].isin(REGIONS[r])] for r in regions}
-        else:
-            dfs[name] = df
-
-    return dfs
-
-
-@cache2.memoize()
-def cache_map_data(signal_dict):
-    """Read and store a data frame from the config and options given."""
-    # Get signal elements
-    filters = signal_dict["filters"]
-    mask = signal_dict["mask"]
-    path = signal_dict["path"]
-    path2 = signal_dict["path2"]
-    project = signal_dict["project"]
-    recalc_tables = signal_dict["recalc_table"]
-    recalc = signal_dict["recalc"]
-    states = signal_dict["states"]
-    regions = signal_dict["regions"]
-    diff_units = signal_dict["diff_units"]
-    y_var = signal_dict["y"]
-    x_var = signal_dict["x"]
-
-    # Unpack recalc table
-    recalc_a = recalc_tables["scenario_a"]
-    recalc_b = recalc_tables["scenario_b"]
-
-    # Read and cache first table
-    df1 = cache_table(project, path, y_var, x_var, recalc_a, recalc)
-
-    # Apply filters
-    df1 = apply_filters(df1, filters)
-
-    # If there's a second table, read/cache the difference
-    if path2 and os.path.isfile(path2):
-        # Match the format of the first dataframe
-        df2 = cache_table(project, path2, y_var, x_var, recalc_b, recalc)
-        df2 = apply_filters(df2, filters)
-
-        # If the difference option is specified difference
-        calculator = Difference(
-            index_col="sc_point_gid",
-            diff_units=diff_units
-        )
-        df = calculator.calc(df1, df2, y_var)
-
-        # If mask, try that here
-        if mask == "on":
-            df = calc_mask(df1, df)
-    else:
-        df = df1
-
-    # Filter for states
-    if states:
-        if any(df["state"].isin(states)):
-            df = df[df["state"].isin(states)]
-
-        if "offshore" in states:
-            df = df[df["offshore"] == 1]
-        if "onshore" in states:
-            df = df[df["offshore"] == 0]
-
-    # Filter for regions
-    if regions:
-        states = sum([REGIONS[region] for region in regions], [])
-        df = df[df["state"].isin(states)]
-
-    return df
-
-
-@cache4.memoize()
-def cache_timeseries(file, map_selection, chart_selection, map_click=None,
-                     variable="rep_profiles_0"):
-    """Read and store a timeseries data frame with site selections."""
-    # Convert map and chart selections into site indices
-    gids = point_filter(map_selection, chart_selection, map_click)
-
-    # Read in data frame
-    data = read_timeseries(file, gids, nsteps=None, variable=variable)
-
-    return data
 
 
 def calc_mask(df1, df2, unique_id_col="sc_point_gid"):
@@ -508,7 +291,7 @@ def filter_points_by_demand(df, load_center_coords, load):
     sc_coords = np.radians(sc_coords)
     load_center_coords = np.array(load_center_coords).reshape(-1, 2)
     out = DIST_METRIC.pairwise(load_center_coords, sc_coords)
-    # print(out.shape, df.shape)
+
     df["dist_to_selected_load"] = out.reshape(-1) * 6373.0
     df["selected_load_pipe_lcoh_component"] = (
         df["pipe_lcoh_component"]
@@ -520,15 +303,12 @@ def filter_points_by_demand(df, load_center_coords, load):
     )
     df = df.sort_values("selected_lcoh")
     df["h2_supply"] = df["hydrogen_annual_kg"].cumsum()
+
     where_inds = np.where(df["h2_supply"] >= load)[0]
-    # print(f'{load=}')
-    # max_supply = df["h2_supply"].max()
-    # print(f'{max_supply=}')
-    # print(f'{where_inds=}')
     if where_inds.size > 0:
         final_ind = np.where(df["h2_supply"] >= load)[0].min() + 1
         df = df.iloc[0:final_ind]
-    # print(f'{df=}')
+
     return df
 
 
@@ -742,6 +522,9 @@ class ReCalculatedData:
             recalc_table = json.loads(recalc_table)
         if any(recalc_table.values()):
             data = self.re_calc(data, path, recalc_table)
+
+        # Apply legacy mapping
+        data = data.rename(columns=self.config.legacy_mapping)
 
         return data
 

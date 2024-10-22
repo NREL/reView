@@ -19,10 +19,8 @@ from reView import Q_
 from reView.utils.classes import DiffUnitOptions
 from reView.utils.config import Config
 from reView.utils.constants import COLORS, DEFAULT_LAYOUT
-from reView.utils.functions import (
-    convert_to_title,
-    strip_rev_filename_endings
-)
+from reView.utils.functions import convert_to_title
+from reView.utils.readers import strip_rev_filename_endings
 from reView.pages.rev.model import point_filter
 
 logger = logging.getLogger(__name__)
@@ -52,7 +50,6 @@ MAP_LAYOUT.update(
         }
     }
 )
-
 
 
 def make_view(df):
@@ -226,19 +223,19 @@ class Title:
             try:
                 weights = df["area_sq_km"]
             except KeyError:
-                weights = df["wind_area_sq_km"]
+                weights = df["wind_area_developable_sq_km"]
 
         elif "solar" in self.color_var:
             try:
                 weights = df["area_sq_km"]
             except KeyError:
-                weights = df["solar_area_sq_km"]
-        elif "area_sq_km" not in df:  # Quick fix change for bespoke hybrids
+                weights = df["solar_area_developable_sq_km"]
+        elif "area_developable_sq_km" not in df:  # Quick fix change for bespoke hybrids
             weights = df[self.capcol]
         else:
-            weights = df["area_sq_km"]
+            weights = df["area_developable_sq_km"]
 
-        skippers = [self.capcol, "area_sq_km"]  # Don't use weights for these
+        skippers = [self.capcol, "area_developable_sq_km"]  # Don't use weights for these
 
         if (agg_type == "mean" and self.color_var not in skippers):
             aggregation = np.average(
