@@ -25,28 +25,6 @@ with open(os.path.join(REPO_DIR, "README.md"), encoding="utf-8") as f:
 
 with open("requirements.txt") as f:
     INSTALL_REQUIREMENTS = f.readlines()
-with open("environment.yml") as f:
-    all_lines = [ln.replace("\n", "").rstrip() for ln in f.readlines()]
-
-deps_start_line = all_lines.index("dependencies:") + 1
-all_dep_lines = all_lines[deps_start_line:]
-all_deps = [ln.lstrip().replace("- ", "") for ln in all_dep_lines]
-
-if "pip:" in all_deps:
-    pip_line = all_deps.index("pip:")
-else:
-    pip_line = -1  # pylint: disable=invalid-name
-
-conda_deps = [ln for ln in all_deps[:pip_line] if not ln.startswith("python")]
-INSTALL_REQUIREMENTS += conda_deps
-
-SKIP_DEPS = []
-for skip_dep in SKIP_DEPS:
-    skip_matches = list(
-        filter(re.compile(skip_dep).match, INSTALL_REQUIREMENTS)
-    )
-    for skip_match in skip_matches:
-        INSTALL_REQUIREMENTS.pop(INSTALL_REQUIREMENTS.index(skip_match))
 
 with open("requirements_dev.txt") as f:
     DEV_REQUIREMENTS = f.readlines()
@@ -79,13 +57,15 @@ setup(
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Science/Research",
         "Natural Language :: English",
-        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
         "Framework :: Dash",
     ],
     test_suite="tests",
     include_package_data=True,
     package_data={"": ["data/*", "data/**/*"]},
-    # install_requires=INSTALL_REQUIREMENTS,
+    install_requires=INSTALL_REQUIREMENTS,
     extras_require={
         "gunicorn": GUNICORN_REQUIREMENTS,
         "dev": DEV_REQUIREMENTS,

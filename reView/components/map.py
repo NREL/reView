@@ -230,12 +230,12 @@ class Title:
                 weights = df["area_sq_km"]
             except KeyError:
                 weights = df["solar_area_developable_sq_km"]
-        elif "area_developable_sq_km" not in df:  # Quick fix change for bespoke hybrids
+        elif "area_developable_sq_km" not in df:
             weights = df[self.capcol]
         else:
             weights = df["area_developable_sq_km"]
 
-        skippers = [self.capcol, "area_developable_sq_km"]  # Don't use weights for these
+        skippers = [self.capcol, "area_developable_sq_km"]
 
         if (agg_type == "mean" and self.color_var not in skippers):
             aggregation = np.average(
@@ -284,9 +284,7 @@ class Map:
         basemap="light",
         colorscale="Viridis",
         color_range=None,
-        demand_data=None,
-        view=None,
-        update_view=False
+        demand_data=None
     ):
         """Initialize ScatterPlot object."""
         self.df = df
