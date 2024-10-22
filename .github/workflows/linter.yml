@@ -3,8 +3,10 @@ name: Lint Code Base
 on:
   pull_request:
     branches: [master, main]
-  push
-  
+  push:
+    branches: 
+      - "*"
+      
 jobs:
   build:
     name: Lint Code Base
