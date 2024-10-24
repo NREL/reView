@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """CLI tests."""
 # pylint: disable=too-many-lines
+import sys
 import pathlib
 import tempfile
 from difflib import SequenceMatcher
@@ -253,6 +254,9 @@ def test_make_maps(
             supply_curve_file = map_supply_curve_wind.as_posix()
         elif tech == "solar":
             supply_curve_file = map_supply_curve_solar.as_posix()
+        else:
+            print("No tech type is assigned.")
+            sys.exit(1)
 
         with tempfile.TemporaryDirectory() as tempdir:
             output_path = pathlib.Path(tempdir)
@@ -952,7 +956,7 @@ def test_histogram_default_bins(
             '-W', 75,
             '-H', 15
         ],
-        terminal_width=1000 # needed for height to be applied correctly
+        terminal_width=1000  # needed for height to be applied correctly
     )
     assert result.exit_code == 0, (
         f"Command failed with error {result.exception}"
@@ -987,7 +991,7 @@ def test_histogram_5bins(
             '-H', 15,
             '-N', 5
         ],
-        terminal_width=1000 # needed for height to be applied correctly
+        terminal_width=1000  # needed for height to be applied correctly
     )
     assert result.exit_code == 0, (
         f"Command failed with error {result.exception}"
@@ -1022,7 +1026,7 @@ def test_histogram_nonnumeric_column(
             '-W', 75,
             '-H', 15
         ],
-        terminal_width=1000 # needed for height to be applied correctly
+        terminal_width=1000  # needed for height to be applied correctly
     )
     assert result.exit_code == 0, (
         f"Command failed with error {result.exception}"

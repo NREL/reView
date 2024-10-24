@@ -286,7 +286,7 @@ def test_map_geodataframe_column_boundaries_kwargs(
 @pytest.mark.maptest
 @pytest.mark.filterwarnings("ignore:Geometry is in a geographic:UserWarning")
 def test_map_geodataframe_polygons(
-    data_dir_test, supply_curve_gdf, county_background_gdf, states_gdf,
+    *, data_dir_test, supply_curve_gdf, county_background_gdf, states_gdf,
     counties_gdf, compare_images_approx
 ):
     """
