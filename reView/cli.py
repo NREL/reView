@@ -178,7 +178,6 @@ def validate_breaks_scheme(ctx, param, value):
         - the kwargs do not appear to be valid JSON
     """
 
-
     if value in TECH_CHOICES or value is None:
         return value
 
@@ -407,7 +406,8 @@ def make_maps(
     else:
         classifier, classifier_kwargs = breaks_scheme
         out_suffix = classifier
-        # pylint: disable=consider-using-dict-items, consider-iterating-dictionary
+        # pylint: disable=consider-using-dict-items,
+        # consider-iterating-dictionary
         for map_var in map_vars.keys():
             scheme = mc.classify(
                 supply_curve_gdf[map_var], classifier, **classifier_kwargs

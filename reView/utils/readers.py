@@ -244,6 +244,7 @@ def calc_least_cost(paths, dst, composite_function="min",
         )
         data.to_csv(dst, index=False)
 
+
 def find_capacity_column(supply_curve_df, cap_col_candidates=None):
     """Find the capacity column in a supply curve data frame.
 
@@ -456,5 +457,3 @@ def read_timeseries(file, project, gids=None, nsteps=None,
     })
 
     return data
-
-

@@ -440,7 +440,7 @@ def strip_rev_filename_endings(filename):
 
     Returns
     -------
-    str : 
+    str :
         Filename without the file endings listed above.
 
     Examples
@@ -592,7 +592,8 @@ def to_sarray(df):
                 else:
                     coltype = 'f2'
             return column.name, coltype
-        except:
+        except Exception as e:
+            print(f"An error occurred: {e}")
             print(column.name, coltype, coltype.type, type(column))
             raise
 
