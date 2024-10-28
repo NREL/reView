@@ -134,7 +134,7 @@ def above_time_options_div(id_prefix, class_name=None):
             html.Div(
                 className="row",
                 children=[
-                    html.Div(                  
+                    html.Div(
                         className="six columns",
                         children=dcc.Dropdown(
                             id=f"{id_prefix}_time_var_options",

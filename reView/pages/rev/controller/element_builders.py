@@ -200,7 +200,6 @@ class Plots:
     def capacity(self):
         """Find the most appropriate cpacity column."""
 
-
     def char_hist(self, x_var):
         """Make a histogram of the characterization column."""
         main_df = list(self.datasets.values())[0]

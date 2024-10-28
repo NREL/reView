@@ -71,7 +71,7 @@ COMPOSITE_DIV = html.Div(
                         html.H6("Scenario Filters"),
                         html.Div(
                             id="composite_filters",
-                            children=[]                   
+                            children=[]
                         )
                     ]
                 )
@@ -206,11 +206,11 @@ TOPTIONS = [
                                         "height": "1.5px",
                                         "width": "95%"
                                     }
-                                )                            
+                                )
                             )
                         ],
                     ),
- 
+
                     # Second Scenario
                     html.Div(
                         id="scenario_b_div",
@@ -248,7 +248,7 @@ TOPTIONS = [
                                         "height": "1.5px",
                                         "width": "95%"
                                     }
-                                )                            
+                                )
                             )
                         ],
                     ),

@@ -425,7 +425,7 @@ def point_filter(map_selection=None, chart_selection=None, map_click=None):
     if check1 or check2 or check3:
         # If a click, override
         if check3:
-            point = map_click["points"]  
+            point = map_click["points"]
             gids = [point[0]["customdata"][0]]
         if check1 and check2:
             points = chart_selection["points"]
