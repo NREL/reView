@@ -252,11 +252,8 @@ def test_make_maps(
     for tech in TECH_CHOICES:
         if tech == "wind":
             supply_curve_file = map_supply_curve_wind.as_posix()
-        elif tech == "solar":
-            supply_curve_file = map_supply_curve_solar.as_posix()
         else:
-            print("No tech type is assigned.")
-            sys.exit(1)
+            supply_curve_file = map_supply_curve_solar.as_posix()
 
         with tempfile.TemporaryDirectory() as tempdir:
             output_path = pathlib.Path(tempdir)

@@ -266,6 +266,47 @@ def deep_replace(dictionary, replacement):
         return
 
 
+def find_capacity_column(supply_curve_df, cap_col_candidates=None):
+    """
+    Identifies the capacity column in a supply curve dataframe from a list of
+    candidate columns. If more than one of the candidate columns is found in
+    the dataframe, only the first one that occurs will be returned.
+
+    Parameters
+    ----------
+    supply_curve_df : pandas.DataFrame
+        Supply curve data frame
+    cap_col_candidates : [list, None], optional
+        Candidate capacity column names, by default None, which will result in
+        using the candidate column names ["capacity", "capacity_mw",
+        "capacity_mw_dc"].
+
+    Returns
+    -------
+    str : Name of capacity column
+
+    Raises
+    ------
+    ValueError : Raises a ValueError if none of the candidate capacity columns
+        are found in the input dataframe.
+    """
+    if cap_col_candidates is None:
+        cap_col_candidates = [
+            "capacity", "capacity_mw", "capacity_mw_dc"
+        ]
+    cap_col = None
+    for candidate in cap_col_candidates:
+        if candidate in supply_curve_df.columns:
+            cap_col = candidate
+            break
+    if cap_col is None:
+        raise ValueError(
+            "Could not find capacity column using candidate column names: "
+            f"{cap_col_candidates} "
+        )
+    return cap_col
+
+
 def get_project_defaults():
     """Get the default project for each page from a file (easier to change)."""
     fpath = Paths.home.joinpath("reView/default_project")

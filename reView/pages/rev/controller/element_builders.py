@@ -321,8 +321,9 @@ class Plots:
             fig = self.box(y_var)
         elif chart_type == "timeseries":
             fig = self.timeseries(y_var, trace_type, time_period)
-        elif chart_type == "summary_table":
-            fig = self.summary_table()
+        else:
+            msg = f"{chart_type} not yet implemented."
+            raise NotImplementedError(msg)
 
         return fig
 
@@ -400,13 +401,6 @@ class Plots:
 
         return self._update_fig_layout(fig, y_var)
 
-    def summary_table(self):
-        """Return a summary table of all values for all tables."""
-        table = None
-        for key, df in self.datasets.items():
-            break
-        return table
-
     def timeseries(self, y_var="profile", trace_type="bar",
                    time_period="original"):
         """Render time series."""
@@ -417,11 +411,11 @@ class Plots:
         # Create the plottable dataframe
         main_df = None
         units = []
+        key1 = list(self.datasets)[0]
         for key, df in self.datasets.items():
             if df["units"].iloc[0]:
                 units.append(df["units"].iloc[0])
             if main_df is None:
-                key1 = key
                 main_df = df.copy()
                 if time_period != "original":
                     main_df = self._aggregate_timeseries(main_df, y_var,
@@ -631,6 +625,6 @@ class Plots:
         layout["title"]["text"] = self.plot_title
         layout["legend_title_text"] = self.GROUP
         fig.update_layout(**layout)
-        # if y_var:
-        #     fig.update_layout(yaxis={"range": self._plot_range(y_var)})
+        if y_var:
+            fig.update_layout(yaxis={"range": self._plot_range(y_var)})
         return fig

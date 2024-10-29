@@ -189,9 +189,8 @@ def validate_breaks_scheme(ctx, param, value):
             f"options: {mc.CLASSIFIERS}."
         )
 
-    if len(classifier_inputs) == 1:
-        classifier_kwargs = {}
-    elif len(classifier_inputs) == 2:
+    classifier_kwargs = {}
+    if len(classifier_inputs) == 2:
         try:
             classifier_kwargs = json.loads(classifier_inputs[1])
         except json.decoder.JSONDecodeError as e:
