@@ -95,8 +95,8 @@ NAVBAR = html.Nav(
         ),
         html.A(
             html.Img(
-                src="""https://raw.githubusercontent.com/NREL/reView/
-                main/reView/static/nrel_logo.png""",
+                src=("https://raw.githubusercontent.com/NREL/reView/"
+                     "main/reView/static/nrel_logo.png"),
                 className="twelve columns",
                 style={
                     "height": "70px",
