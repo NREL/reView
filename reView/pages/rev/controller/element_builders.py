@@ -200,7 +200,6 @@ class Plots:
     def capacity(self):
         """Find the most appropriate cpacity column."""
 
-
     def char_hist(self, x_var):
         """Make a histogram of the characterization column."""
         main_df = list(self.datasets.values())[0]
@@ -446,8 +445,10 @@ class Plots:
 
         # Make sure we're not plotting mutliple y-variables
         label = "Profile"
-        assert len(np.unique(units)) == 1, "Multiple y-variable units detected"
-        label = units[0]
+        if units:
+            assert len(np.unique(units)
+                       ) == 1, "Multiple y-variable units detected"
+            label = units[0]
         main_df = main_df.rename(columns={"profile": label})
 
         # Aggregate time series if needed

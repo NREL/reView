@@ -184,13 +184,14 @@ def map_div(id_prefix, class_name=None):
                 id=f"{id_prefix}_map",
                 style={"height": 750},
                 config={
+                    "scrollZoom": True,
                     "showSendToCloud": True,
                     "plotlyServerURL": "https://chart-studio.plotly.com",
                     "toImageButtonOptions": {
                         "width": 1250,
                         "height": 750,
                         "filename": "custom_review_map",
-                    },
+                    }
                 },
                 mathjax=True,
                 figure=go.Figure(
@@ -205,9 +206,9 @@ def map_div(id_prefix, class_name=None):
                                 "showarrow": False,
                                 "font": {"size": 28},
                             }
-                        ],
+                        ]
                     }
-                ),
+                )
             ),
 
             # Button to reveal below options
