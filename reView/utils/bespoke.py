@@ -102,7 +102,7 @@ class BespokeUnpacker:
         rdf = rdf[self.df.columns]
         return rdf
 
-    def unpack_row(self, row, capacity_col="capacity"):
+    def unpack_row(self, row, capacity_col="capacity_ac_mw"):
         """Unpack a single row (pandas Series) in a supply curve table."""
         x, y = self.get_xy(row)
 
@@ -128,19 +128,25 @@ class BespokeUnpacker:
             # capacity in mw) with turbine capacity in kw for this turbine row.
             # This maintains compatibility with how capacity is summed and
             # displayed in the dashboard
-            new_row["capacity"] = turbine_capacity_mw
+            new_row[capacity_col] = turbine_capacity_mw
             new_row["x"] = x
             new_row["y"] = ys[i]
             new_rows.append(new_row)
 
         return new_rows
 
-    def unpack_turbines(self, drop_sc_points=False):
+    def unpack_turbines(self, drop_sc_points=False,
+                        capacity_col="capacity_ac_mw"):
         """Unpack bespoke turbines if possible.
 
+        Parameters
+        ----------
         drop_sc_points : bool
             Only return a data frame of individual turbine locations and not
             the rest of the supply-curve table. Defaults to False.
+        capacity_col : str
+            Column name representing the plant capacity of each supply curve
+            point. Defaults to 'capacity_ac_mw'.
 
         Returns
         -------
@@ -153,7 +159,7 @@ class BespokeUnpacker:
         df = self.df.copy()
 
         # Get coordinates from equal area projection
-        new_rows = self.unpack_row(row)
+        new_rows = self.unpack_row(row, capacity_col=capacity_col)
 
         # Build new data frame
         rdf = pd.DataFrame(new_rows)

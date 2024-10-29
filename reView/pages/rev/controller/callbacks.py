@@ -1104,8 +1104,9 @@ def figure_map(
 
     # Unpack bespoke turbines if needed
     if "clickData" in callback_trigger() and "turbine_y_coords" in df:
+        config = Config(project)
         unpacker = BespokeUnpacker(df, map_click)
-        df = unpacker.unpack_turbines()
+        df = unpacker.unpack_turbines(capacity_col=config.capacity_column)
 
     # Use demand counts if available
     if "demand_connect_count" in df:
