@@ -14,7 +14,7 @@ from pathlib import Path
 
 import h5py
 import pandas as pd
-import pyarrow as pa 
+import pyarrow as pa
 
 from pyarrow.parquet import ParquetFile
 from reV.utilities import SupplyCurveField
@@ -95,8 +95,8 @@ def read_rev(fpath, nrows=None):
     if Path(fpath).name.endswith("parquet"):
         if nrows:
             pf = ParquetFile(fpath)
-            nrows = next(pf.iter_batches(batch_size=nrows)) 
-            sc = pa.Table.from_batches([nrows]).to_pandas() 
+            nrows = next(pf.iter_batches(batch_size=nrows))
+            sc = pa.Table.from_batches([nrows]).to_pandas()
         else:
             sc = pd.read_parquet(fpath)
     elif Path(fpath).name.endswith("csv"):
@@ -127,7 +127,7 @@ class Config():
         self._check_required_keys_exist()
 
     def __str__(self):
-        """Return a Config object's string representation.""" 
+        """Return a Config object's string representation."""
         msg = (
             f"<reView Config object: "
             f"project={self.project!r}, {len(self.files)} files>"
@@ -135,7 +135,7 @@ class Config():
         return msg
 
     def __repr__(self):
-        """Return a Config object's representation string.""" 
+        """Return a Config object's representation string."""
         return f"Config({self.project!r})"
 
     @property
@@ -256,7 +256,6 @@ class Config():
     @cached_property
     def options(self):
         """Return a variable options data frame for dropdown selections
-        
         Returns
         -------
         pd.core.frame.DataFrame or None: DataFrame containing

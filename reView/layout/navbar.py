@@ -95,7 +95,8 @@ NAVBAR = html.Nav(
         ),
         html.A(
             html.Img(
-                src="https://raw.githubusercontent.com/NREL/reView/main/reView/static/nrel_logo.png",
+                src="""https://raw.githubusercontent.com/NREL/reView/
+                main/reView/static/nrel_logo.png""",
                 className="twelve columns",
                 style={
                     "height": "70px",
@@ -118,7 +119,7 @@ NAVBAR = html.Nav(
     ],
 )
 
-SIDE_BUTTON=html.Div(
+SIDE_BUTTON = html.Div(
     children=html.Button(
         "Additional Scenarios",
         id="open_side_options",

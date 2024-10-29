@@ -198,7 +198,7 @@ class BespokeUnpacker:
     def _unpack_all(self, df, capacity_col="capacity_ac_mw"):
         """Unpack all turbines in all sc points."""
         new_rows = []
-        for i, row in df.iterrows():
+        for _, row in df.iterrows():
             out = self.unpack_row(row, capacity_col=capacity_col)
             new_rows += out
         ndf = pd.DataFrame(new_rows)
@@ -239,8 +239,7 @@ def batch_unpack_from_supply_curve(sc_df, n_workers=1):
     """
 
     # cap nb_workers to the total CPUs on the machine/node
-    if n_workers > cpu_count():
-        n_workers = cpu_count()
+    n_workers = min(n_workers, cpu_count())
 
     if n_workers > 1:
         # initialize functionality for parallela dataframe.apply

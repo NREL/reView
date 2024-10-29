@@ -178,7 +178,6 @@ def validate_breaks_scheme(ctx, param, value):
         - the kwargs do not appear to be valid JSON
     """
 
-
     if value in TECH_CHOICES or value is None:
         return value
 
@@ -190,9 +189,8 @@ def validate_breaks_scheme(ctx, param, value):
             f"options: {mc.CLASSIFIERS}."
         )
 
-    if len(classifier_inputs) == 1:
-        classifier_kwargs = {}
-    elif len(classifier_inputs) == 2:
+    classifier_kwargs = {}
+    if len(classifier_inputs) == 2:
         try:
             classifier_kwargs = json.loads(classifier_inputs[1])
         except json.decoder.JSONDecodeError as e:
@@ -407,7 +405,8 @@ def make_maps(
     else:
         classifier, classifier_kwargs = breaks_scheme
         out_suffix = classifier
-        # pylint: disable=consider-using-dict-items, consider-iterating-dictionary
+        # pylint: disable=consider-using-dict-items,
+        # consider-iterating-dictionary
         for map_var in map_vars.keys():
             scheme = mc.classify(
                 supply_curve_gdf[map_var], classifier, **classifier_kwargs

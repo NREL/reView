@@ -168,7 +168,7 @@ def build_specs(scenario, project):
 def build_spec_split(path, project):
     """Calculate the percentage of each scenario present."""
     cap_field = Config(project).capacity_column
-    df = cache_table(project, y_var=cap_field, x_var="mean_lcoe", path=path)  # Also find mean lcoe field (new field = lcoe_site_usd_per_mwh)
+    df = cache_table(project, y_var=cap_field, x_var="mean_lcoe", path=path)
     scenarios, counts = np.unique(df["scenario"], return_counts=True)
     total = df.shape[0]
     percentages = [counts[i] / total for i in range(len(counts))]
@@ -365,17 +365,18 @@ def disable_mapping_function_dev(project, __):
 @app.callback(
     Output("download_chart", "data"),
     Input("download_info_chart", "children"),
+    State("project", "value"),
     prevent_initial_call=True,
 )
 @calls.log
-def download_chart(chart_info):
+def download_chart(chart_info, project):
     """Download csv file."""
     info = json.loads(chart_info)
     if info["tmp_path"] is None:
         raise PreventUpdate
     src = info["tmp_path"]
     dst = info["path"]
-    df = read_file(src)
+    df = read_file(src, project=project)
     os.remove(src)
     return dcc.send_data_frame(df.to_csv, dst, index=False)
 
@@ -506,7 +507,7 @@ def dropdown_composite_plot_options(scenario_options, project):
     plot_options = [{"label": "Scenario", "value": "scenario"}]
 
     if path and os.path.exists(path):
-        data = read_file(path, nrows=1)
+        data = read_file(path, project=project, nrows=1)
         columns = [c for c in data.columns if c.lower() not in SKIP_VARS]
         titles = {col: convert_to_title(col) for col in columns}
         titles.update(config.titles)
@@ -533,7 +534,7 @@ def dropdown_composite_scenarios(
         filters,
         filter_ids,
         _
-    ):
+):
     """Update the options given a project."""
     logger.debug("URL: %s", url)
     config = Config(project)
@@ -580,7 +581,7 @@ def dropdown_composite_targets(scenario_options, project):
 
     target_options = []
     if path and os.path.exists(path):
-        data = read_file(path, nrows=1)
+        data = read_file(path, project=project, nrows=1)
         columns = [c for c in data.columns if c.lower() not in SKIP_VARS]
         titles = {col: convert_to_title(col) for col in columns}
         titles.update(config.titles)
@@ -673,7 +674,7 @@ def dropdown_scenarios(
         __,
         filter_ids,
         ___,
-    ):
+):
     """Update the scenario options given a project."""
     # Find all available project files
     config = Config(project)
@@ -734,7 +735,7 @@ def dropdown_scenarios(
     State("rev_additional_scenarios", "options")
 )
 @calls.log
-def dropdown_scenarios_adjust_additional(clear_all, select_all, options):
+def dropdown_scenarios_adjust_additional(_clear_all, _select_all, options):
     """Add all or clear the additional dropdown scenarios."""
     # Catcht the triggering element
     trigger = callback_trigger()
@@ -1167,7 +1168,7 @@ def figure_timeseries(
         map_selection,
         map_click,
         project
-    ):
+):
     """Render timeseries plots if possible."""
     # read in signal
     signal_dict = json.loads(signal)
@@ -1219,7 +1220,7 @@ def figure_timeseries(
         datasets=datasets,
         plot_title=title,
         point_size=10,
-        user_scale=(0, 1),
+        user_scale=(0, 1),  # this assumes cf
         alpha=1,
     )
 

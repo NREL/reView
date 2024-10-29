@@ -284,9 +284,7 @@ class Map:
         basemap="light",
         colorscale="Viridis",
         color_range=None,
-        demand_data=None,
-        view=None,
-        update_view=False
+        demand_data=None
     ):
         """Initialize ScatterPlot object."""
         self.df = df
