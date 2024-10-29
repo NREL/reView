@@ -534,7 +534,7 @@ def dropdown_composite_scenarios(
         filters,
         filter_ids,
         _
-        ):
+):
     """Update the options given a project."""
     logger.debug("URL: %s", url)
     config = Config(project)
@@ -674,7 +674,7 @@ def dropdown_scenarios(
         __,
         filter_ids,
         ___,
-        ):
+):
     """Update the scenario options given a project."""
     # Find all available project files
     config = Config(project)
@@ -1168,7 +1168,7 @@ def figure_timeseries(
         map_selection,
         map_click,
         project
-        ):
+):
     """Render timeseries plots if possible."""
     # read in signal
     signal_dict = json.loads(signal)
@@ -1220,7 +1220,7 @@ def figure_timeseries(
         datasets=datasets,
         plot_title=title,
         point_size=10,
-        user_scale=(0, 1),
+        user_scale=(0, 1),  # this assumes cf
         alpha=1,
     )
 

@@ -407,7 +407,7 @@ def read_timeseries(file, project, gids=None, nsteps=None,
         nsteps = ds["time_index"].shape[0]
 
     # Find site indices
-    if gids is not None:
+    if gids:
         meta = meta[meta["sc_point_gid"].isin(gids)]
     idx = list(meta.index)
 

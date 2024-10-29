@@ -617,6 +617,7 @@ class Plots:
             ymax = max([df[var].max() for df in self.datasets.values()])
         if ymax and not ymin:
             ymin = min([df[var].min() for df in self.datasets.values()])
+
         return [ymin, ymax]
 
     def _update_fig_layout(self, fig, y_var=None):
