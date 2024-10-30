@@ -1221,7 +1221,6 @@ def figure_timeseries(
         datasets=datasets,
         plot_title=title,
         point_size=10,
-        user_scale=(0, 1),  # this assumes cf
         alpha=1,
     )
 

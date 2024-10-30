@@ -334,8 +334,8 @@ TOPTIONS = [
                                 label="Scenario B Mask",
                                 style=TABLET_STYLE,
                                 selected_style=TAB_BOTTOM_SELECTED_STYLE,
-                            ),
-                        ],
+                            )
+                        ]
                     ),
                     html.Hr(),
                 ],
@@ -362,8 +362,8 @@ TOPTIONS = [
                             },
                         ],
                         value="None",
-                    ),
-                ],
+                    )
+                ]
             ),
 
             # LCOE Recalc
@@ -376,7 +376,7 @@ TOPTIONS = [
                             "transmission connections so there will be "
                             "some error with Transmission Capital "
                             "Costs, LCOT, and Total LCOE."
-                        ),
+                        )
                     ),
                     dcc.Tabs(
                         id="recalc_tab",
@@ -416,8 +416,8 @@ TOPTIONS = [
                                         label="Scenario B",
                                         style=TABLET_STYLE,
                                         selected_style=TABLET_STYLE_CLOSED,
-                                    ),
-                                ],
+                                    )
+                                ]
                             ),
 
                             # Long table of scenario A recalc parameters
@@ -456,7 +456,7 @@ TOPTIONS = [
                                                 type="number",
                                                 className="nine columns",
                                                 style={"height": "60%"},
-                                            ),
+                                            )
                                         ],
                                         className="row",
                                     ),
@@ -474,7 +474,7 @@ TOPTIONS = [
                                                 type="number",
                                                 className="nine columns",
                                                 style={"height": "60%"},
-                                            ),
+                                            )
                                         ],
                                         className="row",
                                     ),
@@ -492,7 +492,7 @@ TOPTIONS = [
                                                 type="number",
                                                 className="nine columns",
                                                 style={"height": "60%"},
-                                            ),
+                                            )
                                         ],
                                         className="row",
                                     ),
@@ -600,7 +600,10 @@ TOPTIONS = [
                                 id="filter_variables_1",
                                 placeholder="Choose variable.",
                                 className="six columns",
-                                style={"margin-right": -1},
+                                style={
+                                    "margin-right": -1,
+                                    "margin-bottom": -1
+                                }
                             ),
                             dcc.Input(
                                 id="filter_1",
@@ -609,8 +612,9 @@ TOPTIONS = [
                                 style={
                                     "background-color": "#f9f9f9",
                                     "margin-left": -1,
-                                },
-                            ),
+                                    "height": "35px"
+                                }
+                            )
                         ],
                         style={"width": "100%"},
                     ),
@@ -622,7 +626,8 @@ TOPTIONS = [
                                 className="six columns",
                                 style={
                                     "margin-right": -1,
-                                },
+                                    "margin-bottom": -1
+                                }
                             ),
                             dcc.Input(
                                 id="filter_2",
@@ -631,8 +636,9 @@ TOPTIONS = [
                                 style={
                                     "background-color": "#f9f9f9",
                                     "margin-left": -1,
-                                },
-                            ),
+                                    "height": "35px"
+                                }
+                            )
                         ]
                     ),
                     html.Div(
@@ -643,7 +649,9 @@ TOPTIONS = [
                                 className="six columns",
                                 style={
                                     "margin-right": -1,
-                                },
+                                    "margin-bottom": -1
+
+                                }
                             ),
                             dcc.Input(
                                 id="filter_3",
@@ -652,8 +660,9 @@ TOPTIONS = [
                                 style={
                                     "background-color": "#f9f9f9",
                                     "margin-left": -1,
-                                },
-                            ),
+                                    "height": "35px"
+                                }
+                            )
                         ]
                     ),
                     html.Div(
@@ -664,7 +673,8 @@ TOPTIONS = [
                                 className="six columns",
                                 style={
                                     "margin-right": -1,
-                                },
+                                    "margin-bottom": -1
+                                }
                             ),
                             dcc.Input(
                                 id="filter_4",
@@ -673,17 +683,18 @@ TOPTIONS = [
                                 style={
                                     "background-color": "#f9f9f9",
                                     "margin-left": -1,
-                                },
-                            ),
-                        ],
-                    ),
+                                    "height": "35px"
+                                }
+                            )
+                        ]
+                    )
                 ],
                 className="four columns",
             ),
         ],
         id="options",
         className="row",
-    ),
+    )
 ]
 
 
