@@ -263,7 +263,7 @@ def deep_replace(dictionary, replacement):
         for key, value in dictionary.items():
             __replace_value(dictionary, replacement, key, value)
     except AttributeError:  # `dictionary`` does not have `.items()` method
-        return
+        return "AttributeError: `dictionary`` does not have `.items()` method"
 
 
 def find_capacity_column(supply_curve_df, cap_col_candidates=None):

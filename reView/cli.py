@@ -407,7 +407,7 @@ def make_maps(
         out_suffix = classifier
         # pylint: disable=consider-using-dict-items,
         # consider-iterating-dictionary
-        for map_var in map_vars.keys():
+        for map_var in map_vars:
             scheme = mc.classify(
                 supply_curve_gdf[map_var], classifier, **classifier_kwargs
             )
